@@ -1,0 +1,11 @@
+C:\Users\diogo\Documents\GitHub\Willows\cafe_manager_backend\target\debug\deps\libcookie-6f8743f7820c5855.rmeta: C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\lib.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\builder.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\parse.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\jar.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\delta.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\draft.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\expiration.rs
+
+C:\Users\diogo\Documents\GitHub\Willows\cafe_manager_backend\target\debug\deps\cookie-6f8743f7820c5855.d: C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\lib.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\builder.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\parse.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\jar.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\delta.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\draft.rs C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\expiration.rs
+
+C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\lib.rs:
+C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\builder.rs:
+C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\parse.rs:
+C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\jar.rs:
+C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\delta.rs:
+C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\draft.rs:
+C:\Users\diogo\.cargo\registry\src\index.crates.io-6f17d22bba15001f\cookie-0.16.2\src\expiration.rs:
