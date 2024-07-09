@@ -3,6 +3,7 @@ const cors = require("cors");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const pedidosRoutes = require("./routes/pedidos");
+const authRoutes = require("./routes/authRoutes"); // Importar as rotas de autenticação
 require("dotenv").config();
 
 const app = express();
@@ -12,6 +13,7 @@ app.use(express.json());
 
 const sequelize = require("./config/database");
 const Pedido = require("./models/Pedido");
+const User = require("./models/User"); // Importar o model User
 
 // Sync Database
 sequelize.sync({ force: false }).then(() => {
@@ -32,6 +34,20 @@ const swaggerOptions = {
         url: `http://localhost:${process.env.PORT}`,
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   apis: ["./src/routes/*.js"],
 };
@@ -39,7 +55,9 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+// Rotas
 app.use("/api/pedidos", pedidosRoutes);
+app.use("/auth", authRoutes); // Adicionar as rotas de autenticação
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

@@ -1,6 +1,9 @@
+// ../routes/pedidos.js
+
 const express = require("express");
 const router = express.Router();
 const Pedido = require("../models/Pedido");
+const authenticateToken = require("../middleWare/authMiddleware");
 
 /**
  * @swagger
@@ -8,6 +11,8 @@ const Pedido = require("../models/Pedido");
  *   post:
  *     summary: Cria um novo pedido
  *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -25,10 +30,16 @@ const Pedido = require("../models/Pedido");
  *     responses:
  *       201:
  *         description: Pedido criado com sucesso
+ *       401:
+ *         description: Acesso negado
  */
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
   try {
-    const novoPedido = await Pedido.create(req.body);
+    const userId = req.user.id; // Obtém o ID do usuário do token JWT
+    const novoPedido = await Pedido.create({
+      ...req.body,
+      userId: userId,
+    });
     res.status(201).json(novoPedido);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -39,28 +50,17 @@ router.post("/", async (req, res) => {
  * @swagger
  * /api/pedidos:
  *   get:
- *     summary: Lista todos os pedidos
+ *     summary: Retorna todos os pedidos
  *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de pedidos
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                   item:
- *                     type: string
- *                   quantidade:
- *                     type: integer
- *                   status:
- *                     type: string
+ *         description: A lista de pedidos
+ *       401:
+ *         description: Acesso negado
  */
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
   try {
     const pedidos = await Pedido.findAll();
     res.json(pedidos);
@@ -75,6 +75,8 @@ router.get("/", async (req, res) => {
  *   put:
  *     summary: Atualiza o status de um pedido
  *     tags: [Pedidos]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -98,8 +100,7 @@ router.get("/", async (req, res) => {
  *       404:
  *         description: Pedido não encontrado
  */
-
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, async (req, res) => {
   try {
     const pedido = await Pedido.findByPk(req.params.id);
     if (pedido) {
@@ -112,8 +113,6 @@ router.put("/:id", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-// obter o numero de pedidos ja feitos
 
 /**
  * @swagger
@@ -143,4 +142,38 @@ router.get("/stats", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+/**
+ * @swagger
+ * /api/pedidos/{id}:
+ *   delete:
+ *     summary: Deleta um pedido
+ *     tags: [Pedidos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID do pedido
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Pedido apagado com sucesso
+ *       404:
+ *         description: Pedido não encontrado
+ */
+router.delete("/:id", async (req, res) => {
+  try {
+    const pedido = await Pedido.findByPk(req.params.id);
+    if (pedido) {
+      await pedido.destroy();
+      res.json({ message: "Pedido apagado com sucesso" });
+    } else {
+      res.status(404).json({ message: "Pedido não encontrado" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

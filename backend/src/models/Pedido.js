@@ -11,8 +11,12 @@ const Pedido = sequelize.define("Pedido", {
     allowNull: false,
   },
   status: {
-    type: DataTypes.ENUM("pendente", "em_preparo", "pronto"),
+    type: DataTypes.ENUM("pendente", "em_preparo", "pronto", "entregue"),
     defaultValue: "pendente",
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
   },
 });
 

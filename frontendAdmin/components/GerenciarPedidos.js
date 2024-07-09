@@ -12,10 +12,7 @@ export default function GerenciarPedidos() {
 
   const fetchPedidos = async () => {
     try {
-      console.log(REACT_APP_API_URL);
       const response = await axios.get(`${REACT_APP_API_URL}/pedidos`);
-
-      // Filtra os pedidos para garantir que tenham um id válido
       const pedidosFiltrados = response.data.filter((item) => item.id);
       setPedidos(pedidosFiltrados);
     } catch (error) {
@@ -26,11 +23,9 @@ export default function GerenciarPedidos() {
 
   const atualizarStatus = async (id, novoStatus) => {
     try {
-      console.log("Atualizando status do pedido", id, novoStatus);
       await axios.put(`${REACT_APP_API_URL}/pedidos/${id}`, {
         status: novoStatus,
       });
-      console.log("Status atualizado com sucesso");
       fetchPedidos();
     } catch (error) {
       console.error("Erro ao atualizar status", error);
@@ -38,21 +33,31 @@ export default function GerenciarPedidos() {
     }
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.pedidoContainer}>
-      <Text>
-        {item.item} - Quantidade: {item.quantidade} - Status: {item.status}
-      </Text>
-      <Button
-        title="Em Preparo"
-        onPress={() => atualizarStatus(item.id, "em_preparo")}
-      />
-      <Button
-        title="Pronto"
-        onPress={() => atualizarStatus(item.id, "pronto")}
-      />
-    </View>
-  );
+  const renderItem = ({ item }) => {
+    if (item.status === "entregue") {
+      return null; // Não renderiza o item se estiver pronto
+    }
+
+    return (
+      <View style={styles.pedidoContainer}>
+        <Text>
+          {item.item} - Quantidade: {item.quantidade} - Status: {item.status}
+        </Text>
+        <Button
+          title="Em Preparo"
+          onPress={() => atualizarStatus(item.id, "em_preparo")}
+        />
+        <Button
+          title="Pronto"
+          onPress={() => atualizarStatus(item.id, "pronto")}
+        />
+        <Button
+          title="Entregue"
+          onPress={() => atualizarStatus(item.id, "entregue")}
+        />
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -68,6 +73,7 @@ export default function GerenciarPedidos() {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 20,
   },
   header: {
