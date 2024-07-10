@@ -1,53 +1,42 @@
 // App.js
 
-import React from "react";
-import { StyleSheet, Text, SafeAreaView } from "react-native";
+import React, { useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-import FazerPedido from "./components/FazerPedido";
-import ListaPedidos from "./components/ListaPedidos";
+import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
+import { Provider as PaperProvider } from "react-native-paper";
+import PedidosPopularesScreen from "./screens/PedidosPopularesScreen";
+import PesquisaScreen from "./screens/PesquisaScreen";
 import LoginScreen from "./screens/LoginScreen";
 
-const Stack = createStackNavigator();
+const Tab = createMaterialBottomTabNavigator();
 
-export default function App() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="FazerPedido" component={FazerPedido} />
-        <Stack.Screen name="ListaPedidos" component={ListaPedidos} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-}
+const App = () => {
+  const [userToken, setUserToken] = useState(null); // Estado para verificar se o usuário está logado
 
-const HomeScreen = () => {
+  // // Função para definir o token do usuário após o login
+  // const handleLogin = (token) => {
+  //   setUserToken(token);
+  // };
+
+  // // Se o usuário não estiver logado, exiba a tela de login
+  // if (!userToken) {
+  //   return <LoginScreen onLogin={handleLogin} />;
+  // }
+
+  // Após o login, exiba a tela principal com as abas
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Café App - Cliente</Text>
-      <FazerPedido />
-      <ListaPedidos />
-    </SafeAreaView>
+    <PaperProvider>
+      <NavigationContainer>
+        <Tab.Navigator>
+          <Tab.Screen
+            name="Pedidos Populares"
+            component={PedidosPopularesScreen}
+          />
+          <Tab.Screen name="Pesquisa" component={PesquisaScreen} />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </PaperProvider>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "flex-start", // Alinha o conteúdo no topo da tela
-    paddingTop: 20, // Adiciona um espaçamento no topo
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-});
+export default App;
