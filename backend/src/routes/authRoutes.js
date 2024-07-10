@@ -50,12 +50,13 @@ const router = express.Router();
  *         description: Erro ao registrar o Utilizador
  */
 router.post("/signup", async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, role } = req.body;
   try {
     const newUser = await User.create({
       username,
       email,
       password,
+      role,
     });
     res
       .status(201)

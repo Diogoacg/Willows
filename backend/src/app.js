@@ -2,8 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-const pedidosRoutes = require("./routes/pedidos");
-const authRoutes = require("./routes/authRoutes"); // Importar as rotas de autenticação
+const OrderGroupRoutes = require("./routes/orderGroupRoutes.js");
+const authRoutes = require("./routes/authRoutes");
+const inventoryRoutes = require("./routes/inventoryRoutes");
+const statsRoutes = require("./routes/statsRoutes");
+
 require("dotenv").config();
 
 const app = express();
@@ -12,13 +15,27 @@ app.use(cors());
 app.use(express.json());
 
 const sequelize = require("./config/database");
-const Pedido = require("./models/Pedido");
-const User = require("./models/User"); // Importar o model User
+const User = require("./models/User");
+const Item = require("./models/Item");
+const OrderGroup = require("./models/OrderGroup");
+const OrderItem = require("./models/OrderItem");
 
-// Sync Database
-sequelize.sync({ force: false }).then(() => {
-  console.log("Database & tables created!");
+// Definir associações
+OrderGroup.hasMany(OrderItem, { as: "items", foreignKey: "orderGroupId" });
+OrderItem.belongsTo(OrderGroup, {
+  foreignKey: "orderGroupId",
+  as: "orderGroup",
 });
+
+// Sincronizar o banco de dados
+sequelize
+  .sync({ alter: true })
+  .then(() => {
+    console.log("Database & tables created!");
+  })
+  .catch((error) => {
+    console.error("Error creating database tables:", error);
+  });
 
 // Configuração Swagger
 const swaggerOptions = {
@@ -56,8 +73,10 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Rotas
-app.use("/api/pedidos", pedidosRoutes);
-app.use("/auth", authRoutes); // Adicionar as rotas de autenticação
+app.use("/api/order-groups", OrderGroupRoutes);
+app.use("/auth", authRoutes);
+app.use("/api/inventory", inventoryRoutes);
+app.use("/api/stats", statsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
