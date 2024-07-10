@@ -1,5 +1,4 @@
-// screens/PedidosPopularesScreen.js
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   FlatList,
@@ -8,7 +7,10 @@ import {
   TouchableOpacity,
   Dimensions,
   SafeAreaView,
+  Modal,
+  Text,
 } from "react-native";
+import ActionModal from "./../components/ActionModal";
 
 const data = [
   { id: "1", image: require("./../assets/favicon.png") },
@@ -33,9 +35,19 @@ const numColumns = 3;
 const screenWidth = Dimensions.get("window").width;
 
 const PedidosPopularesScreen = () => {
+  const [visibleModal, setVisibleModal] = useState(false);
+
   const handleImagePress = (id) => {
     console.log(`Imagem ${id} pressionada`);
     // Lógica para o que acontece quando a imagem é pressionada
+  };
+
+  const handleOpenModal = () => {
+    setVisibleModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setVisibleModal(false);
   };
 
   const itemWidth = screenWidth / numColumns - 20; // 20 é o espaçamento total (10 de cada lado)
@@ -53,6 +65,9 @@ const PedidosPopularesScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.headerSpace} />
+        <TouchableOpacity style={styles.cartButton} onPress={handleOpenModal}>
+          <Text style={styles.cartText}>Carrinho</Text>
+        </TouchableOpacity>
         <FlatList
           data={data}
           renderItem={renderItem}
@@ -60,6 +75,19 @@ const PedidosPopularesScreen = () => {
           numColumns={numColumns}
           contentContainerStyle={styles.listContainer}
         />
+        <Modal
+          visible={visibleModal}
+          transparent={true}
+          onRequestClose={handleCloseModal}
+        >
+          <ActionModal
+            handleClose={handleCloseModal}
+            handleConfirm={() => {
+              alert("Confirmou o pedido!");
+              handleCloseModal();
+            }}
+          />
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -99,6 +127,26 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover",
+  },
+  cartButton: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    backgroundColor: "#fff",
+    padding: 10,
+    borderRadius: 8,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+  },
+  cartText: {
+    fontWeight: "bold",
+    color: "#000",
   },
 });
 
