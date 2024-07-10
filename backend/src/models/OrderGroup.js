@@ -17,6 +17,10 @@ const OrderGroup = sequelize.define(
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      references: {
+        model: "Users", // Nome da tabela referenciada
+        key: "id",
+      },
     },
     totalPrice: {
       type: DataTypes.DECIMAL(10, 2),
@@ -25,7 +29,7 @@ const OrderGroup = sequelize.define(
     },
   },
   {
-    timestamps: false,
+    timestamps: true,
   }
 );
 

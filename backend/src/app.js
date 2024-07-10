@@ -26,6 +26,7 @@ OrderItem.belongsTo(OrderGroup, {
   foreignKey: "orderGroupId",
   as: "orderGroup",
 });
+OrderGroup.belongsTo(User, { foreignKey: "userId", as: "user" });
 
 // Sincronizar o banco de dados
 sequelize

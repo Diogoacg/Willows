@@ -20,7 +20,7 @@ const authenticateToken = require("../middleWare/authMiddleware");
 
 /**
  * @swagger
- * /api/stat/top-users:
+ * /api/stats/top-users:
  *   get:
  *     summary: Retorna os usuários com mais pedidos feitos
  *     tags: [Statistics]
@@ -51,7 +51,7 @@ router.get("/top-users", async (req, res) => {
     const topUsers = await OrderGroup.findAll({
       attributes: [
         "userId",
-        [sequelize.fn("count", sequelize.col("id")), "totalOrders"],
+        [sequelize.fn("count", sequelize.col("OrderGroup.id")), "totalOrders"],
       ],
       include: [
         {
@@ -99,12 +99,13 @@ router.get("/top-users", async (req, res) => {
  */
 router.get("/profit", authenticateToken, async (req, res) => {
   try {
-    const today = moment().startOf("day");
-    const startOfWeek = moment().startOf("week");
-
+    const today = moment().startOf("day").toISOString();
+    const startOfWeek = moment().startOf("week").toISOString();
+    console.log(today);
+    console.log(startOfWeek);
     const dailyProfit = await OrderGroup.sum("totalPrice", {
       where: {
-        status: "pronto", // Supondo que "pronto" indica que o pedido foi finalizado
+        //status: "pronto", // Supondo que "pronto" indica que o pedido foi finalizado
         updatedAt: {
           [Op.gte]: today,
         },
@@ -113,7 +114,7 @@ router.get("/profit", authenticateToken, async (req, res) => {
 
     const weeklyProfit = await OrderGroup.sum("totalPrice", {
       where: {
-        status: "pronto", // Supondo que "pronto" indica que o pedido foi finalizado
+        //status: "pronto", // Supondo que "pronto" indica que o pedido foi finalizado
         updatedAt: {
           [Op.gte]: startOfWeek,
         },
@@ -122,6 +123,7 @@ router.get("/profit", authenticateToken, async (req, res) => {
 
     res.json({ dailyProfit, weeklyProfit });
   } catch (error) {
+    console.error("Erro ao obter o lucro:", error);
     res.status(500).json({ message: error.message });
   }
 });
