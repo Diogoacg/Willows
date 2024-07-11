@@ -108,8 +108,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   itemContainer: {
-    margin: 5,
-    justifyContent: "center",
+    marginTop: 25,
+    margin: 7,
+    justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#fff",
     borderRadius: 8,
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
   },
   cartButton: {
     position: "absolute",
-    top: 20,
+    top: 37,
     right: 20,
     backgroundColor: "#fff",
     padding: 10,
