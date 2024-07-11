@@ -5,7 +5,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
   Alert,
 } from "react-native";
 import axios from "axios";
@@ -17,7 +16,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -37,11 +36,12 @@ const LoginScreen = ({ navigation }) => {
         password,
       });
 
-      console.log("Response:", response);
+      console.log("Response:", response.data.token);
 
-      AsyncStorage.setItem("token", response.data.token);
+      await AsyncStorage.setItem("token", response.data.token);
 
-      navigation.navigate("Home");
+      // Chame a função onLogin e passe o token recebido
+      onLogin(response.data.token);
     } catch (error) {
       console.error(
         "Login error:",
