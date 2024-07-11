@@ -28,16 +28,25 @@ const LoginScreen = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      navigation.navigate("Home"); // Redirecionar para a tela principal após o login
-      //   const response = await axios.post(`${REACT_APP_AUTH_URL}/login`, {
-      //     phoneNumber,
-      //     password,
-      //   });
+      console.log("Auth URL:", REACT_APP_AUTH_URL);
+      console.log("Phone Number:", username);
+      console.log("Password:", password);
 
-      //   AsyncStorage.setItem("token", response.data.token);
+      const response = await axios.post(`${REACT_APP_AUTH_URL}/login`, {
+        username,
+        password,
+      });
 
-      // navigation.navigate("Home"); // Redirecionar para a tela principal após o login
+      console.log("Response:", response);
+
+      AsyncStorage.setItem("token", response.data.token);
+
+      navigation.navigate("Home");
     } catch (error) {
+      console.error(
+        "Login error:",
+        error.response ? error.response.data : error.message
+      );
       Alert.alert(
         "Erro ao fazer login",
         "Verifique suas credenciais e tente novamente."
