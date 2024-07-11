@@ -42,9 +42,6 @@ async function createInitialUser() {
       return;
     }
 
-    // Hash da senha antes de salvar no banco de dados
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     // Crie o usuário no banco de dados
     await User.create({
       username,
