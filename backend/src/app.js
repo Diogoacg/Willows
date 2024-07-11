@@ -13,8 +13,15 @@ dotenv.config();
 
 const app = express();
 
-// Middleware para permitir CORS (todas as origens)
-app.use(cors());
+const corsOptions = {
+  origin: "http://localhost:8081", // Troque pelo endereço do seu frontend local
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
 
 // Middleware para processar corpos de requisição JSON
 app.use(express.json());
