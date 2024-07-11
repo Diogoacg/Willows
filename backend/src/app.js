@@ -7,6 +7,7 @@ const authRoutes = require("./routes/authRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
 const statsRoutes = require("./routes/statsRoutes");
 const dotenv = require("dotenv");
+const bcrypt = require("bcrypt");
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -26,6 +27,37 @@ app.use(cors(corsOptions));
 // Middleware para processar corpos de requisição JSON
 app.use(express.json());
 
+// Criar um usuário automaticamente ao iniciar a aplicação
+async function createInitialUser() {
+  const username = "admin"; // Nome de usuário inicial
+  const email = "admin@example.com"; // Email inicial
+  const password = "admin123"; // Senha inicial
+
+  try {
+    // Verifique se já existe um usuário com o nome de usuário
+    const existingUser = await User.findOne({ where: { username } });
+
+    if (existingUser) {
+      console.log("Initial user already exists");
+      return;
+    }
+
+    // Hash da senha antes de salvar no banco de dados
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crie o usuário no banco de dados
+    await User.create({
+      username,
+      email,
+      password: hashedPassword,
+    });
+
+    console.log("Initial user created successfully");
+  } catch (error) {
+    console.error("Error creating initial user:", error);
+  }
+}
+
 // Conexão com o banco de dados Sequelize
 const sequelize = require("./config/database");
 const User = require("./models/User");
@@ -44,8 +76,18 @@ OrderGroup.belongsTo(User, { foreignKey: "userId", as: "user" });
 // Sincronização do banco de dados (alter: true para alterar automaticamente o esquema)
 sequelize
   .sync({ alter: true })
-  .then(() => {
+  .then(async () => {
     console.log("Database & tables created!");
+
+    // Chame a função para criar o usuário inicial
+    await createInitialUser();
+
+    // Iniciar o servidor
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Servidor rodando na porta ${PORT}`);
+      console.log(`Swagger disponível em: http://localhost:${PORT}/api-docs`);
+    });
   })
   .catch((error) => {
     console.error("Error creating database tables:", error);
