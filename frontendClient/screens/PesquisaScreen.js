@@ -1,20 +1,82 @@
 // screens/PesquisaScreen.js
-import React, { useState } from "react";
-import { View, Text, TextInput, Button, TouchableOpacity, Modal, Dimensions, StyleSheet } from "react-native";
-import ActionModal from "./../components/ActionModal";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  FlatList,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import ActionModal from "./../components/ActionModal";
+import QuantityModal from "./../components/QuantityModal";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart, clearCart } from "../slices/cartSlice";
+import { obterItensDoInventario } from "../api/apiInventory";
+import { criarNovoGrupoDePedidos } from "../api/apiOrderGroup";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
 const PesquisaScreen = () => {
+  const [searchText, setSearchText] = useState("");
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [visibleModal, setVisibleModal] = useState(false);
+  const [quantityModalVisible, setQuantityModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [inventoryItems, setInventoryItems] = useState([]);
 
-  const handleSearch = () => {
-    // Lógica para realizar a pesquisa
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart);
+
+  useEffect(() => {
+    fetchInventoryItems();
+  }, []);
+
+  const fetchInventoryItems = async () => {
+    try {
+      const items = await obterItensDoInventario();
+      setInventoryItems(items);
+    } catch (error) {
+      console.error("Erro ao buscar itens do inventário:", error.message);
+    }
   };
 
-  const [visibleModal, setVisibleModal] = useState(false);
+  const normalizeText = (text) => {
+    return text
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+  };
+
+  const handleSearch = (text) => {
+    setSearchText(text);
+    if (text) {
+      const normalizedSearchText = normalizeText(text);
+      const filtered = inventoryItems.filter((item) =>
+        normalizeText(item.nome).includes(normalizedSearchText)
+      );
+      setFilteredItems(filtered);
+    } else {
+      setFilteredItems([]);
+    }
+  };
+
+  const handleSelectItem = (item) => {
+    setSelectedItem(item);
+    setQuantityModalVisible(true);
+  };
+
+  const handleAddToCart = (quantity) => {
+    dispatch(addToCart({ ...selectedItem, quantity }));
+    setQuantityModalVisible(false);
+  };
 
   const handleCloseModal = () => {
     setVisibleModal(false);
@@ -24,35 +86,93 @@ const PesquisaScreen = () => {
     setVisibleModal(true);
   };
 
-  const navigation = useNavigation();
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.cartItem}
+      onPress={() => handleSelectItem(item)}
+    >
+      <Text>{item.nome}</Text>
+      <Text>Preço: ${item.preco.toFixed(2)}</Text>
+    </TouchableOpacity>
+  );
+  const handleConfirmOrder = async () => {
+    try {
+      // Busca o token do AsyncStorage
+      const token = await AsyncStorage.getItem("token");
+
+      // Mapeia os itens do carrinho para o formato desejado
+      const items = cartItems.map((item) => ({
+        nome: item.nome,
+        quantidade: item.quantity,
+      }));
+
+      // Cria o objeto orderData no formato desejado
+      const orderData = {
+        items: items,
+      };
+
+      // Supondo que `criarNovoGrupoDePedidos` é uma função que envia o pedido para a API
+      await criarNovoGrupoDePedidos(token, orderData);
+
+      console.log("Pedido confirmado:", cartItems);
+      dispatch(clearCart());
+      handleCloseModal();
+    } catch (error) {
+      console.error("Erro ao confirmar pedido:", error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.homePageButton} onPress={() => navigation.navigate('HomePage')}>
-          <Ionicons name="home-outline" size={24} color="#000" />
+      <TouchableOpacity
+        style={styles.homePageButton}
+        onPress={() => navigation.navigate("HomePage")}
+      >
+        <Ionicons name="home-outline" size={24} color="#000" />
       </TouchableOpacity>
       <TouchableOpacity style={styles.cartButton} onPress={handleOpenModal}>
-          <Ionicons name="cart-outline" size={24} color="#000" />
+        <Ionicons name="cart-outline" size={24} color="#000" />
+        {cartItems.length > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{cartItems.length}</Text>
+          </View>
+        )}
       </TouchableOpacity>
       <Modal
-          visible={visibleModal}
-          transparent={true}
-          onRequestClose={handleCloseModal}
-        >
-          <ActionModal
-            handleClose={handleCloseModal}
-            handleConfirm={() => {
-              alert("Confirmou o pedido!");
-              handleCloseModal();
-            }}
-          />
+        visible={visibleModal}
+        transparent={true}
+        onRequestClose={handleCloseModal}
+      >
+        <ActionModal
+          handleClose={handleCloseModal}
+          handleConfirm={handleConfirmOrder}
+          cartItems={cartItems}
+        />
       </Modal>
-      <TextInput
-        style={styles.input}
-        placeholder="Digite aqui para pesquisar"
-        onChangeText={(text) => console.log(text)}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Digite aqui para pesquisar"
+          onChangeText={handleSearch}
+          value={searchText}
+        />
+        {filteredItems.length > 0 ? (
+          <FlatList
+            data={filteredItems}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            style={styles.searchResults}
+          />
+        ) : (
+          <Text style={styles.noResultsText}>Nenhum item encontrado</Text>
+        )}
+      </View>
+      <QuantityModal
+        visible={quantityModalVisible}
+        onClose={() => setQuantityModalVisible(false)}
+        onAdd={handleAddToCart}
+        item={selectedItem}
       />
-      <Button title="Pesquisar" onPress={handleSearch} />
     </View>
   );
 };
@@ -60,13 +180,17 @@ const PesquisaScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: screenHeight * 0.1, // Add some padding at the top
+    paddingHorizontal: 10,
+  },
+  searchContainer: {
+    flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    padding: 10,
+    justifyContent: "flex-start", // Align items to the top
   },
   input: {
     height: 40,
-    width: "80%",
+    width: "100%",
     marginBottom: 10,
     paddingHorizontal: 10,
     borderWidth: 1,
@@ -90,7 +214,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2.62,
   },
   homePageButton: {
-    position: 'absolute',
+    position: "absolute",
     top: screenHeight * 0.05,
     left: 17,
     backgroundColor: "#fff",
@@ -102,6 +226,39 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
+  },
+  searchResults: {
+    width: "100%",
+    marginTop: 10,
+  },
+  noResultsText: {
+    marginTop: 20,
+    fontSize: 16,
+    color: "#888",
+  },
+  cartItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    backgroundColor: "#fff",
+    borderRadius: 5,
+    marginBottom: 5,
+  },
+  badge: {
+    position: "absolute",
+    right: -6,
+    top: -6,
+    backgroundColor: "red",
+    borderRadius: 9,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  badgeText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
   },
 });
 

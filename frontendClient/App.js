@@ -10,6 +10,7 @@ import PedidosPopularesScreen from "./screens/PedidosPopularesScreen";
 import PesquisaScreen from "./screens/PesquisaScreen";
 import LoginScreen from "./screens/LoginScreen";
 import HomePage from "./screens/HomePage";
+import GerirPedidos from "./screens/GerirPedidos";
 
 const Tab = createMaterialBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -45,6 +46,11 @@ const StackPrincipal = () => {
       <Stack.Screen
         name="HomePage"
         component={HomePage}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="GerirPedidos"
+        component={GerirPedidos}
         options={{ headerShown: false }}
       />
       <Stack.Screen
