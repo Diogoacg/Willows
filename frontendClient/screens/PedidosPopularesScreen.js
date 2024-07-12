@@ -35,6 +35,7 @@ const data = [
 
 const numColumns = 3;
 const screenWidth = Dimensions.get("window").width;
+const screenHeight = Dimensions.get("window").height;
 
 const PedidosPopularesScreen = () => {
   const [visibleModal, setVisibleModal] = useState(false);
@@ -72,13 +73,13 @@ const PedidosPopularesScreen = () => {
         <TouchableOpacity style={styles.homePageButton} onPress={() => navigation.navigate('HomePage')}>
         <Ionicons
             name="home-outline"
-            size={20}
+            size={24}
           />
         </TouchableOpacity>
         <TouchableOpacity style={styles.cartButton} onPress={handleOpenModal}>
           <Ionicons
             name="cart-outline"
-            size={20}
+            size={24}
           />
         </TouchableOpacity>
         <FlatList
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerSpace: {
-    height: 60, // Ajuste este valor conforme necessário para o seu header
+    height: screenHeight * 0.08, // Ajuste este valor conforme necessário para o seu header
   },
   listContainer: {
     paddingHorizontal: 10,
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
   },
   cartButton: {
     position: "absolute",
-    top: 40,
+    top: screenHeight * 0.05,
     right: 17,
     backgroundColor: "#fff",
     padding: 10,
@@ -158,13 +159,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
   },
-  cartText: {
-    fontWeight: "bold",
-    color: "#000",
-  },
   homePageButton: {
     position: 'absolute',
-    top: 40,
+    top: screenHeight * 0.05,
     left: 17,
     backgroundColor: "#fff",
     padding: 10,
@@ -177,10 +174,6 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
-  },
-  homePageText: {
-    fontWeight: "bold",
-    color: "#000",
   },
 });
 

@@ -1,6 +1,9 @@
-import { Image,StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image,StyleSheet, Text, TouchableOpacity, View , Dimensions} from "react-native";
 import React from 'react';
 import { useNavigation } from "@react-navigation/native";
+
+const screenWidth = Dimensions.get("window").width;
+const screenHeight = Dimensions.get("window").height;
 
 const HomePage = () => {
     const navigation = useNavigation();
@@ -30,47 +33,50 @@ const styles = StyleSheet.create ({
         alignItems: 'center',
     },
     logo: {
-        height: 40,
-        width: 140,
-        marginVertical: 40,
+        height: screenHeight * 0.05,
+        width: screenWidth * 0.35,
+        marginVertical: screenHeight * 0.05,
+        resizeMode: 'contain',
     },
     bgimage:{
-        height: 550,
-        width: 320,
-        marginVertical: 18,
+        height: screenHeight * 0.55,
+        width: screenWidth * 0.85,
+        marginVertical: screenHeight * 0.02,
+        resizeMode: 'contain',
     },
     button1Container:{
-        marginTop: 15,
+        marginTop: screenHeight * 0.02,
         borderWidth: 1,
         borderColor: '#000000',
         width: '50%',
-        height: 60,
+        height: screenHeight * 0.08,
         borderRadius: 100,
+        overflow: 'hidden',
     },
     button2Container:{
-        marginTop: 15,
+        marginTop: screenHeight * 0.02,
         borderWidth: 1,
         borderColor: '#000',
         width: '50%',
-        height: 60,
+        height: screenHeight * 0.08,
         borderRadius: 100,
+        overflow: 'hidden',
     },
     gerirPedidosButton:{
         justifyContent: 'center',
         alignItems: 'center',
         height: '100%',
         width: '100%',
-        borderRadius: 98
     },
     gerirPedidosButtonText:{
         color: '#000',
-        fontSize: 18,
+        fontSize: screenWidth * 0.045,
         fontWeight: 'bold'
     },
     fazerPedidosButtonText:{
-        fontSize: 18,
+        color: '#000',
+        fontSize: screenWidth * 0.045,
         fontWeight: 'bold',
-        alignItems: 'center',
     }
 })
 

@@ -39,17 +39,19 @@ const App = () => {
 function TabPrincipal () {
   return (
         <Tab.Navigator
-          activeColor="#FFFFFF" // Cor do ícone ativo
-          inactiveColor="#FFFFFF" // Cor do ícone inativo
+          activeColor="#000" // Cor do ícone ativo
+          inactiveColor="#000" // Cor do ícone inativo
           barStyle={{ backgroundColor: '#f0f0f0'}}>
           <Tab.Screen
             name="Pedidos Populares"
             component={PedidosPopularesScreen}
             options={{
-              tabBarIcon: () => (
+              tabBarLabel: 'Pedidos Populares',
+              tabBarIcon: ({color}) => (
                 <Ionicons
                   name="star-outline"
                   size={21}
+                  color={color}
                 />
               ),
             }}
@@ -58,10 +60,11 @@ function TabPrincipal () {
             name="Pesquisa"
             component={PesquisaScreen}
             options={{
-              tabBarIcon: () => (
+              tabBarIcon: ({color}) => (
                 <Ionicons
                   name="search-outline"
                   size={21}
+                  color={color}
                 />
               ),
             }}
