@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Ionicons from "react-native-vector-icons/Ionicons";
 import { NavigationContainer } from "@react-navigation/native";
 import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
 import { createStackNavigator } from '@react-navigation/stack';
@@ -7,7 +8,6 @@ import PedidosPopularesScreen from "./screens/PedidosPopularesScreen";
 import PesquisaScreen from "./screens/PesquisaScreen";
 import LoginScreen from "./screens/LoginScreen";
 import HomePage from "./screens/HomePage";
-import Ionicons from "react-native-vector-icons/Ionicons";
 
 const Tab = createMaterialBottomTabNavigator();
 
@@ -30,13 +30,13 @@ const App = () => {
   return (
     <PaperProvider>
       <NavigationContainer>
-        <TabPrincipal/>
+        <StackPrincipal />
       </NavigationContainer>
     </PaperProvider>
   );
 };
 
-const TabPrincipal = () => {
+function TabPrincipal () {
   return (
         <Tab.Navigator
           activeColor="#FFFFFF" // Cor do ícone ativo
@@ -70,23 +70,18 @@ const TabPrincipal = () => {
   );
 };
 
-const StackPrincipal = () => {
+function StackPrincipal (){
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="PedidosPopulares"
-        component={PedidosPopularesScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Pesquisa"
-        component={PesquisaScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
         name="HomePage"
         component={HomePage}
-        options={{ title: 'Home' }}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="PedidosPopulares" 
+        component={TabPrincipal}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

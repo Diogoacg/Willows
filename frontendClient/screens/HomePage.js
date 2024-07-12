@@ -1,16 +1,22 @@
 import { Image,StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React from 'react';
+import { useNavigation } from "@react-navigation/native";
 
 const HomePage = () => {
+    const navigation = useNavigation();
+
     return (
         <View style={styles.container}>
             <Image source={require("../assets/logofinal.jpg")} style={styles.logo}/>
             <Image source={require("../assets/imagemfundo.jpg")} style={styles.bgimage}/>
-            <View style={styles.buttonContainer}>
-                <TouchableOpacity style={[styles.gerirPedidosButton,{backgroundColor: '#a2d2ff'}]}>
+            <View style={styles.button1Container}>
+                <TouchableOpacity style={[styles.gerirPedidosButton]}>
                     <Text style={styles.gerirPedidosButtonText}>Gerir Pedidos</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.gerirPedidosButton]}>
+            </View>
+            <View style={styles.button2Container}>
+                <TouchableOpacity style={[styles.gerirPedidosButton]}
+                                  onPress={() => navigation.navigate('PedidosPopulares')}>
                     <Text style={styles.fazerPedidosButtonText}>Fazer Pedidos</Text>
                 </TouchableOpacity>
             </View>
@@ -33,31 +39,39 @@ const styles = StyleSheet.create ({
         width: 320,
         marginVertical: 18,
     },
-    buttonContainer:{
-        flexDirection: 'row',
-        marginTop: 32,
+    button1Container:{
+        marginTop: 15,
         borderWidth: 1,
-        borderColor: '#a2d2ff',
-        width: '78%',
+        borderColor: '#000000',
+        width: '50%',
+        height: 60,
+        borderRadius: 100,
+    },
+    button2Container:{
+        marginTop: 15,
+        borderWidth: 1,
+        borderColor: '#000',
+        width: '50%',
         height: 60,
         borderRadius: 100,
     },
     gerirPedidosButton:{
         justifyContent: 'center',
         alignItems: 'center',
-        width: '50%',
+        height: '100%',
+        width: '100%',
         borderRadius: 98
     },
     gerirPedidosButtonText:{
-        color: '#fff',
+        color: '#000',
         fontSize: 18,
         fontWeight: 'bold'
     },
     fazerPedidosButtonText:{
         fontSize: 18,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        alignItems: 'center',
     }
 })
-
 
 export default HomePage

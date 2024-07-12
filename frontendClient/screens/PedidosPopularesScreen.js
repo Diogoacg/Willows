@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import ActionModal from "./../components/ActionModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { useNavigation } from "@react-navigation/native";
 
 const data = [
   { id: "1", image: require("./../assets/favicon.png") },
@@ -35,8 +36,10 @@ const data = [
 const numColumns = 3;
 const screenWidth = Dimensions.get("window").width;
 
-const PedidosPopularesScreen = ({navigation}) => {
+const PedidosPopularesScreen = () => {
   const [visibleModal, setVisibleModal] = useState(false);
+
+  const navigation = useNavigation();
 
   const handleImagePress = (id) => {
     console.log(`Imagem ${id} pressionada`);
