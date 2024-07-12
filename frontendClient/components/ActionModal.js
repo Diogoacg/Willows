@@ -1,17 +1,41 @@
-// ActionModal.js
-
 import React from "react";
-import { View, TouchableOpacity, Text, StyleSheet, Modal } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Modal,
+  FlatList,
+} from "react-native";
 
-export const ActionModal = ({ handleClose, handleConfirm }) => {
+const ActionModal = ({ handleClose, handleConfirm, cartItems }) => {
+  const renderItem = ({ item }) => (
+    <View style={styles.cartItem}>
+      <Text style={styles.itemDetail}>{item.quantity}</Text>
+      <Text style={styles.itemName}>{" " + item.nome + " "}</Text>
+      <Text style={styles.itemDetail}>
+        {(item.preco * item.quantity).toFixed(2)}
+      </Text>
+    </View>
+  );
+
+  const totalPrice = cartItems.reduce(
+    (sum, item) => sum + item.preco * item.quantity,
+    0
+  );
+
   return (
-    <Modal
-      visible={true} // Visibilidade controlada pelo estado no componente pai
-      transparent={true}
-      onRequestClose={handleClose}
-    >
+    <Modal visible={true} transparent={true} onRequestClose={handleClose}>
       <TouchableOpacity style={styles.modalOverlay} onPress={handleClose}>
         <View style={styles.modalContainer}>
+          <Text style={styles.title}>Pedido</Text>
+          <FlatList
+            data={cartItems}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            style={styles.cartList}
+          />
+          <Text style={styles.total}>Total: ${totalPrice.toFixed(2)}</Text>
           <TouchableOpacity
             activeOpacity={0.9}
             style={styles.actionButton}
@@ -38,7 +62,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Fundo escurecido
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContainer: {
     backgroundColor: "#fff",
@@ -54,6 +78,27 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  cartList: {
+    maxHeight: 200,
+  },
+  cartItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  total: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 10,
+    marginBottom: 20,
   },
   actionButton: {
     width: "100%",

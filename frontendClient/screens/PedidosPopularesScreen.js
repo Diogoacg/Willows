@@ -1,50 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   FlatList,
   Image,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
   SafeAreaView,
   Modal,
   Text,
+  useWindowDimensions,
 } from "react-native";
-import ActionModal from "./../components/ActionModal";
+import { useSelector, useDispatch } from "react-redux";
+import { addToCart, clearCart } from "../slices/cartSlice";
+import ActionModal from "../components/ActionModal";
+import QuantityModal from "../components/QuantityModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
-
-const data = [
-  { id: "1", image: require("./../assets/favicon.png") },
-  { id: "2", image: require("./../assets/favicon.png") },
-  { id: "3", image: require("./../assets/favicon.png") },
-  { id: "4", image: require("./../assets/favicon.png") },
-  { id: "5", image: require("./../assets/favicon.png") },
-  { id: "6", image: require("./../assets/favicon.png") },
-  { id: "7", image: require("./../assets/favicon.png") },
-  { id: "8", image: require("./../assets/favicon.png") },
-  { id: "9", image: require("./../assets/favicon.png") },
-  { id: "10", image: require("./../assets/favicon.png") },
-  { id: "11", image: require("./../assets/favicon.png") },
-  { id: "12", image: require("./../assets/favicon.png") },
-  { id: "13", image: require("./../assets/favicon.png") },
-  { id: "14", image: require("./../assets/favicon.png") },
-  { id: "15", image: require("./../assets/favicon.png") },
-  // Adicionar mais imagens conforme necessário
-];
+import { obterItensDoInventario } from "../api/apiInventory";
+import { criarNovoGrupoDePedidos } from "../api/apiOrderGroup";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const numColumns = 3;
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
 
 const PedidosPopularesScreen = () => {
   const [visibleModal, setVisibleModal] = useState(false);
+  const [quantityModalVisible, setQuantityModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [inventoryItems, setInventoryItems] = useState([]);
 
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const cartItems = useSelector((state) => state.cart);
 
-  const handleImagePress = (id) => {
-    console.log(`Imagem ${id} pressionada`);
-    // Lógica para o que acontece quando a imagem é pressionada
+  const { width: screenWidth } = useWindowDimensions();
+
+  useEffect(() => {
+    fetchInventoryItems();
+  }, []);
+
+  const fetchInventoryItems = async () => {
+    try {
+      const items = await obterItensDoInventario();
+      console.log("Itens do inventário:", items);
+      setInventoryItems(items);
+    } catch (error) {
+      console.error("Erro ao buscar itens do inventário:", error.message);
+    }
+  };
+
+  const handleImagePress = (item) => {
+    setSelectedItem(item);
+    setQuantityModalVisible(true);
+  };
+
+  const handleAddToCart = (quantity) => {
+    dispatch(addToCart({ ...selectedItem, quantity }));
+    setQuantityModalVisible(false);
   };
 
   const handleOpenModal = () => {
@@ -53,37 +64,72 @@ const PedidosPopularesScreen = () => {
 
   const handleCloseModal = () => {
     setVisibleModal(false);
+    dispatch(clearCart()); // Limpa o carrinho ao fechar o modal
   };
 
-  const itemWidth = screenWidth / numColumns - 20; // 20 é o espaçamento total (10 de cada lado)
+  const handleConfirmOrder = async () => {
+    try {
+      // Busca o token do AsyncStorage
+      const token = await AsyncStorage.getItem("token");
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={[styles.itemContainer, { width: itemWidth, height: itemWidth }]}
-      onPress={() => handleImagePress(item.id)}
-    >
-      <Image source={item.image} style={styles.image} />
-    </TouchableOpacity>
-  );
+      // Mapeia os itens do carrinho para o formato desejado
+      const items = cartItems.map((item) => ({
+        nome: item.nome,
+        quantidade: item.quantity,
+      }));
+
+      // Cria o objeto orderData no formato desejado
+      const orderData = {
+        items: items,
+      };
+
+      // Supondo que `criarNovoGrupoDePedidos` é uma função que envia o pedido para a API
+      await criarNovoGrupoDePedidos(token, orderData);
+
+      console.log("Pedido confirmado:", cartItems);
+      dispatch(clearCart());
+      handleCloseModal();
+    } catch (error) {
+      console.error("Erro ao confirmar pedido:", error.message);
+    }
+  };
+
+  const itemWidth = screenWidth / numColumns - 20;
+
+  const renderItem = ({ item }) => {
+    const imagePath = "../assets/favicon.png";
+    return (
+      <TouchableOpacity
+        style={[styles.itemContainer, { width: itemWidth, height: itemWidth }]}
+        onPress={() => handleImagePress(item)}
+      >
+        <Image source={require(imagePath)} style={styles.image} />
+        <Text style={styles.itemName}>{item.nome}</Text>
+        <Text style={styles.itemPreco}>${item.preco.toFixed(2)}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.headerSpace} />
-        <TouchableOpacity style={styles.homePageButton} onPress={() => navigation.navigate('HomePage')}>
-        <Ionicons
-            name="home-outline"
-            size={24}
-          />
+        <TouchableOpacity
+          style={styles.homePageButton}
+          onPress={() => navigation.navigate("HomePage")}
+        >
+          <Ionicons name="home-outline" size={20} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.cartButton} onPress={handleOpenModal}>
-          <Ionicons
-            name="cart-outline"
-            size={24}
-          />
+          <Ionicons name="cart-outline" size={20} />
+          {cartItems.length > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{cartItems.length}</Text>
+            </View>
+          )}
         </TouchableOpacity>
         <FlatList
-          data={data}
+          data={inventoryItems}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
           numColumns={numColumns}
@@ -96,12 +142,16 @@ const PedidosPopularesScreen = () => {
         >
           <ActionModal
             handleClose={handleCloseModal}
-            handleConfirm={() => {
-              alert("Confirmou o pedido!");
-              handleCloseModal();
-            }}
+            handleConfirm={handleConfirmOrder}
+            cartItems={cartItems}
           />
         </Modal>
+        <QuantityModal
+          visible={quantityModalVisible}
+          onClose={() => setQuantityModalVisible(false)}
+          onAdd={handleAddToCart}
+          item={selectedItem}
+        />
       </View>
     </SafeAreaView>
   );
@@ -116,7 +166,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerSpace: {
-    height: screenHeight * 0.08, // Ajuste este valor conforme necessário para o seu header
+    height: 60,
   },
   listContainer: {
     paddingHorizontal: 10,
@@ -138,14 +188,20 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
   },
-  image: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
+  itemName: {
+    fontSize: 12,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginTop: 5,
+  },
+  itemPrice: {
+    fontSize: 10,
+    color: "#888",
+    textAlign: "center",
   },
   cartButton: {
     position: "absolute",
-    top: screenHeight * 0.05,
+    top: 40,
     right: 17,
     backgroundColor: "#fff",
     padding: 10,
@@ -160,8 +216,8 @@ const styles = StyleSheet.create({
     shadowRadius: 2.62,
   },
   homePageButton: {
-    position: 'absolute',
-    top: screenHeight * 0.05,
+    position: "absolute",
+    top: 40,
     left: 17,
     backgroundColor: "#fff",
     padding: 10,
@@ -174,6 +230,22 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
+  },
+  badge: {
+    position: "absolute",
+    right: -6,
+    top: -6,
+    backgroundColor: "red",
+    borderRadius: 9,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  badgeText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
   },
 });
 
