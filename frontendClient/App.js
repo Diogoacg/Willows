@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
+import { createStackNavigator } from '@react-navigation/stack';
 import { Provider as PaperProvider } from "react-native-paper";
 import PedidosPopularesScreen from "./screens/PedidosPopularesScreen";
 import PesquisaScreen from "./screens/PesquisaScreen";
 import LoginScreen from "./screens/LoginScreen";
+import HomePage from "./screens/HomePage";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const Tab = createMaterialBottomTabNavigator();
+
+const Stack = createStackNavigator();
 
 const App = () => {
   const [userToken, setUserToken] = useState(null); // Estado para verificar se o usuário está logado
@@ -25,15 +30,65 @@ const App = () => {
   return (
     <PaperProvider>
       <NavigationContainer>
-        <Tab.Navigator>
+        <TabPrincipal/>
+      </NavigationContainer>
+    </PaperProvider>
+  );
+};
+
+const TabPrincipal = () => {
+  return (
+        <Tab.Navigator
+          activeColor="#FFFFFF" // Cor do ícone ativo
+          inactiveColor="#FFFFFF" // Cor do ícone inativo
+          barStyle={{ backgroundColor: '#f0f0f0'}}>
           <Tab.Screen
             name="Pedidos Populares"
             component={PedidosPopularesScreen}
+            options={{
+              tabBarIcon: () => (
+                <Ionicons
+                  name="star-outline"
+                  size={21}
+                />
+              ),
+            }}
           />
-          <Tab.Screen name="Pesquisa" component={PesquisaScreen} />
+          <Tab.Screen 
+            name="Pesquisa"
+            component={PesquisaScreen}
+            options={{
+              tabBarIcon: () => (
+                <Ionicons
+                  name="search-outline"
+                  size={21}
+                />
+              ),
+            }}
+          />
         </Tab.Navigator>
-      </NavigationContainer>
-    </PaperProvider>
+  );
+};
+
+const StackPrincipal = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="PedidosPopulares"
+        component={PedidosPopularesScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Pesquisa"
+        component={PesquisaScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="HomePage"
+        component={HomePage}
+        options={{ title: 'Home' }}
+      />
+    </Stack.Navigator>
   );
 };
 

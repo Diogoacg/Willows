@@ -18,12 +18,9 @@ const HomePage = () => {
     );
 };
 
-export default HomePage
-
 const styles = StyleSheet.create ({
     container:{
         flex: 1,
-        backgroundColor: '#fffefe',
         alignItems: 'center',
     },
     logo: {
@@ -61,3 +58,6 @@ const styles = StyleSheet.create ({
         fontWeight: 'bold'
     }
 })
+
+
+export default HomePage

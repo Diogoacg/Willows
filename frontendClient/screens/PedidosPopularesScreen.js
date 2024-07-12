@@ -11,6 +11,7 @@ import {
   Text,
 } from "react-native";
 import ActionModal from "./../components/ActionModal";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const data = [
   { id: "1", image: require("./../assets/favicon.png") },
@@ -34,7 +35,7 @@ const data = [
 const numColumns = 3;
 const screenWidth = Dimensions.get("window").width;
 
-const PedidosPopularesScreen = () => {
+const PedidosPopularesScreen = ({navigation}) => {
   const [visibleModal, setVisibleModal] = useState(false);
 
   const handleImagePress = (id) => {
@@ -65,8 +66,17 @@ const PedidosPopularesScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.headerSpace} />
+        <TouchableOpacity style={styles.homePageButton} onPress={() => navigation.navigate('HomePage')}>
+        <Ionicons
+            name="home-outline"
+            size={20}
+          />
+        </TouchableOpacity>
         <TouchableOpacity style={styles.cartButton} onPress={handleOpenModal}>
-          <Text style={styles.cartText}>Carrinho</Text>
+          <Ionicons
+            name="cart-outline"
+            size={20}
+          />
         </TouchableOpacity>
         <FlatList
           data={data}
@@ -131,8 +141,8 @@ const styles = StyleSheet.create({
   },
   cartButton: {
     position: "absolute",
-    top: 37,
-    right: 20,
+    top: 40,
+    right: 17,
     backgroundColor: "#fff",
     padding: 10,
     borderRadius: 8,
@@ -146,6 +156,26 @@ const styles = StyleSheet.create({
     shadowRadius: 2.62,
   },
   cartText: {
+    fontWeight: "bold",
+    color: "#000",
+  },
+  homePageButton: {
+    position: 'absolute',
+    top: 40,
+    left: 17,
+    backgroundColor: "#fff",
+    padding: 10,
+    borderRadius: 8,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+  },
+  homePageText: {
     fontWeight: "bold",
     color: "#000",
   },
