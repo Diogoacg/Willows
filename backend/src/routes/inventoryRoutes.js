@@ -117,7 +117,7 @@ router.get("/", async (req, res) => {
  *       404:
  *         description: Item não encontrado
  */
-router.put("/:id", authenticateToken, authorizeAdmin, async (req, res) => {
+router.put("/:id", authenticateToken, async (req, res) => {
   try {
     const item = await Item.findByPk(req.params.id);
     if (item) {

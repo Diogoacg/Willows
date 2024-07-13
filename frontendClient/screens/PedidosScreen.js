@@ -17,7 +17,10 @@ import { addToCart, clearCart } from "../slices/cartSlice";
 import ActionModal from "../components/ActionModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
-import { obterItensDoInventario } from "../api/apiInventory";
+import {
+  obterItensDoInventario,
+  atualizarItemNoInventario,
+} from "../api/apiInventory";
 import { criarNovoGrupoDePedidos } from "../api/apiOrderGroup";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -51,10 +54,58 @@ const PedidosScreen = () => {
     try {
       const items = await obterItensDoInventario();
       console.log("Itens do inventário:", items);
-      setInventoryItems(items);
-      setFilteredItems(items);
+
+      // Verifica cada item e busca imagem se necessário
+      const itemsWithImages = await Promise.all(
+        items.map(async (item) => {
+          // Se não tiver imageUri, busca no Unsplash
+          if (!item.imageUri) {
+            const uri = await fetchImageUri(item.nome);
+            // atualizar base de dados dando updatde ao item
+            const token = await AsyncStorage.getItem("token");
+            await atualizarItemNoInventario(
+              token,
+              item.id,
+              item.nome,
+              item.preco,
+              uri
+            );
+            return { ...item, imageUri: uri };
+          }
+          return item;
+        })
+      );
+
+      setInventoryItems(itemsWithImages);
+      setFilteredItems(itemsWithImages);
     } catch (error) {
       console.error("Erro ao buscar itens do inventário:", error.message);
+    }
+  };
+
+  const fetchImageUri = async (itemName) => {
+    try {
+      const encodedItemName = encodeURIComponent(itemName);
+      const response = await fetch(
+        `https://api.unsplash.com/photos/random?query=${encodedItemName}&lang=pt`,
+        {
+          headers: {
+            Authorization:
+              "Client-ID yoPSP5TFfOvZ1uog-ibC6godTeccW6OLEehYrC4XNqY",
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (data.urls && data.urls.small) {
+        return data.urls.small;
+      } else {
+        throw new Error("Imagem não encontrada no Unsplash");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar imagem do Unsplash:", error.message);
+      // Pode retornar um placeholder ou tratar o erro de outra forma
+      return ""; // URI de imagem padrão ou vazia
     }
   };
 
@@ -126,7 +177,14 @@ const PedidosScreen = () => {
         style={[styles.itemContainer, { width: itemWidth }]}
         onPress={() => handleAddToCart(item)}
       >
-        <Image source={require("../assets/favicon.png")} style={styles.image} />
+        {item.imageUri ? (
+          <Image source={{ uri: item.imageUri }} style={styles.image} />
+        ) : (
+          <Image
+            source={require("../assets/favicon.png")}
+            style={styles.image}
+          />
+        )}
         <Text style={styles.itemName}>{item.nome}</Text>
         <Text style={styles.itemPreco}>${item.preco.toFixed(2)}</Text>
       </TouchableOpacity>
@@ -161,7 +219,7 @@ const PedidosScreen = () => {
         <FlatList
           data={filteredItems}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           numColumns={numColumns}
           contentContainerStyle={styles.listContainer}
         />

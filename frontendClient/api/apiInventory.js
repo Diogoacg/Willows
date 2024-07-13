@@ -42,15 +42,26 @@ export const obterItensDoInventario = async () => {
 };
 
 // Função para atualizar um item no inventário
-export const atualizarItemNoInventario = async (token, id, nome, preco) => {
+export const atualizarItemNoInventario = async (
+  token,
+  id,
+  nome,
+  preco,
+  imageUri = null
+) => {
   try {
+    const bodyData = { nome, preco };
+    if (imageUri) {
+      bodyData.imageUri = imageUri;
+    }
+
     const response = await fetch(`${REACT_APP_API_URL}/inventory/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ nome, preco }),
+      body: JSON.stringify(bodyData),
     });
 
     if (!response.ok) {
