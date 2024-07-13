@@ -76,12 +76,6 @@ const PedidosScreen = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.homePageButton}
-        onPress={() => navigation.navigate("HomePage")}
-      >
-        <Ionicons name="home-outline" size={24} color="#000" />
-      </TouchableOpacity>
       <FlatList
         data={pedidos}
         renderItem={renderItem}
@@ -129,29 +123,17 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   button: {
-    backgroundColor: "#2196F3",
-    padding: 10,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  homePageButton: {
-    position: "absolute",
-    top: screenHeight * 0.05,
-    left: 17,
     backgroundColor: "#fff",
     padding: 10,
     borderRadius: 8,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    alignItems: "center",
+    borderColor: "#000",
+    borderWidth: 1
+  },
+  buttonText: {
+    color: "#000",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
 

@@ -142,16 +142,17 @@ const styles = StyleSheet.create({
     padding: wp("2.5%"),
   },
   button: {
-    backgroundColor: "#01a5fc",
+    backgroundColor: "#fff",
     borderRadius: 25,
     paddingVertical: hp("2%"),
     paddingHorizontal: wp("6%"),
     alignItems: "center",
     marginTop: hp("2.5%"),
     width: "100%",
+    borderWidth: 1
   },
   buttonText: {
-    color: "#fff",
+    color: "#000",
     fontWeight: "bold",
     fontSize: wp("4%"),
   },

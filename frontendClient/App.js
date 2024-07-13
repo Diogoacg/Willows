@@ -24,8 +24,12 @@ const TabPrincipal = () => {
         name="Pedidos"
         component={PedidosScreen}
         options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="cart-outline" size={20} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name="cart-outline"
+              size={focused ? 24 : 20}
+              color={focused ? '#000' : color}
+            />
           ),
         }}
       />
@@ -33,8 +37,12 @@ const TabPrincipal = () => {
         name="Gestão"
         component={GerirPedidos}
         options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="settings-outline" size={20} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons 
+              name="settings-outline"
+              size={focused ? 24 : 20}
+              color={focused ? '#000' : color}
+            />
           ),
         }}
       />
