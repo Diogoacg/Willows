@@ -3,7 +3,6 @@ const express = require("express");
 const router = express.Router();
 const Item = require("../models/Item");
 const authenticateToken = require("../middleWare/authMiddleware");
-const authorizeAdmin = require("../middleWare/authorizeAdmin");
 
 /**
  * @swagger
@@ -55,7 +54,7 @@ const authorizeAdmin = require("../middleWare/authorizeAdmin");
  *       400:
  *         description: Erro na criação do item
  */
-router.post("/", authenticateToken, authorizeAdmin, async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
   try {
     const novoItem = await Item.create(req.body);
     res.status(201).json(novoItem);
@@ -152,7 +151,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
  *       404:
  *         description: Item não encontrado
  */
-router.delete("/:id", authenticateToken, authorizeAdmin, async (req, res) => {
+router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const item = await Item.findByPk(req.params.id);
     if (item) {
