@@ -5,6 +5,7 @@ import { createMaterialBottomTabNavigator } from "@react-navigation/material-bot
 import { createStackNavigator } from "@react-navigation/stack";
 import { Provider as PaperProvider } from "react-native-paper";
 import { Provider as ReduxProvider } from "react-redux";
+import { Dimensions } from "react-native";
 import store from "./store";
 import PedidosPopularesScreen from "./screens/PedidosPopularesScreen";
 import PesquisaScreen from "./screens/PesquisaScreen";
@@ -15,25 +16,28 @@ import GerirPedidos from "./screens/GerirPedidos";
 const Tab = createMaterialBottomTabNavigator();
 const Stack = createStackNavigator();
 
+const screenWidth = Dimensions.get("window").width;
+const screenHeight = Dimensions.get("window").height;
+
 const TabPrincipal = () => {
   return (
     <Tab.Navigator
-      activeColor="#FFFFFF"
-      inactiveColor="#FFFFFF"
+      activeColor="#000"
+      inactiveColor="#000"
       barStyle={{ backgroundColor: "#f0f0f0" }}
     >
       <Tab.Screen
         name="Pedidos Populares"
         component={PedidosPopularesScreen}
         options={{
-          tabBarIcon: () => <Ionicons name="star-outline" size={21} />,
+          tabBarIcon: ({color}) => <Ionicons name="star-outline" size={screenWidth * 0.05} color={color} />,
         }}
       />
       <Tab.Screen
         name="Pesquisa"
         component={PesquisaScreen}
         options={{
-          tabBarIcon: () => <Ionicons name="search-outline" size={21} />,
+          tabBarIcon: ({color}) => <Ionicons name="search-outline" size={screenWidth * 0.05} color={color} />,
         }}
       />
     </Tab.Navigator>

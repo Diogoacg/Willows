@@ -128,10 +128,10 @@ const PesquisaScreen = () => {
         style={styles.homePageButton}
         onPress={() => navigation.navigate("HomePage")}
       >
-        <Ionicons name="home-outline" size={24} color="#000" />
+        <Ionicons name="home-outline" size={screenWidth * 0.05} color="#000" />
       </TouchableOpacity>
       <TouchableOpacity style={styles.cartButton} onPress={handleOpenModal}>
-        <Ionicons name="cart-outline" size={24} color="#000" />
+        <Ionicons name="cart-outline" size={screenWidth * 0.05} color="#000" />
         {cartItems.length > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{cartItems.length}</Text>
@@ -199,10 +199,10 @@ const styles = StyleSheet.create({
   },
   cartButton: {
     position: "absolute",
-    top: screenHeight * 0.05,
-    right: 17,
+    top: '5%',
+    right: '4%',
     backgroundColor: "#fff",
-    padding: 10,
+    padding: '2.5%',
     borderRadius: 8,
     elevation: 3,
     shadowColor: "#000",
@@ -215,10 +215,10 @@ const styles = StyleSheet.create({
   },
   homePageButton: {
     position: "absolute",
-    top: screenHeight * 0.05,
-    left: 17,
+    top: '5%',
+    left: '4%',
     backgroundColor: "#fff",
-    padding: 10,
+    padding: '2.5%',
     borderRadius: 8,
     elevation: 3,
     shadowColor: "#000",
@@ -226,6 +226,8 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
   },
   searchResults: {
     width: "100%",

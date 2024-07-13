@@ -56,7 +56,7 @@ const LoginScreen = ({ onLogin }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Willows Bar</Text>
+      <Text style={styles.title}>Willow's Bar</Text>
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}

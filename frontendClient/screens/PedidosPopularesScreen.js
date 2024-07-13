@@ -9,6 +9,7 @@ import {
   Modal,
   Text,
   useWindowDimensions,
+  Dimensions,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { addToCart, clearCart } from "../slices/cartSlice";
@@ -22,6 +23,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const numColumns = 3;
 
+const screenWidt = Dimensions.get("window").width;
+const screenHeight = Dimensions.get("window").height;
+
 const PedidosPopularesScreen = () => {
   const [visibleModal, setVisibleModal] = useState(false);
   const [quantityModalVisible, setQuantityModalVisible] = useState(false);
@@ -32,7 +36,7 @@ const PedidosPopularesScreen = () => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
 
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeigth} = useWindowDimensions();
 
   useEffect(() => {
     fetchInventoryItems();
@@ -118,10 +122,10 @@ const PedidosPopularesScreen = () => {
           style={styles.homePageButton}
           onPress={() => navigation.navigate("HomePage")}
         >
-          <Ionicons name="home-outline" size={20} />
+          <Ionicons name="home-outline" size={screenWidt * 0.05} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.cartButton} onPress={handleOpenModal}>
-          <Ionicons name="cart-outline" size={20} />
+          <Ionicons name="cart-outline" size={screenWidt * 0.05} />
           {cartItems.length > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{cartItems.length}</Text>
@@ -166,19 +170,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerSpace: {
-    height: 60,
+    height: '8%',
   },
   listContainer: {
-    paddingHorizontal: 10,
+    paddingHorizontal: '2%',
   },
   itemContainer: {
-    marginTop: 25,
-    margin: 7,
+    marginTop: '5%',
+    margin: '1.8%',
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#fff",
     borderRadius: 8,
-    overflow: "hidden",
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: {
@@ -192,7 +195,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
     textAlign: "center",
-    marginTop: 5,
+    marginTop: '2%',
   },
   itemPrice: {
     fontSize: 10,
@@ -201,10 +204,10 @@ const styles = StyleSheet.create({
   },
   cartButton: {
     position: "absolute",
-    top: 40,
-    right: 17,
+    top: '4.3%',
+    right: '3.65%',
     backgroundColor: "#fff",
-    padding: 10,
+    padding: '2.5%',
     borderRadius: 8,
     elevation: 3,
     shadowColor: "#000",
@@ -217,10 +220,10 @@ const styles = StyleSheet.create({
   },
   homePageButton: {
     position: "absolute",
-    top: 40,
-    left: 17,
+    top: '4.3%',
+    left: '3.65%',
     backgroundColor: "#fff",
-    padding: 10,
+    padding: '2.5%',
     borderRadius: 8,
     elevation: 3,
     shadowColor: "#000",
@@ -246,6 +249,12 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 12,
     fontWeight: "bold",
+  },
+  image: {
+    top: '5%',
+    width: "40%",
+    height: "40%",
+    resizeMode: "cover",
   },
 });
 
