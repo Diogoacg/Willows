@@ -5,19 +5,13 @@ import { createMaterialBottomTabNavigator } from "@react-navigation/material-bot
 import { createStackNavigator } from "@react-navigation/stack";
 import { Provider as PaperProvider } from "react-native-paper";
 import { Provider as ReduxProvider } from "react-redux";
-import { Dimensions } from "react-native";
 import store from "./store";
-import PedidosPopularesScreen from "./screens/PedidosPopularesScreen";
-import PesquisaScreen from "./screens/PesquisaScreen";
-import LoginScreen from "./screens/LoginScreen";
-import HomePage from "./screens/HomePage";
+import PedidosScreen from "./screens/PedidosScreen";
 import GerirPedidos from "./screens/GerirPedidos";
+import LoginScreen from "./screens/LoginScreen";
 
 const Tab = createMaterialBottomTabNavigator();
 const Stack = createStackNavigator();
-
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
 
 const TabPrincipal = () => {
   return (
@@ -27,42 +21,24 @@ const TabPrincipal = () => {
       barStyle={{ backgroundColor: "#f0f0f0" }}
     >
       <Tab.Screen
-        name="Pedidos Populares"
-        component={PedidosPopularesScreen}
+        name="Pedidos"
+        component={PedidosScreen}
         options={{
-          tabBarIcon: ({color}) => <Ionicons name="star-outline" size={screenWidth * 0.05} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="cart-outline" size={20} color={color} />
+          ),
         }}
       />
       <Tab.Screen
-        name="Pesquisa"
-        component={PesquisaScreen}
+        name="Gestão"
+        component={GerirPedidos}
         options={{
-          tabBarIcon: ({color}) => <Ionicons name="search-outline" size={screenWidth * 0.05} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="settings-outline" size={20} color={color} />
+          ),
         }}
       />
     </Tab.Navigator>
-  );
-};
-
-const StackPrincipal = () => {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="HomePage"
-        component={HomePage}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="GerirPedidos"
-        component={GerirPedidos}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="PedidosPopulares"
-        component={TabPrincipal}
-        options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
   );
 };
 
@@ -80,7 +56,13 @@ const App = () => {
           {!userToken ? (
             <LoginScreen onLogin={handleLogin} />
           ) : (
-            <StackPrincipal />
+            <Stack.Navigator>
+              <Stack.Screen
+                name="Main"
+                component={TabPrincipal}
+                options={{ headerShown: false }}
+              />
+            </Stack.Navigator>
           )}
         </NavigationContainer>
       </PaperProvider>
