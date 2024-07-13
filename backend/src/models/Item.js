@@ -19,6 +19,10 @@ const Item = sequelize.define(
       type: DataTypes.FLOAT,
       allowNull: false,
     },
+    imageUri: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     timestamps: false,
