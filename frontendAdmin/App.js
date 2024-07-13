@@ -1,41 +1,91 @@
-import React from "react";
-import { View, ScrollView, StyleSheet, Text } from "react-native";
-import Estatisticas from "./components/Estatisticas";
+import React, { useState } from "react";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import { NavigationContainer } from "@react-navigation/native";
+import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
+import { Provider as PaperProvider } from "react-native-paper";
+import { Provider as ReduxProvider } from "react-redux";
+import store from "./store";
+import HomePage from "./screens/HomePage";
+import PedidosScreen from "./screens/PedidosScreen";
 import GerenciarPedidos from "./components/GerenciarPedidos";
-import FazerPedido from "./components/FazerPedido";
+import LoginScreen from "./screens/LoginScreen";
 
-export default function App() {
+const Tab = createMaterialBottomTabNavigator();
+const Stack = createStackNavigator();
+
+const TabPrincipal = () => {
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Café App - Admin</Text>
-      <View style={styles.section}>
-        <Estatisticas />
-      </View>
-      <View style={styles.section}>
-        <GerenciarPedidos />
-      </View>
-      <View style={styles.section}>
-        <FazerPedido />
-      </View>
-    </ScrollView>
+    <Tab.Navigator
+      activeColor="#000"
+      inactiveColor="#000"
+      barStyle={{ backgroundColor: "#f0f0f0" }}
+    >
+      <Tab.Screen
+        name="Pedidos"
+        component={PedidosScreen}
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name="cart-outline"
+              size={focused ? 24 : 20}
+              color={focused ? '#000' : color}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Gestão"
+        component={GerirPedidos}
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons 
+              name="settings-outline"
+              size={focused ? 24 : 20}
+              color={focused ? '#000' : color}
+            />
+          ),
+        }}
+      />
+    </Tab.Navigator>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 20,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  section: {
-    width: "90%",
-    marginBottom: 20,
-  },
-});
+const App = () => {
+  const [userToken, setUserToken] = useState(null);
+
+  const handleLogin = (token) => {
+    setUserToken(token);
+  };
+
+  return (
+    <ReduxProvider store={store}>
+      <PaperProvider>
+        <NavigationContainer>
+          {/* {!userToken ? (
+            <LoginScreen onLogin={handleLogin} />
+          ) : ( */}
+            <Stack.Navigator>
+              <Stack.Screen
+                name="Home"
+                component={HomePage}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Main"
+                component={TabPrincipal}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Gestao"
+                component={GerenciarPedidos}
+                options={{ headerShown: false }}
+              />
+            </Stack.Navigator>
+        </NavigationContainer>
+      </PaperProvider>
+    </ReduxProvider>
+  );
+};
+
+export default App;
