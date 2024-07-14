@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { obterInformacoesDoUtilizador } from "../api/apiAuth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
-const DetalhesFuncionarioScreen = () => {
+const itemWidth = screenWidth / numColumns - wp("4%");
+
+const numColumns = 3;
+
+const DetalhesFuncionarioScreen = ({navigation}) => {
   const route = useRoute();
   const { userId } = route.params;
   const [userDetails, setUserDetails] = useState(null);
@@ -36,12 +45,19 @@ const DetalhesFuncionarioScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Detalhes do Funcionário</Text>
-      <Text style={styles.label}>
-        Nome de Utilizador: {userDetails.username}
-      </Text>
-      <Text style={styles.label}>Email: {userDetails.email}</Text>
-      {/* Adicione mais detalhes conforme necessário */}
+      <View style={styles.header}>
+      <TouchableOpacity style={styles.button}onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back-outline" size={24} color="black" />
+      </TouchableOpacity>
+      </View>
+      <View style={styles.inContainer}>
+        <Text style={styles.title}>Detalhes do Funcionário</Text>
+        <Text style={styles.label}>
+          Nome de Utilizador: {userDetails.username}
+        </Text>
+        <Text style={styles.label}>Email: {userDetails.email}</Text>
+        {/* Adicione mais detalhes conforme necessário */}
+        </View>
     </View>
   );
 };
@@ -51,6 +67,22 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     paddingTop: screenHeight * 0.1,
+  },
+  inContainer: {
+    paddingTop: hp("2%"),
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: wp("4%"),
+    paddingVertical: hp("2%"),
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    marginTop: hp("-6%"), // Espaço extra no topo
+  },
+  button: {
+    marginLeft: wp("-4%"),
+    justifyContent: 'flex-start'
   },
   title: {
     fontSize: 24,

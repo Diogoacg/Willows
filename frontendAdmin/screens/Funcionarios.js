@@ -60,31 +60,39 @@ const FuncionariosScreen = () => {
   };
 
   const renderLogin = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>Funcionário: {item.username}</Text>
-      <Text style={styles.cardDetail}>
-        Estado: {item.status ? "Em serviço" : "Off"}
-      </Text>
-      <Text style={styles.cardDetail}>Última Atividade: {item.lastActive}</Text>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => handleViewDetails(item.id)}
+    <TouchableOpacity
+      style={styles.button}
+      onPress={() => handleViewDetails(item.id)}
       >
-        <Text style={styles.buttonText}>Visualizar Info</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: "red", marginTop: 10 }]}
-        onPress={() => handleDeleteUser(item.id)}
-      >
-        <Text style={styles.buttonText}>Eliminar</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.card}>
+        <TouchableOpacity
+          style={[styles.deleteButton, { backgroundColor: "white", marginTop: 0 }]}
+          onPress={() => handleDeleteUser(item.id)}
+        >
+          <Ionicons
+              name={"trash-outline"}
+              size={22}
+              color="grey"
+            />
+        </TouchableOpacity>
+        <Text style={styles.cardTitle}>Funcionário: {item.username}</Text>
+        <Text style={styles.cardDetail}>
+          Estado: {item.status ? "Em serviço" : "Off"}
+        </Text>
+        <Text style={styles.cardDetail}>Última Atividade: {item.lastActive}</Text>
+
+      </View>
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.createButton} onPress={handleCreateUser}>
-        <Text style={styles.createButtonText}>Criar Novo Funcionário</Text>
+      <Ionicons
+            name={"add-circle-outline"}
+            size={24}
+            color="grey"
+          />
       </TouchableOpacity>
       <FlatList
         data={logins}
@@ -98,13 +106,14 @@ const FuncionariosScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: screenHeight * 0.1,
+    paddingTop: screenHeight * 0.1 / 2,
     paddingHorizontal: 10,
   },
   listContainer: {
     paddingBottom: 20,
   },
   card: {
+    width: screenWidth * 0.9,
     backgroundColor: "#fff",
     borderRadius: 8,
     padding: 15,
@@ -131,11 +140,18 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginBottom: 5,
   },
+  deleteButton: {
+    backgroundColor: "#000",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "flex-end",
+  },
   button: {
     backgroundColor: "#000",
     padding: 10,
     borderRadius: 8,
     alignItems: "center",
+    backgroundColor: "#f3f3f2",
   },
   buttonText: {
     color: "#fff",
@@ -143,11 +159,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   createButton: {
-    backgroundColor: "#007BFF",
+    top: -(screenHeight * 0.1)/30,
+    backgroundColor: "#f3f3f2",
     padding: 15,
     borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 20,
+    alignItems: "flex-end",
+    marginBottom: 15,
+    justifyContent: "flex-end",
+    alignSelf: "flex-end",
   },
   createButtonText: {
     color: "#fff",
