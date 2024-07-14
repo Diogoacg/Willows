@@ -46,7 +46,7 @@ async function createInitialUser() {
     await User.create({
       username,
       email,
-      password,
+      password: await bcrypt.hash(password, 10), // Hashing the password
     });
 
     console.log("Initial user created successfully");
@@ -72,7 +72,7 @@ OrderGroup.belongsTo(User, { foreignKey: "userId", as: "user" });
 
 // Sincronização do banco de dados (alter: true para alterar automaticamente o esquema)
 sequelize
-  .sync({ alter: true, force: true })
+  .sync({ alter: true }) // Remover 'force: true'
   .then(async () => {
     console.log("Database & tables created!");
 
