@@ -14,6 +14,7 @@ import {
   atualizarStatusDoGrupoDePedidos,
 } from "../api/apiOrderGroup";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import useSocket from "../hooks/useSocket"; // Importe o hook useSocket
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -25,6 +26,8 @@ const PedidosScreen = () => {
   useEffect(() => {
     fetchPedidos();
   }, []);
+
+  useSocket(setPedidos); // Use o hook useSocket para ouvir eventos do socket
 
   const fetchPedidos = async () => {
     const token = await AsyncStorage.getItem("token");
@@ -44,10 +47,6 @@ const PedidosScreen = () => {
     const token = await AsyncStorage.getItem("token");
     try {
       await atualizarStatusDoGrupoDePedidos(token, pedidoId, "pronto");
-      // Remove o pedido marcado como "pronto" da lista localmente
-      setPedidos((prevPedidos) =>
-        prevPedidos.filter((pedido) => pedido.id !== pedidoId)
-      );
     } catch (error) {
       console.error("Erro ao mudar estado do pedido:", error.message);
     }
@@ -128,7 +127,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     borderColor: "#000",
-    borderWidth: 1
+    borderWidth: 1,
   },
   buttonText: {
     color: "#000",
