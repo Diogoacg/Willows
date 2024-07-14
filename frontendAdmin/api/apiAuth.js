@@ -23,14 +23,21 @@ export const realizarLogin = async (loginData) => {
 };
 
 // Função para registar um novo utilizador
-export const registarNovoUtilizador = async (userData) => {
+export const registarNovoUtilizador = async (
+  token,
+  username,
+  email,
+  password,
+  role
+) => {
+  console.log("userData", { username, email, password, role });
   try {
     const response = await fetch(`${REACT_APP_AUTH_URL}/signup`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(userData),
+      body: JSON.stringify({ username, email, password, role }),
     });
 
     if (!response.ok) {
