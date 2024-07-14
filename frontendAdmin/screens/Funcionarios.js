@@ -1,7 +1,11 @@
 import { StyleSheet, Dimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { obterLogins } from "../api/apiAuth";
+import {
+  obterInformacoesDoUtilizador,
+  obterTodosOsUtilizadores,
+  deleteUser,
+} from "../api/apiAuth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import { FlatList, Text, View, TouchableOpacity } from "react-native";
@@ -20,33 +24,36 @@ const FuncionariosScreen = () => {
   const fetchLogins = async () => {
     const token = await AsyncStorage.getItem("token");
     try {
-      const loginsData = await obterLogins(token);
+      const loginsData = await obterTodosOsUtilizadores(token);
       setLogins(loginsData);
     } catch (error) {
       console.error("Erro ao buscar logins:", error.message);
     }
   };
 
-  const handleLogins = async (loginId) => {
+  const handleDeleteUser = async (userId) => {
     const token = await AsyncStorage.getItem("token");
     try {
-      await retirarLogin(token, loginId);
-      setLogins(prevLogins => prevLogins.filter(login => login.id !== loginId));
-      alert("Login retirado com sucesso!");
+      await deleteUser(token, userId);
+      setLogins((prevLogins) =>
+        prevLogins.filter((login) => login.id !== userId)
+      );
+      alert("Utilizador eliminado com sucesso!");
     } catch (error) {
-      console.error("Erro ao retirar login:", error.message);
-      alert("Falha ao retirar login.");
+      console.error("Erro ao eliminar utilizador:", error.message);
+      alert("Falha ao eliminar utilizador.");
     }
   };
-
   const renderLogin = ({ item }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Funcionário: {item.username}</Text>
-      <Text style={styles.cardDetail}>Estado: {item.status ? "Em servico" : "Off"}</Text>
+      <Text style={styles.cardDetail}>
+        Estado: {item.status ? "Em servico" : "Off"}
+      </Text>
       <Text style={styles.cardDetail}>Última Atividade: {item.lastActive}</Text>
       <TouchableOpacity
         style={styles.button}
-        onPress={() => RetirarLogin(item.id)}
+        onPress={() => handleDeleteUser(item.id)}
       >
         <Text style={styles.buttonText}>Visualizar Info</Text>
       </TouchableOpacity>
@@ -58,7 +65,7 @@ const FuncionariosScreen = () => {
       <FlatList
         data={logins}
         renderItem={renderLogin}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={(item) => item.id.toString()}
       />
     </View>
   );
@@ -106,7 +113,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     borderColor: "#000",
-    borderWidth: 1
+    borderWidth: 1,
   },
   buttonText: {
     color: "#000",

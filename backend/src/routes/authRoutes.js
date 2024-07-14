@@ -219,4 +219,71 @@ router.patch("/update-role/:id", async (req, res) => {
   }
 });
 
+// Rota para obter todos os utilizadores
+/**
+ * @swagger
+ * /auth/all:
+ *   get:
+ *     summary: Retorna todos os Utilizadores
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: Lista de Utilizadores
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Erro ao buscar Utilizadores
+ */
+router.get("/all", async (req, res) => {
+  try {
+    const users = await User.findAll();
+    res.json(users);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Rota para obter um utilizador específico
+/**
+ * @swagger
+ * /auth/{id}:
+ *   get:
+ *     summary: Retorna um Utilizador específico
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do Utilizador
+ *     responses:
+ *       200:
+ *         description: Utilizador encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       404:
+ *         description: Utilizador não encontrado
+ *       400:
+ *         description: Erro ao buscar Utilizador
+ */
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ error: "Utilizador não encontrado" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 module.exports = router;
