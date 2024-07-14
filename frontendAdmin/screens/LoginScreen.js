@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: hp("2.5%"),
     width: "100%",
-    borderWidth: 1
+    borderWidth: 1,
   },
   buttonText: {
     color: "#000",
