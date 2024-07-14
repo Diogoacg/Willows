@@ -11,6 +11,8 @@ import PedidosScreen from "./screens/PedidosScreen";
 import GerenciarPedidos from "./components/GerenciarPedidos";
 import LoginScreen from "./screens/LoginScreen";
 import FuncionariosScreen from "./screens/Funcionarios";
+import DetalhesFuncionarioScreen from "./screens/DetalhesFuncionarioScreen";
+import CriarFuncionarioScreen from "./screens/CriarFuncionarioScreen";
 
 const Tab = createMaterialBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -30,7 +32,7 @@ const TabPrincipal = () => {
             <Ionicons
               name="cart-outline"
               size={focused ? 24 : 20}
-              color={focused ? '#000' : color}
+              color={focused ? "#000" : color}
             />
           ),
         }}
@@ -40,10 +42,10 @@ const TabPrincipal = () => {
         component={GerenciarPedidos}
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons 
+            <Ionicons
               name="settings-outline"
               size={focused ? 24 : 20}
-              color={focused ? '#000' : color}
+              color={focused ? "#000" : color}
             />
           ),
         }}
@@ -66,28 +68,38 @@ const App = () => {
           {/* {!userToken ? (
             <LoginScreen onLogin={handleLogin} />
           ) : ( */}
-            <Stack.Navigator>
-              <Stack.Screen
-                name="Home"
-                component={HomePage}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="Main"
-                component={TabPrincipal}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="GerenciarPedidos"
-                component={GerenciarPedidos}
-                options={{ headerShown: false }}
-              />
-              <Stack.Screen
-                name="Gestao"
-                component={FuncionariosScreen}
-                options={{ headerShown: false }}
-              />
-            </Stack.Navigator>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="Home"
+              component={HomePage}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Main"
+              component={TabPrincipal}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="GerenciarPedidos"
+              component={GerenciarPedidos}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Gestao"
+              component={FuncionariosScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="DetalhesFuncionario"
+              component={DetalhesFuncionarioScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="CriarFuncionario"
+              component={CriarFuncionarioScreen}
+              options={{ headerShown: false }}
+            />
+          </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>
     </ReduxProvider>

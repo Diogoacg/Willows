@@ -22,8 +22,8 @@ export const realizarLogin = async (loginData) => {
   }
 };
 
-// Função para registrar um novo utilizador
-export const registrarNovoUsuario = async (userData) => {
+// Função para registar um novo utilizador
+export const registarNovoUtilizador = async (userData) => {
   try {
     const response = await fetch(`${REACT_APP_AUTH_URL}/signup`, {
       method: "POST",
