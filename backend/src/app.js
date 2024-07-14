@@ -46,7 +46,7 @@ async function createInitialUser() {
     await User.create({
       username,
       email,
-      password: await bcrypt.hash(password, 10), // Hashing the password
+      password,
     });
 
     console.log("Initial user created successfully");

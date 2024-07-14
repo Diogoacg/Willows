@@ -65,41 +65,46 @@ const App = () => {
     <ReduxProvider store={store}>
       <PaperProvider>
         <NavigationContainer>
-          {/* {!userToken ? (
-            <LoginScreen onLogin={handleLogin} />
-          ) : ( */}
-          <Stack.Navigator>
-            <Stack.Screen
-              name="Home"
-              component={HomePage}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Main"
-              component={TabPrincipal}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="GerenciarPedidos"
-              component={GerenciarPedidos}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Gestao"
-              component={FuncionariosScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="DetalhesFuncionario"
-              component={DetalhesFuncionarioScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="CriarFuncionario"
-              component={CriarFuncionarioScreen}
-              options={{ headerShown: false }}
-            />
-          </Stack.Navigator>
+          {!userToken ? (
+            <Stack.Navigator>
+              <Stack.Screen name="Login" options={{ headerShown: false }}>
+                {(props) => <LoginScreen {...props} onLogin={handleLogin} />}
+              </Stack.Screen>
+            </Stack.Navigator>
+          ) : (
+            <Stack.Navigator>
+              <Stack.Screen
+                name="Home"
+                component={HomePage}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Main"
+                component={TabPrincipal}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="GerenciarPedidos"
+                component={GerenciarPedidos}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Gestao"
+                component={FuncionariosScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="DetalhesFuncionario"
+                component={DetalhesFuncionarioScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="CriarFuncionario"
+                component={CriarFuncionarioScreen}
+                options={{ headerShown: false }}
+              />
+            </Stack.Navigator>
+          )}
         </NavigationContainer>
       </PaperProvider>
     </ReduxProvider>
