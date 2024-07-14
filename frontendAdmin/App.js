@@ -10,6 +10,7 @@ import HomePage from "./screens/HomePage";
 import PedidosScreen from "./screens/PedidosScreen";
 import GerenciarPedidos from "./components/GerenciarPedidos";
 import LoginScreen from "./screens/LoginScreen";
+import FuncionariosScreen from "./screens/Funcionarios";
 
 const Tab = createMaterialBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -35,8 +36,8 @@ const TabPrincipal = () => {
         }}
       />
       <Tab.Screen
-        name="Gestão"
-        component={GerirPedidos}
+        name="Gerir Pedidos"
+        component={GerenciarPedidos}
         options={{
           tabBarIcon: ({ color, focused }) => (
             <Ionicons 
@@ -77,8 +78,13 @@ const App = () => {
                 options={{ headerShown: false }}
               />
               <Stack.Screen
-                name="Gestao"
+                name="GerenciarPedidos"
                 component={GerenciarPedidos}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="Gestao"
+                component={FuncionariosScreen}
                 options={{ headerShown: false }}
               />
             </Stack.Navigator>

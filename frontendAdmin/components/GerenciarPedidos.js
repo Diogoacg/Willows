@@ -61,7 +61,6 @@ export default function GerenciarPedidos() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Gerenciar Pedidos</Text>
       <FlatList
         data={pedidos}
         keyExtractor={(item) => item.id.toString()}

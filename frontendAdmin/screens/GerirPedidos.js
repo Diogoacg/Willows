@@ -56,8 +56,8 @@ const PedidosScreen = () => {
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Pedido #{item.id}</Text>
-      <Text style={styles.cardDetail}>Status: {item.status}</Text>
-      <Text style={styles.cardDetail}>Total: ${item.totalPrice}</Text>
+      <Text style={styles.cardDetail}>Estado: {item.status}</Text>
+      <Text style={styles.cardDetail}>Total: {item.totalPrice}€</Text>
       <Text style={styles.cardDetail}>Itens:</Text>
       {item.items.map((itemPedido, index) => (
         <View key={index} style={styles.itemContainer}>

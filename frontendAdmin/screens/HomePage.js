@@ -27,7 +27,7 @@ const HomePage = () => {
           style={[styles.gerirPedidosButton]}
           onPress={() => navigation.navigate("Gestao")}
         >
-          <Text style={styles.gerirPedidosButtonText}>Gerir Pedidos</Text>
+          <Text style={styles.gerirPedidosButtonText}>Funcionários</Text>
         </TouchableOpacity>
       </View>
       <View style={styles.button2Container}>
