@@ -13,7 +13,7 @@ const Item = sequelize.define(
     nome: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
+      unique: "nome",
     },
     preco: {
       type: DataTypes.FLOAT,
