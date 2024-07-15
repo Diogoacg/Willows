@@ -15,6 +15,7 @@ import {
   deleteUser,
 } from "../api/apiAuth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import io from "socket.io-client"; // Import the Socket.IO client library
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -25,6 +26,28 @@ const FuncionariosScreen = () => {
 
   useEffect(() => {
     fetchLogins();
+
+    // Set up Socket.IO client
+    const socket = io("https://willows-production.up.railway.app");
+    //const socket = io("http://localhost:5000");
+
+    // Listen for relevant events
+    socket.on("userCreated", () => {
+      fetchLogins();
+    });
+
+    socket.on("userDeleted", () => {
+      fetchLogins();
+    });
+
+    socket.on("userRoleUpdated", () => {
+      fetchLogins();
+    });
+
+    // Clean up the socket connection when the component unmounts
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const fetchLogins = async () => {
@@ -41,9 +64,7 @@ const FuncionariosScreen = () => {
     const token = await AsyncStorage.getItem("token");
     try {
       await deleteUser(token, userId);
-      setLogins((prevLogins) =>
-        prevLogins.filter((login) => login.id !== userId)
-      );
+      fetchLogins();
       alert("Utilizador eliminado com sucesso!");
     } catch (error) {
       console.error("Erro ao eliminar utilizador:", error.message);
@@ -63,24 +84,24 @@ const FuncionariosScreen = () => {
     <TouchableOpacity
       style={styles.button}
       onPress={() => handleViewDetails(item.id)}
-      >
+    >
       <View style={styles.card}>
         <TouchableOpacity
-          style={[styles.deleteButton, { backgroundColor: "white", marginTop: 0 }]}
+          style={[
+            styles.deleteButton,
+            { backgroundColor: "white", marginTop: 0 },
+          ]}
           onPress={() => handleDeleteUser(item.id)}
         >
-          <Ionicons
-              name={"trash-outline"}
-              size={22}
-              color="grey"
-            />
+          <Ionicons name={"trash-outline"} size={22} color="grey" />
         </TouchableOpacity>
         <Text style={styles.cardTitle}>Funcionário: {item.username}</Text>
         <Text style={styles.cardDetail}>
           Estado: {item.status ? "Em serviço" : "Off"}
         </Text>
-        <Text style={styles.cardDetail}>Última Atividade: {item.lastActive}</Text>
-
+        <Text style={styles.cardDetail}>
+          Última Atividade: {item.lastActive}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -88,11 +109,7 @@ const FuncionariosScreen = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.createButton} onPress={handleCreateUser}>
-      <Ionicons
-            name={"add-circle-outline"}
-            size={24}
-            color="grey"
-          />
+        <Ionicons name={"add-circle-outline"} size={24} color="grey" />
       </TouchableOpacity>
       <FlatList
         data={logins}
@@ -106,7 +123,7 @@ const FuncionariosScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: screenHeight * 0.1 / 2,
+    paddingTop: (screenHeight * 0.1) / 2,
     paddingHorizontal: 10,
   },
   listContainer: {
@@ -159,7 +176,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   createButton: {
-    top: -(screenHeight * 0.1)/30,
+    top: -(screenHeight * 0.1) / 30,
     backgroundColor: "#f3f3f2",
     padding: 15,
     borderRadius: 8,

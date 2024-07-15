@@ -168,6 +168,9 @@ module.exports = (io) => {
       }
 
       await user.destroy();
+
+      // Emitir um evento com o Socket.IO
+      io.emit("userDeleted", user);
       res.status(200).json({ message: "Utilizador deletado com sucesso" });
     } catch (error) {
       res.status(400).json({ error: error.message });
@@ -218,6 +221,8 @@ module.exports = (io) => {
 
       user.role = role;
       await user.save();
+      // Emitir um evento com o Socket.IO
+      io.emit("userRoleUpdated", user);
       res.status(200).json({ message: "Papel atualizado com sucesso", user });
     } catch (error) {
       res.status(400).json({ error: error.message });
@@ -285,6 +290,9 @@ module.exports = (io) => {
       if (!user) {
         return res.status(404).json({ error: "Utilizador não encontrado" });
       }
+
+      // Emitir um evento com o Socket.IO
+      io.emit("userFound", user);
       res.json(user);
     } catch (error) {
       res.status(400).json({ error: error.message });
@@ -292,4 +300,3 @@ module.exports = (io) => {
   });
   return router;
 };
-// module.exports = router;
