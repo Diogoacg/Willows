@@ -119,21 +119,9 @@ const PedidosScreen = () => {
       <Text style={styles.cardTitle}>Pedido #{item.id}</Text>
       <Text style={styles.cardDetail}>Estado: {item.status}</Text>
       <Text style={styles.cardDetail}>Total: {item.totalPrice}€</Text>
-      <Text style={styles.cardDetail}>Itens:</Text>
       {item.items.map((itemPedido, index) => (
         <View key={index} style={styles.itemContainer}>
-          <Text>{itemPedido.nome}</Text>
-          <Text>Quantidade: {itemPedido.quantidade}</Text>
-          <View style={styles.imageContainer}>
-            {item.imageUri ? (
-            <Image source={{ uri: item.imageUri }} style={styles.image} />
-            ) : (
-            <Image
-              source={require("../assets/favicon.png")}
-              style={styles.image}
-            />
-        )}
-          </View>
+          <Text>{itemPedido.quantidade} {itemPedido.nome}(s)</Text>
         </View>
       ))}
       <TouchableOpacity
@@ -160,38 +148,44 @@ const PedidosScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: screenHeight * 0.1, // Add some padding at the top
-    paddingHorizontal: 10,
+    paddingTop: screenHeight * 0.1,
+    paddingHorizontal: screenWidth * 0.03,
   },
   listContainer: {
-    paddingBottom: 20, // Add some padding at the bottom
+    paddingBottom: 20,
   },
   card: {
     backgroundColor: "#fff",
     borderRadius: 8,
-    padding: 15,
+    padding: 10,
+    marginTop: 10,
     marginBottom: 10,
     shadowColor: "#000",
+    justifyContent: "space-between",
     shadowOffset: {
       width: 0,
       height: 2,
     },
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
-    elevation: 4,
+    elevation: 3,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
+    marginTop: wp("-9%"),
+    bottom: wp("-10%"),
   },
   cardDetail: {
     fontSize: 16,
     marginBottom: 10,
+    bottom: wp("-9.2%"),
   },
   itemContainer: {
-    marginLeft: 10,
-    marginBottom: 5,
+    bottom: wp("6%"),
+    alignItems: "flex-end",
+    justifyContent: "space-between",
   },
   button: {
     backgroundColor: "#fff",
@@ -205,17 +199,6 @@ const styles = StyleSheet.create({
     color: "#000",
     fontWeight: "bold",
     fontSize: 16,
-  },
-  image: {
-    width: wp("7%"),
-    height: wp("7%"),
-    resizeMode: "stretch",
-    marginBottom: hp("-1%"),
-  },
-  imageContainer: {
-    bottom: wp("8%"),
-    alignItems: "flex-end",
-    justifyContent: "center",
   },
 });
 
