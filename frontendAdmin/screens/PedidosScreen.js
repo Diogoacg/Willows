@@ -27,6 +27,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import io from "socket.io-client";
 
 const numColumns = 3;
 
@@ -44,6 +45,27 @@ const PedidosScreen = () => {
 
   useEffect(() => {
     fetchInventoryItems();
+
+    // Set up Socket.IO client
+    const socket = io("https://willows-production.up.railway.app");
+    //const socket = io("http://localhost:5000");
+
+    // Listen for relevant events
+    socket.on("itemCreated", () => {
+      fetchInventoryItems();
+    });
+
+    socket.on("getItems", () => {
+      fetchInventoryItems();
+    });
+
+    socket.on("itemDeleted", () => {
+      fetchInventoryItems();
+    });
+
+    socket.on("itemUpdated", () => {
+      fetchInventoryItems();
+    });
   }, []);
 
   useEffect(() => {

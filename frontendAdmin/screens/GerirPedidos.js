@@ -14,6 +14,8 @@ import {
   atualizarStatusDoGrupoDePedidos,
 } from "../api/apiOrderGroup";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { use } from "../../backend/src/routes/statsRoutes";
+import io from "socket.io-client"; // Import the Socket.IO client library
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -24,6 +26,32 @@ const PedidosScreen = () => {
 
   useEffect(() => {
     fetchPedidos();
+
+    // Set up Socket.IO client
+    const socket = io("https://willows-production.up.railway.app");
+    //const socket = io("http://localhost:5000");
+
+    // Listen for relevant events
+    socket.on("orderGroupCreated", () => {
+      fetchPedidos();
+    });
+
+    socket.on("orderGroupDeleted", () => {
+      fetchPedidos();
+    });
+
+    socket.on("orderGroupUpdated", () => {
+      fetchPedidos();
+    });
+
+    socket.on("orderGroups", () => {
+      fetchPedidos();
+    });
+
+    // Clean up the socket connection when the component unmounts
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const fetchPedidos = async () => {
