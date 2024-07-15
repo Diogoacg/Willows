@@ -1,4 +1,6 @@
 const express = require("express");
+const http = require("http");
+const socketIo = require("socket.io");
 const cors = require("cors");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
@@ -13,6 +15,15 @@ const bcrypt = require("bcrypt");
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "http://localhost:8081", // Troque pelo endereço do seu frontend local
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  },
+});
 
 const corsOptions = {
   origin: "http://localhost:8081", // Troque pelo endereço do seu frontend local
@@ -23,8 +34,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-// Middleware para processar corpos de requisição JSON
 app.use(express.json());
 
 // Criar um usuário automaticamente ao iniciar a aplicação
@@ -124,9 +133,14 @@ app.use("/auth", authRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/stats", statsRoutes);
 
+// Exemplo básico de conexão Socket.IO
+io.on("connection", (socket) => {
+  console.log("Novo cliente conectado");
+});
+
 // Porta do servidor
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`Swagger disponível em: http://localhost:${PORT}/api-docs`);
 });

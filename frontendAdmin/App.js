@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { NavigationContainer } from "@react-navigation/native";
 import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
@@ -13,11 +13,33 @@ import LoginScreen from "./screens/LoginScreen";
 import FuncionariosScreen from "./screens/Funcionarios";
 import DetalhesFuncionarioScreen from "./screens/DetalhesFuncionarioScreen";
 import CriarFuncionarioScreen from "./screens/CriarFuncionarioScreen";
+import io from "socket.io-client";
 
 const Tab = createMaterialBottomTabNavigator();
 const Stack = createStackNavigator();
 
-const TabPrincipal = () => {
+// URL do servidor Socket.IO (substitua pelo endereço do seu backend)
+//const socketUrl = "http://localhost:5000"; // Exemplo de URL, ajuste conforme necessário
+const socketUrl = "https://willows-production.up.railway.app";
+const TabPrincipal = ({ navigation }) => {
+  const [socket, setSocket] = useState(null);
+
+  // Conectar ao servidor Socket.IO ao montar o componente
+  useEffect(() => {
+    const socket = io(socketUrl);
+    setSocket(socket);
+
+    // Lidar com eventos recebidos do servidor
+    socket.on("connect", () => {
+      console.log("Conectado ao servidor Socket.IO");
+    });
+
+    // Retornar uma função de limpeza para desconectar o socket ao desmontar o componente
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   return (
     <Tab.Navigator
       activeColor="#000"
@@ -39,7 +61,7 @@ const TabPrincipal = () => {
       />
       <Tab.Screen
         name="Gerir Pedidos"
-        component={GerenciarPedidos}
+        component={() => <GerenciarPedidos socket={socket} />}
         options={{
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
@@ -56,6 +78,24 @@ const TabPrincipal = () => {
 
 const App = () => {
   const [userToken, setUserToken] = useState(null);
+
+  const [socket, setSocket] = useState(null);
+
+  // Conectar ao servidor Socket.IO ao montar o componente
+  useEffect(() => {
+    const socket = io(socketUrl);
+    setSocket(socket);
+
+    // Lidar com eventos recebidos do servidor
+    socket.on("connect", () => {
+      console.log("Conectado ao servidor Socket.IO");
+    });
+
+    // Retornar uma função de limpeza para desconectar o socket ao desmontar o componente
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   const handleLogin = (token) => {
     setUserToken(token);
@@ -85,7 +125,7 @@ const App = () => {
               />
               <Stack.Screen
                 name="GerenciarPedidos"
-                component={GerenciarPedidos}
+                component={() => <GerenciarPedidos socket={socket} />}
                 options={{ headerShown: false }}
               />
               <Stack.Screen
