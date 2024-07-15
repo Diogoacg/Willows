@@ -112,7 +112,7 @@ export const obterTodosOsUtilizadores = async (token) => {
       const errorData = await response.json();
       throw new Error(errorData.message);
     }
-
+    console.log("response", response.data);
     return await response.json();
   } catch (error) {
     throw new Error(error.message);

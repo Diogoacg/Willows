@@ -214,7 +214,7 @@ module.exports = (io) => {
       });
 
       // Emitir um evento com o Socket.IO
-      socket.emit("orderGroups", orderGroups);
+      io.emit("orderGroups", orderGroups);
 
       res.json(orderGroups);
     } catch (error) {

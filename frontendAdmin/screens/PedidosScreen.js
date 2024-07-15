@@ -55,9 +55,9 @@ const PedidosScreen = () => {
       fetchInventoryItems();
     });
 
-    socket.on("getItems", () => {
-      fetchInventoryItems();
-    });
+    // socket.on("getItems", () => {
+    //   fetchInventoryItems();
+    // });
 
     socket.on("itemDeleted", () => {
       fetchInventoryItems();
