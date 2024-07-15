@@ -6,7 +6,6 @@ import {
   FlatList,
   StyleSheet,
   Dimensions,
-  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -20,10 +19,6 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
-import {
-  obterItensDoInventario,
-  atualizarItemNoInventario,
-} from "../api/apiInventory";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -60,32 +55,6 @@ const PedidosScreen = () => {
       socket.disconnect();
     };
   }, []);
-
-  const fetchImageUri = async (itemName) => {
-    try {
-      const encodedItemName = encodeURIComponent(itemName);
-      const response = await fetch(
-        `https://api.unsplash.com/photos/random?query=${encodedItemName}&lang=pt`,
-        {
-          headers: {
-            Authorization:
-              "Client-ID yoPSP5TFfOvZ1uog-ibC6godTeccW6OLEehYrC4XNqY",
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (data.urls && data.urls.small) {
-        return data.urls.small;
-      } else {
-        throw new Error("Imagem não encontrada no Unsplash");
-      }
-    } catch (error) {
-      console.error("Erro ao buscar imagem do Unsplash:", error.message);
-      // Pode retornar um placeholder ou tratar o erro de outra forma
-      return ""; // URI de imagem padrão ou vazia
-    }
-  };
 
   const fetchPedidos = async () => {
     const token = await AsyncStorage.getItem("token");
