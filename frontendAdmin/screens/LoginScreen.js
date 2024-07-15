@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -15,11 +15,29 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import io from "socket.io-client";
+
+// URL do servidor Socket.IO (substitua pelo endereço do seu backend)
+//const socketUrl = "http://localhost:5000"; // Exemplo de URL, ajuste conforme necessário
+const socketUrl = "https://willows-production.up.railway.app";
 
 const LoginScreen = ({ onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [socket, setSocket] = useState(null);
+
+  // Conectar ao servidor Socket.IO ao montar o componente
+  // se receber um sinal de  userLogginIn, da um console.log
+  useEffect(() => {
+    const socket = io(socketUrl);
+    setSocket(socket);
+
+    // Lidar com eventos recebidos do servidor
+    socket.on("userLoggedIn", (user) => {
+      console.log("Usuário Logado:", user);
+    });
+  }, []);
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);

@@ -5,7 +5,6 @@ const cors = require("cors");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const OrderGroupRoutes = require("./routes/orderGroupRoutes.js");
-const authRoutes = require("./routes/authRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
 const statsRoutes = require("./routes/statsRoutes");
 const dotenv = require("dotenv");
@@ -126,6 +125,12 @@ const swaggerOptions = {
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// Rotas da API (modificadas para passar `io`)
+// const OrderGroupRoutes = require("./routes/orderGroupRoutes")(io);
+const authRoutes = require("./routes/authRoutes")(io);
+// const inventoryRoutes = require("./routes/inventoryRoutes")(io);
+// const statsRoutes = require("./routes/statsRoutes")(io);
 
 // Rotas da API
 app.use("/api/order-groups", OrderGroupRoutes);
