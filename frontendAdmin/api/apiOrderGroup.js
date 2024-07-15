@@ -61,6 +61,7 @@ export const obterGruposDePedidos = async (token) => {
 
     return await response.json();
   } catch (error) {
+    console.error("Erro ao buscar grupos de pedidos:", error.message);
     throw new Error(error.message);
   }
 };

@@ -8,11 +8,11 @@ import { Provider as ReduxProvider } from "react-redux";
 import store from "./store";
 import HomePage from "./screens/HomePage";
 import PedidosScreen from "./screens/PedidosScreen";
-import GerenciarPedidos from "./components/GerenciarPedidos";
 import LoginScreen from "./screens/LoginScreen";
 import FuncionariosScreen from "./screens/Funcionarios";
 import DetalhesFuncionarioScreen from "./screens/DetalhesFuncionarioScreen";
 import CriarFuncionarioScreen from "./screens/CriarFuncionarioScreen";
+import GerirPedidos from "./screens/GerirPedidos";
 import io from "socket.io-client";
 
 const Tab = createMaterialBottomTabNavigator();
@@ -61,7 +61,7 @@ const TabPrincipal = ({ navigation }) => {
       />
       <Tab.Screen
         name="Gerir Pedidos"
-        component={() => <GerenciarPedidos socket={socket} />}
+        component={GerirPedidos}
         options={{
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
@@ -124,8 +124,8 @@ const App = () => {
                 options={{ headerShown: false }}
               />
               <Stack.Screen
-                name="GerenciarPedidos"
-                component={() => <GerenciarPedidos socket={socket} />}
+                name="GerirPedidos"
+                component={GerirPedidos}
                 options={{ headerShown: false }}
               />
               <Stack.Screen

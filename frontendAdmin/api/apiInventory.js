@@ -37,6 +37,7 @@ export const obterItensDoInventario = async () => {
 
     return await response.json();
   } catch (error) {
+    console.log("error", error);
     throw new Error(error.message);
   }
 };

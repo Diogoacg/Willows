@@ -35,6 +35,7 @@ const PedidosScreen = () => {
         (pedido) => pedido.status !== "pronto"
       );
       setPedidos(pedidosNaoProntos);
+      console.log("Pedidos:", pedidosNaoProntos);
     } catch (error) {
       console.error("Erro ao buscar pedidos:", error.message);
     }
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     borderColor: "#000",
-    borderWidth: 1
+    borderWidth: 1,
   },
   buttonText: {
     color: "#000",
