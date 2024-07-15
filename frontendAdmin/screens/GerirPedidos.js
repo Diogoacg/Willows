@@ -124,14 +124,16 @@ const PedidosScreen = () => {
         <View key={index} style={styles.itemContainer}>
           <Text>{itemPedido.nome}</Text>
           <Text>Quantidade: {itemPedido.quantidade}</Text>
-          {item.imageUri ? (
-          <Image source={{ uri: item.imageUri }} style={styles.image} />
-        ) : (
-          <Image
-            source={require("../assets/favicon.png")}
-            style={styles.image}
-          />
+          <View style={styles.imageContainer}>
+            {item.imageUri ? (
+            <Image source={{ uri: item.imageUri }} style={styles.image} />
+            ) : (
+            <Image
+              source={require("../assets/favicon.png")}
+              style={styles.image}
+            />
         )}
+          </View>
         </View>
       ))}
       <TouchableOpacity
@@ -205,10 +207,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   image: {
-    width: wp("10%"),
-    height: wp("10%"),
-    resizeMode: "contain",
-    marginBottom: hp("1%"),
+    width: wp("7%"),
+    height: wp("7%"),
+    resizeMode: "stretch",
+    marginBottom: hp("-1%"),
+  },
+  imageContainer: {
+    bottom: wp("8%"),
+    alignItems: "flex-end",
+    justifyContent: "center",
   },
 });
 
