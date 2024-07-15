@@ -34,7 +34,7 @@ const ActionModal = ({ handleClose, handleConfirm, handleBack, cartItems }) => {
         </TouchableOpacity>
       </View>
       <Text style={styles.itemPrice}>
-        ${(item.preco * item.quantity).toFixed(2)}
+        {(item.preco * item.quantity).toFixed(2)}€
       </Text>
     </View>
   );
@@ -55,7 +55,7 @@ const ActionModal = ({ handleClose, handleConfirm, handleBack, cartItems }) => {
             keyExtractor={(item) => item.id}
             style={styles.cartList}
           />
-          <Text style={styles.total}>Total: ${totalPrice.toFixed(2)}</Text>
+          <Text style={styles.total}>Total: {totalPrice.toFixed(2)}€</Text>
           <TouchableOpacity
             activeOpacity={0.9}
             style={styles.actionButton}

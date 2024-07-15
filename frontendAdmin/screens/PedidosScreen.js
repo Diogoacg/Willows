@@ -206,7 +206,7 @@ const PedidosScreen = () => {
           />
         )}
         <Text style={styles.itemName}>{item.nome}</Text>
-        <Text style={styles.itemPreco}>${item.preco.toFixed(2)}</Text>
+        <Text style={styles.itemPreco}>{item.preco.toFixed(2)}€</Text>
       </TouchableOpacity>
     );
   };

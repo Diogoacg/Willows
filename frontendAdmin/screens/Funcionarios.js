@@ -15,7 +15,11 @@ import {
   deleteUser,
 } from "../api/apiAuth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import io from "socket.io-client"; // Import the Socket.IO client library
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import io from "socket.io-client";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -108,9 +112,16 @@ const FuncionariosScreen = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.createButton} onPress={handleCreateUser}>
-        <Ionicons name={"add-circle-outline"} size={24} color="grey" />
-      </TouchableOpacity>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name={"arrow-back-outline"} size={24} color="grey" />
+        </TouchableOpacity>
+        <View style={styles.containerAdd}>
+          <TouchableOpacity style={styles.createButton} onPress={handleCreateUser}>
+            <Ionicons name={"add-circle-outline"} size={24} color="grey" />
+          </TouchableOpacity>
+        </View>
+      </View>
       <FlatList
         data={logins}
         renderItem={renderLogin}
@@ -125,6 +136,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: (screenHeight * 0.1) / 2,
     paddingHorizontal: 10,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    paddingHorizontal: wp("4%"),
+    paddingVertical: hp("2%"),
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    marginTop: hp("-6%"), // Espaço extra no topo
   },
   listContainer: {
     paddingBottom: 20,
@@ -145,11 +165,13 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   cardTitle: {
+    top: -(screenHeight * 0.1) / 2,
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
   },
   cardDetail: {
+    top: -(screenHeight * 0.1) / 2.5,
     fontSize: 16,
     marginBottom: 10,
   },
@@ -162,6 +184,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     alignItems: "flex-end",
+    alignSelf: "flex-end",
   },
   button: {
     backgroundColor: "#000",
@@ -180,15 +203,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#f3f3f2",
     padding: 15,
     borderRadius: 8,
-    alignItems: "flex-end",
     marginBottom: 15,
-    justifyContent: "flex-end",
-    alignSelf: "flex-end",
   },
   createButtonText: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  backButton: {
+    marginLeft: wp("-4%"),
+    justifyContent: 'flex-start'
+  },
+  containerAdd: {
+    top: hp("4%"),
+    left: wp("79%"),
+    justifyContent: 'flex-end'
   },
 });
 
