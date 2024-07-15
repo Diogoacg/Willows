@@ -29,11 +29,9 @@ export const obterItensDoInventario = async () => {
     const response = await fetch(`${REACT_APP_API_URL}/inventory`);
 
     if (!response.ok) {
-      console.log("response", response);
       const errorData = await response.json();
       throw new Error(errorData.message);
     }
-    console.log("response", response.data);
 
     return await response.json();
   } catch (error) {

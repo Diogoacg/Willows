@@ -75,7 +75,6 @@ const PedidosScreen = () => {
   const fetchInventoryItems = async () => {
     try {
       const items = await obterItensDoInventario();
-      console.log("Itens do inventário:", items);
 
       // Verifica cada item e busca imagem se necessário
       const itemsWithImages = await Promise.all(
@@ -183,7 +182,6 @@ const PedidosScreen = () => {
 
       await criarNovoGrupoDePedidos(token, orderData);
 
-      console.log("Pedido confirmado:", cartItems);
       dispatch(clearCart());
       handleCloseModal();
     } catch (error) {

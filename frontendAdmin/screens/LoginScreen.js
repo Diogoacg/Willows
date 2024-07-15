@@ -45,16 +45,10 @@ const LoginScreen = ({ onLogin }) => {
 
   const handleLogin = async () => {
     try {
-      console.log("Auth URL:", REACT_APP_AUTH_URL);
-      console.log("Phone Number:", username);
-      console.log("Password:", password);
-
       const response = await axios.post(`${REACT_APP_AUTH_URL}/login`, {
         username,
         password,
       });
-
-      console.log("Response:", response.data.token);
 
       await AsyncStorage.setItem("token", response.data.token);
 

@@ -14,8 +14,6 @@ const ListaPedidos = ({ pedidos }) => {
     </View>
   );
 
-  console.log(pedidos); // Adicione isso para verificar os dados
-
   return (
     <FlatList
       data={pedidos}

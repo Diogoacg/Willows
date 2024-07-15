@@ -30,7 +30,6 @@ export const registarNovoUtilizador = async (
   password,
   role
 ) => {
-  console.log("userData", { username, email, password, role });
   try {
     const response = await fetch(`${REACT_APP_AUTH_URL}/signup`, {
       method: "POST",
@@ -112,7 +111,6 @@ export const obterTodosOsUtilizadores = async (token) => {
       const errorData = await response.json();
       throw new Error(errorData.message);
     }
-    console.log("response", response.data);
     return await response.json();
   } catch (error) {
     throw new Error(error.message);

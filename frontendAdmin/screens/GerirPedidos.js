@@ -61,7 +61,6 @@ const PedidosScreen = () => {
         (pedido) => pedido.status !== "pronto"
       );
       setPedidos(pedidosNaoProntos);
-      console.log("Pedidos:", pedidosNaoProntos);
     } catch (error) {
       console.error("Erro ao buscar pedidos:", error.message);
     }

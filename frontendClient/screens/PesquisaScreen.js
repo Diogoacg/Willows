@@ -114,7 +114,6 @@ const PesquisaScreen = () => {
       // Supondo que `criarNovoGrupoDePedidos` é uma função que envia o pedido para a API
       await criarNovoGrupoDePedidos(token, orderData);
 
-      console.log("Pedido confirmado:", cartItems);
       dispatch(clearCart());
       handleCloseModal();
     } catch (error) {
