@@ -1,7 +1,7 @@
 import React from "react";
 import {
   View,
-  TouchableOpacity,
+  Pressable,
   Text,
   StyleSheet,
   Modal,
@@ -25,13 +25,13 @@ const ActionModal = ({ handleClose, handleConfirm, handleBack, cartItems }) => {
     <View style={styles.cartItem}>
       <Text style={styles.itemName}>{item.nome}</Text>
       <View style={styles.quantityContainer}>
-        <TouchableOpacity onPress={() => handleDecrement(item.id)}>
+        <Pressable onPress={() => handleDecrement(item.id)}>
           <Text style={styles.quantityButton}>-</Text>
-        </TouchableOpacity>
+        </Pressable>
         <Text style={styles.itemQuantity}>{item.quantity}</Text>
-        <TouchableOpacity onPress={() => handleIncrement(item.id)}>
+        <Pressable onPress={() => handleIncrement(item.id)}>
           <Text style={styles.quantityButton}>+</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
       <Text style={styles.itemPrice}>
         {(item.preco * item.quantity).toFixed(2)}€
@@ -56,27 +56,27 @@ const ActionModal = ({ handleClose, handleConfirm, handleBack, cartItems }) => {
             style={styles.cartList}
           />
           <Text style={styles.total}>Total: {totalPrice.toFixed(2)}€</Text>
-          <TouchableOpacity
+          <Pressable
             activeOpacity={0.9}
             style={styles.actionButton}
             onPress={handleConfirm}
           >
             <Text style={styles.actionText}>Confirmar Pedido</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </Pressable>
+          <Pressable
             activeOpacity={0.9}
             style={styles.actionButton}
             onPress={handleBack}
           >
             <Text style={styles.actionText}>Voltar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </Pressable>
+          <Pressable
             activeOpacity={0.9}
             style={[styles.actionButton, styles.cancelButton]}
             onPress={handleClose}
           >
             <Text style={[styles.actionText, styles.cancelText]}>Cancelar</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </Modal>

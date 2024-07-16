@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   FlatList,
   StyleSheet,
   Dimensions,
@@ -23,7 +23,7 @@ import io from "socket.io-client";
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
-const PedidosScreen = () => {
+const GerirPedidos = () => {
   const [pedidos, setPedidos] = useState([]);
   const navigation = useNavigation();
 
@@ -90,15 +90,17 @@ const PedidosScreen = () => {
       <Text style={styles.cardDetail}>Total: {item.totalPrice}€</Text>
       {item.items.map((itemPedido, index) => (
         <View key={index} style={styles.itemContainer}>
-          <Text>{itemPedido.quantidade} {itemPedido.nome}(s)</Text>
+          <Text>
+            {itemPedido.quantidade} {itemPedido.nome}(s)
+          </Text>
         </View>
       ))}
-      <TouchableOpacity
+      <Pressable
         style={styles.button}
         onPress={() => handleEstadoChange(item.id)}
       >
         <Text style={styles.buttonText}>Marcar como Pronto</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 
@@ -171,4 +173,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PedidosScreen;
+export default GerirPedidos;

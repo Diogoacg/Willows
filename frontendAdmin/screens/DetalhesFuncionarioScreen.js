@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { obterInformacoesDoUtilizador } from "../api/apiAuth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -16,7 +16,7 @@ const itemWidth = screenWidth / numColumns - wp("4%");
 
 const numColumns = 3;
 
-const DetalhesFuncionarioScreen = ({navigation}) => {
+const DetalhesFuncionarioScreen = ({ navigation }) => {
   const route = useRoute();
   const { userId } = route.params;
   const [userDetails, setUserDetails] = useState(null);
@@ -46,9 +46,9 @@ const DetalhesFuncionarioScreen = ({navigation}) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-      <TouchableOpacity style={styles.button}onPress={() => navigation.goBack()}>
+        <Pressable style={styles.button} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back-outline" size={24} color="black" />
-      </TouchableOpacity>
+        </Pressable>
       </View>
       <View style={styles.inContainer}>
         <Text style={styles.title}>Detalhes do Funcionário</Text>
@@ -57,7 +57,7 @@ const DetalhesFuncionarioScreen = ({navigation}) => {
         </Text>
         <Text style={styles.label}>Email: {userDetails.email}</Text>
         {/* Adicione mais detalhes conforme necessário */}
-        </View>
+      </View>
     </View>
   );
 };
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginLeft: wp("-4%"),
-    justifyContent: 'flex-start'
+    justifyContent: "flex-start",
   },
   title: {
     fontSize: 24,

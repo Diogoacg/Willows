@@ -35,7 +35,7 @@ export default function FazerPedido() {
         value={quantidade}
         onChangeText={setQuantidade}
         placeholder="Quantidade"
-        keyboardType="numeric"
+        inputMode="numeric"
         required
       />
       <Button title="Fazer Pedido" onPress={handleSubmit} />

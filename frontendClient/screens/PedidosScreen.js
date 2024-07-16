@@ -4,7 +4,7 @@ import {
   FlatList,
   Image,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   SafeAreaView,
   Modal,
   Text,
@@ -171,7 +171,7 @@ const PedidosScreen = () => {
 
   const renderItem = ({ item }) => {
     return (
-      <TouchableOpacity
+      <Pressable
         style={[styles.itemContainer, { width: itemWidth }]}
         onPress={() => handleAddToCart(item)}
       >
@@ -185,7 +185,7 @@ const PedidosScreen = () => {
         )}
         <Text style={styles.itemName}>{item.nome}</Text>
         <Text style={styles.itemPreco}>${item.preco.toFixed(2)}</Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
@@ -205,14 +205,14 @@ const PedidosScreen = () => {
             onChangeText={handleSearch}
             value={searchText}
           />
-          <TouchableOpacity style={styles.cartButton} onPress={handleOpenModal}>
+          <Pressable style={styles.cartButton} onPress={handleOpenModal}>
             <Ionicons name="cart-outline" size={24} color="#000" />
             {cartItems.length > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{cartItems.length}</Text>
               </View>
             )}
-          </TouchableOpacity>
+          </Pressable>
         </View>
         <FlatList
           data={filteredItems}

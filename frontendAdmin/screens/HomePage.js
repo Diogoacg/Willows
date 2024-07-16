@@ -2,7 +2,7 @@ import {
   Image,
   StyleSheet,
   Text,
-  TouchableOpacity,
+  Pressable,
   View,
   Dimensions,
 } from "react-native";
@@ -23,20 +23,20 @@ const HomePage = () => {
         style={styles.bgimage}
       />
       <View style={styles.button1Container}>
-        <TouchableOpacity
+        <Pressable
           style={[styles.gerirPedidosButton]}
           onPress={() => navigation.navigate("Gestao")}
         >
           <Text style={styles.gerirPedidosButtonText}>Funcionários</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
       <View style={styles.button2Container}>
-        <TouchableOpacity
+        <Pressable
           style={[styles.gerirPedidosButton]}
           onPress={() => navigation.navigate("Main")}
         >
           <Text style={styles.fazerPedidosButtonText}>Fazer Pedidos</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );

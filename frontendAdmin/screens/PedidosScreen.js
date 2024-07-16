@@ -4,7 +4,7 @@ import {
   FlatList,
   Image,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
   SafeAreaView,
   Modal,
   Text,
@@ -30,6 +30,18 @@ import {
 import io from "socket.io-client";
 
 const numColumns = 3;
+
+// primary: "#15191d",
+//   secondary: "#212529",
+//   accent: "#FF6A3D",
+//   neutral: "#313b4b",
+//   text: "#c7c7c7",
+
+const primaryColor = "#15191d";
+const secondaryColor = "#212529";
+const accentColor = "#FF6A3D";
+const neutralColor = "#313b4b";
+const textColor = "#c7c7c7";
 
 const PedidosScreen = () => {
   const [visibleModal, setVisibleModal] = useState(false);
@@ -193,7 +205,7 @@ const PedidosScreen = () => {
 
   const renderItem = ({ item }) => {
     return (
-      <TouchableOpacity
+      <Pressable
         style={[styles.itemContainer, { width: itemWidth }]}
         onPress={() => handleAddToCart(item)}
       >
@@ -207,7 +219,7 @@ const PedidosScreen = () => {
         )}
         <Text style={styles.itemName}>{item.nome}</Text>
         <Text style={styles.itemPreco}>{item.preco.toFixed(2)}€</Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 
@@ -215,26 +227,31 @@ const PedidosScreen = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Ionicons
-            name="search-outline"
-            size={24}
-            color="grey"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Digite aqui para pesquisar"
-            onChangeText={handleSearch}
-            value={searchText}
-          />
-          <TouchableOpacity style={styles.cartButton} onPress={handleOpenModal}>
-            <Ionicons name="cart-outline" size={24} color="#000" />
+          <Pressable onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back-outline" size={24} color="#fff" />
+          </Pressable>
+          <View style={styles.searchContainer}>
+            <Ionicons
+              name="search-outline"
+              size={24}
+              color="#000"
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Digite aqui para pesquisar"
+              onChangeText={handleSearch}
+              value={searchText}
+            />
+          </View>
+          <Pressable style={styles.cartButton} onPress={handleOpenModal}>
+            <Ionicons name="cart-outline" size={24} color="#fff" />
             {cartItems.length > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{cartItems.length}</Text>
               </View>
             )}
-          </TouchableOpacity>
+          </Pressable>
         </View>
         <FlatList
           data={filteredItems}
@@ -263,11 +280,11 @@ const PedidosScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: primaryColor,
   },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: secondaryColor,
   },
   header: {
     flexDirection: "row",
@@ -275,20 +292,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("4%"),
     paddingVertical: hp("2%"),
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    marginTop: hp("4%"), // Espaço extra no topo
+    borderBottomColor: neutralColor,
+    marginTop: hp("4%"), // Extra space at the top
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    marginLeft: wp("2%"),
+    borderWidth: 1,
+    borderColor: neutralColor,
+    borderRadius: 5,
+    paddingHorizontal: wp("2%"),
+    backgroundColor: "#fff",
   },
   input: {
     flex: 1,
     height: hp("5%"),
-    marginLeft: wp("2%"),
-    paddingHorizontal: wp("2%"),
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
+    marginLeft: wp("1%"),
+    color: primaryColor,
   },
   searchIcon: {
-    marginRight: wp("2%"),
+    marginRight: wp("1%"),
+    color: primaryColor,
   },
   cartButton: {
     marginLeft: "auto",
@@ -297,7 +323,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("3%"),
   },
   badge: {
-    backgroundColor: "red",
+    backgroundColor: accentColor,
     borderRadius: 9,
     width: 18,
     height: 18,
@@ -306,7 +332,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   badgeText: {
-    color: "white",
+    color: textColor,
     fontSize: 12,
     fontWeight: "bold",
   },
@@ -318,14 +344,11 @@ const styles = StyleSheet.create({
     margin: wp("1.2%"),
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#fff",
     borderRadius: 8,
+    backgroundColor: primaryColor,
+    borderWidth: 1,
+    borderColor: neutralColor,
     elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
     padding: wp("4%"),
@@ -335,18 +358,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginTop: hp("1%"),
-    width: "100%", // Garante que o texto ocupe todo o espaço disponível
+    width: "100%", // Ensure the text takes up all available space
+    color: textColor,
   },
   itemPreco: {
     fontSize: wp("3%"),
-    color: "#888",
+    color: textColor,
     textAlign: "center",
   },
   image: {
     width: wp("25%"),
     height: wp("25%"),
     resizeMode: "cover",
-    marginBottom: hp("1%"), // Espaçamento inferior para o texto
+    marginBottom: hp("1%"), // Bottom margin for text
   },
 });
 

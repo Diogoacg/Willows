@@ -4,7 +4,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   Alert,
 } from "react-native";
 import axios from "axios";
@@ -57,7 +57,7 @@ const LoginScreen = ({ onLogin }) => {
           onChangeText={setUsername}
           value={username}
           placeholder="Username"
-          keyboardType="name-phone-pad"
+          inputMode="name-phone-pad"
         />
         <Ionicons
           name="person-outline"
@@ -74,20 +74,17 @@ const LoginScreen = ({ onLogin }) => {
           placeholder="Password"
           secureTextEntry={!passwordVisible}
         />
-        <TouchableOpacity
-          onPress={togglePasswordVisibility}
-          style={styles.eyeIcon}
-        >
+        <Pressable onPress={togglePasswordVisibility} style={styles.eyeIcon}>
           <Ionicons
             name={passwordVisible ? "eye-outline" : "eye-off-outline"}
             size={24}
             color="grey"
           />
-        </TouchableOpacity>
+        </Pressable>
       </View>
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+      <Pressable style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

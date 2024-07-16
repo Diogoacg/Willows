@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   Dimensions,
 } from "react-native";
@@ -47,7 +47,7 @@ const CriarFuncionarioScreen = () => {
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
-        keyboardType="email-address"
+        inputMode="email-address"
       />
       <TextInput
         style={styles.input}
@@ -62,9 +62,9 @@ const CriarFuncionarioScreen = () => {
         value={role}
         onChangeText={setRole}
       />
-      <TouchableOpacity style={styles.button} onPress={handleCreateUser}>
+      <Pressable style={styles.button} onPress={handleCreateUser}>
         <Text style={styles.buttonText}>Criar Funcionário</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Modal, StyleSheet } from "react-native";
+import { View, Text, Pressable, Modal, StyleSheet } from "react-native";
 
 const QuantityModal = ({ visible, onClose, onAdd, item }) => {
   const [quantity, setQuantity] = useState(1);
@@ -15,22 +15,20 @@ const QuantityModal = ({ visible, onClose, onAdd, item }) => {
         <View style={styles.modalView}>
           <Text style={styles.modalText}>{item?.name}</Text>
           <View style={styles.quantityContainer}>
-            <TouchableOpacity
-              onPress={() => setQuantity(Math.max(1, quantity - 1))}
-            >
+            <Pressable onPress={() => setQuantity(Math.max(1, quantity - 1))}>
               <Text style={styles.quantityButton}>-</Text>
-            </TouchableOpacity>
+            </Pressable>
             <Text style={styles.quantityText}>{quantity}</Text>
-            <TouchableOpacity onPress={() => setQuantity(quantity + 1)}>
+            <Pressable onPress={() => setQuantity(quantity + 1)}>
               <Text style={styles.quantityButton}>+</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
-          <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
+          <Pressable style={styles.addButton} onPress={handleAdd}>
             <Text style={styles.addButtonText}>Add to Cart</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+          </Pressable>
+          <Pressable style={styles.cancelButton} onPress={onClose}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </Modal>

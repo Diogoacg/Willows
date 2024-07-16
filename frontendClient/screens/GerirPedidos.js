@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   FlatList,
   StyleSheet,
   Dimensions,
@@ -65,12 +65,12 @@ const PedidosScreen = () => {
           <Text>Quantidade: {itemPedido.quantidade}</Text>
         </View>
       ))}
-      <TouchableOpacity
+      <Pressable
         style={styles.button}
         onPress={() => handleEstadoChange(item.id)}
       >
         <Text style={styles.buttonText}>Marcar como Pronto</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 

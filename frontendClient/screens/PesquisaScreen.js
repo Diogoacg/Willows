@@ -4,7 +4,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   Modal,
   FlatList,
   StyleSheet,
@@ -87,13 +87,10 @@ const PesquisaScreen = () => {
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.cartItem}
-      onPress={() => handleSelectItem(item)}
-    >
+    <Pressable style={styles.cartItem} onPress={() => handleSelectItem(item)}>
       <Text>{item.nome}</Text>
       <Text>Preço: ${item.preco.toFixed(2)}</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
   const handleConfirmOrder = async () => {
     try {
@@ -123,20 +120,20 @@ const PesquisaScreen = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
+      <Pressable
         style={styles.homePageButton}
         onPress={() => navigation.navigate("HomePage")}
       >
         <Ionicons name="home-outline" size={screenWidth * 0.05} color="#000" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.cartButton} onPress={handleOpenModal}>
+      </Pressable>
+      <Pressable style={styles.cartButton} onPress={handleOpenModal}>
         <Ionicons name="cart-outline" size={screenWidth * 0.05} color="#000" />
         {cartItems.length > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{cartItems.length}</Text>
           </View>
         )}
-      </TouchableOpacity>
+      </Pressable>
       <Modal
         visible={visibleModal}
         transparent={true}

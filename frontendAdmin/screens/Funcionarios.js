@@ -3,7 +3,7 @@ import {
   FlatList,
   Text,
   View,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   Dimensions,
 } from "react-native";
@@ -85,12 +85,9 @@ const FuncionariosScreen = () => {
   };
 
   const renderLogin = ({ item }) => (
-    <TouchableOpacity
-      style={styles.button}
-      onPress={() => handleViewDetails(item.id)}
-    >
+    <Pressable style={styles.button} onPress={() => handleViewDetails(item.id)}>
       <View style={styles.card}>
-        <TouchableOpacity
+        <Pressable
           style={[
             styles.deleteButton,
             { backgroundColor: "white", marginTop: 0 },
@@ -98,7 +95,7 @@ const FuncionariosScreen = () => {
           onPress={() => handleDeleteUser(item.id)}
         >
           <Ionicons name={"trash-outline"} size={22} color="grey" />
-        </TouchableOpacity>
+        </Pressable>
         <Text style={styles.cardTitle}>Funcionário: {item.username}</Text>
         <Text style={styles.cardDetail}>
           Estado: {item.status ? "Em serviço" : "Off"}
@@ -107,19 +104,22 @@ const FuncionariosScreen = () => {
           Última Atividade: {item.lastActive}
         </Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name={"arrow-back-outline"} size={24} color="grey" />
-        </TouchableOpacity>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name={"arrow-back-outline"} size={24} color="grey" />
+        </Pressable>
         <View style={styles.containerAdd}>
-          <TouchableOpacity style={styles.createButton} onPress={handleCreateUser}>
+          <Pressable style={styles.createButton} onPress={handleCreateUser}>
             <Ionicons name={"add-circle-outline"} size={24} color="grey" />
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
       <FlatList
@@ -212,12 +212,12 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginLeft: wp("-4%"),
-    justifyContent: 'flex-start'
+    justifyContent: "flex-start",
   },
   containerAdd: {
     top: hp("4%"),
     left: wp("79%"),
-    justifyContent: 'flex-end'
+    justifyContent: "flex-end",
   },
 });
 
