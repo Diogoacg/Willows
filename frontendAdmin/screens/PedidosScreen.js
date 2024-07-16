@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef} from "react";
 import {
   View,
   FlatList,
@@ -9,7 +9,7 @@ import {
   Modal,
   Text,
   TextInput,
-  Dimensions,
+  Animated,
   useWindowDimensions,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
@@ -43,12 +43,62 @@ const accentColor = "#FF6A3D";
 const neutralColor = "#313b4b";
 const textColor = "#c7c7c7";
 
+const Item = ({ item, itemWidth, handleAddToCart }) => {
+  const fadeValue = useRef(new Animated.Value(0)).current;
+  const [showPlusOne, setShowPlusOne] = useState(false);
+
+  const handlePressIn = () => {
+    setShowPlusOne(true);
+    Animated.timing(fadeValue, {
+      toValue: 1,
+      duration: 10,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.timing(fadeValue, {
+      toValue: 0,
+      duration: 400,
+      useNativeDriver: true,
+    }).start(() => {
+      setShowPlusOne(false);
+    });
+  };
+
+  return (
+    <Pressable
+      style={[styles.itemContainer, { width: itemWidth }]}
+      onPress={() => handleAddToCart(item)}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+    >
+      {item.imageUri ? (
+        <Image source={{ uri: item.imageUri }} style={styles.image} />
+      ) : (
+        <Image
+          source={require("../assets/favicon.png")}
+          style={styles.image}
+        />
+      )}
+      {showPlusOne && (
+        <Animated.View
+          style={[styles.plusOneContainer, { opacity: fadeValue }]}
+        >
+          <Text style={styles.plusOneText}>+1</Text>
+        </Animated.View>
+      )}
+      <Text style={styles.itemName}>{item.nome}</Text>
+      <Text style={styles.itemPreco}>{item.preco.toFixed(2)}€</Text>
+    </Pressable>
+  );
+};
+
 const PedidosScreen = () => {
   const [visibleModal, setVisibleModal] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [inventoryItems, setInventoryItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
-
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
@@ -205,21 +255,11 @@ const PedidosScreen = () => {
 
   const renderItem = ({ item }) => {
     return (
-      <Pressable
-        style={[styles.itemContainer, { width: itemWidth }]}
-        onPress={() => handleAddToCart(item)}
-      >
-        {item.imageUri ? (
-          <Image source={{ uri: item.imageUri }} style={styles.image} />
-        ) : (
-          <Image
-            source={require("../assets/favicon.png")}
-            style={styles.image}
-          />
-        )}
-        <Text style={styles.itemName}>{item.nome}</Text>
-        <Text style={styles.itemPreco}>{item.preco.toFixed(2)}€</Text>
-      </Pressable>
+      <Item
+        item={item}
+        itemWidth={itemWidth}
+        handleAddToCart={handleAddToCart}
+      />
     );
   };
 
@@ -370,7 +410,21 @@ const styles = StyleSheet.create({
     width: wp("25%"),
     height: wp("25%"),
     resizeMode: "cover",
-    marginBottom: hp("1%"), // Bottom margin for text
+    marginBottom: hp("1%"),
+  },
+  plusOneContainer: {
+    position: 'absolute',
+    backgroundColor: 'red',
+    width: 60,
+    height: 60,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    top: 40,
+  },
+  plusOneText: {
+    color: 'white',
+    fontSize: 16,
   },
 });
 
