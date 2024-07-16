@@ -2,11 +2,14 @@ import React, { useState, useEffect, useCallback } from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createStackNavigator } from "@react-navigation/stack";
+import {
+  createStackNavigator,
+  TransitionPresets,
+} from "@react-navigation/stack";
 import { Provider as PaperProvider } from "react-native-paper";
 import { Provider as ReduxProvider } from "react-redux";
 import { io } from "socket.io-client";
-import { View, StyleSheet, StatusBar } from "react-native";
+import { View, StyleSheet, StatusBar, Platform } from "react-native";
 import store from "./store";
 import HomePage from "./screens/HomePage";
 import PedidosScreen from "./screens/PedidosScreen";
@@ -83,10 +86,12 @@ const App = () => {
     setUserToken(token);
   }, []);
 
-  const modalScreenOptions = {
-    ...TransitionPresets.ModalSlideFromBottomIOS,
-    gestureEnabled: true,
-    cardOverlayEnabled: true,
+  const theme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: COLORS.primary,
+    },
   };
 
   return (
@@ -97,13 +102,13 @@ const App = () => {
             backgroundColor={COLORS.primary}
             barStyle="light-content"
           />
-          <NavigationContainer>
+          <NavigationContainer theme={theme}>
             {!userToken ? (
               <Stack.Navigator
                 screenOptions={{
                   headerShown: false,
                   cardStyle: { backgroundColor: COLORS.primary },
-                  ...modalScreenOptions,
+                  ...TransitionPresets.SlideFromRightIOS,
                 }}
               >
                 <Stack.Screen name="Login">
@@ -115,7 +120,7 @@ const App = () => {
                 screenOptions={{
                   headerShown: false,
                   cardStyle: { backgroundColor: COLORS.primary },
-                  ...modalScreenOptions,
+                  ...TransitionPresets.SlideFromRightIOS,
                 }}
               >
                 <Stack.Screen name="Home" component={HomePage} />
