@@ -10,6 +10,14 @@ import {
 import { useDispatch } from "react-redux";
 import { incrementQuantity, decrementQuantity } from "../slices/cartSlice";
 
+const COLORS = {
+  primary: "#15191d",
+  secondary: "#212529",
+  accent: "#FF6A3D",
+  neutral: "#313b4b",
+  text: "#c7c7c7",
+};
+
 const ActionModal = ({ handleClose, handleConfirm, handleBack, cartItems }) => {
   const dispatch = useDispatch();
 
@@ -88,11 +96,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: COLORS.primary + "80",
   },
   modalContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
+    backgroundColor: COLORS.secondary,
+    borderRadius: 16,
     padding: 20,
     width: "80%",
     alignItems: "center",
@@ -106,6 +114,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   title: {
+    color: COLORS.text,
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 10,
@@ -121,10 +130,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: COLORS.neutral,
     width: "100%",
   },
   itemName: {
+    color: COLORS.text,
     flex: 3,
     textAlign: "left",
     fontSize: 16,
@@ -134,23 +144,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   quantityButton: {
+    color: COLORS.accent,
     fontSize: 20,
     width: 30,
     textAlign: "center",
-    backgroundColor: "#ddd",
+    backgroundColor: COLORS.secondary,
     borderRadius: 4,
     marginHorizontal: 5,
   },
   itemQuantity: {
+    color: COLORS.text,
     fontSize: 16,
     marginHorizontal: 10,
   },
   itemPrice: {
+    color: COLORS.text,
     flex: 1,
     textAlign: "right",
     fontSize: 10,
   },
   total: {
+    color: COLORS.text,
     fontSize: 18,
     fontWeight: "bold",
     marginTop: 10,
@@ -160,15 +174,15 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 10,
     marginTop: 10,
-    backgroundColor: "#2196F3",
+    backgroundColor: COLORS.accent,
     borderRadius: 8,
     alignItems: "center",
   },
   cancelButton: {
-    backgroundColor: "#FF0000",
+    backgroundColor: COLORS.neutral,
   },
   actionText: {
-    color: "#fff",
+    color: "#000",
     fontWeight: "bold",
     fontSize: 16,
   },

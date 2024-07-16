@@ -94,6 +94,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   loadingContainer: {
+    backgroundColor: "black",
+    color: "black",
     flex: 1,
     justifyContent: "center",
     alignItems: "center",

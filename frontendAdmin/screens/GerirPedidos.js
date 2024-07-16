@@ -23,6 +23,14 @@ import io from "socket.io-client";
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
+const COLORS = {
+  primary: "#15191d",
+  secondary: "#212529",
+  accent: "#FF6A3D",
+  neutral: "#313b4b",
+  text: "#c7c7c7",
+};
+
 const GerirPedidos = () => {
   const [pedidos, setPedidos] = useState([]);
   const navigation = useNavigation();
@@ -90,7 +98,7 @@ const GerirPedidos = () => {
       <Text style={styles.cardDetail}>Total: {item.totalPrice}€</Text>
       {item.items.map((itemPedido, index) => (
         <View key={index} style={styles.itemContainer}>
-          <Text>
+          <Text style={styles.items}>
             {itemPedido.quantidade} {itemPedido.nome}(s)
           </Text>
         </View>
@@ -118,6 +126,7 @@ const GerirPedidos = () => {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: COLORS.primary,
     flex: 1,
     paddingTop: screenHeight * 0.1,
     paddingHorizontal: screenWidth * 0.03,
@@ -126,8 +135,10 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.secondary,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.neutral,
     padding: 10,
     marginTop: 10,
     marginBottom: 10,
@@ -142,6 +153,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardTitle: {
+    color: COLORS.text,
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
@@ -149,6 +161,7 @@ const styles = StyleSheet.create({
     bottom: wp("-10%"),
   },
   cardDetail: {
+    color: COLORS.text,
     fontSize: 16,
     marginBottom: 10,
     bottom: wp("-9.2%"),
@@ -158,8 +171,13 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     justifyContent: "space-between",
   },
+  items: {
+    color: COLORS.text,
+    fontSize: 16,
+    marginBottom: 5,
+  },
   button: {
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.accent,
     padding: 10,
     borderRadius: 8,
     alignItems: "center",

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
 import { Provider as PaperProvider } from "react-native-paper";
 import { Provider as ReduxProvider } from "react-redux";
 import { io } from "socket.io-client";
+import { View, StyleSheet, StatusBar } from "react-native";
 import store from "./store";
 import HomePage from "./screens/HomePage";
 import PedidosScreen from "./screens/PedidosScreen";
@@ -14,7 +15,7 @@ import FuncionariosScreen from "./screens/Funcionarios";
 import DetalhesFuncionarioScreen from "./screens/DetalhesFuncionarioScreen";
 import CriarFuncionarioScreen from "./screens/CriarFuncionarioScreen";
 import GerirPedidos from "./screens/GerirPedidos";
-// dark gray
+
 const COLORS = {
   primary: "#15191d",
   secondary: "#212529",
@@ -82,36 +83,71 @@ const App = () => {
     setUserToken(token);
   }, []);
 
+  const modalScreenOptions = {
+    ...TransitionPresets.ModalSlideFromBottomIOS,
+    gestureEnabled: true,
+    cardOverlayEnabled: true,
+  };
+
   return (
     <ReduxProvider store={store}>
       <PaperProvider>
-        <NavigationContainer>
-          {!userToken ? (
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="Login">
-                {(props) => <LoginScreen {...props} onLogin={handleLogin} />}
-              </Stack.Screen>
-            </Stack.Navigator>
-          ) : (
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="Home" component={HomePage} />
-              <Stack.Screen name="Main" component={TabPrincipal} />
-              <Stack.Screen name="GerirPedidos" component={GerirPedidos} />
-              <Stack.Screen name="Gestao" component={FuncionariosScreen} />
-              <Stack.Screen
-                name="DetalhesFuncionario"
-                component={DetalhesFuncionarioScreen}
-              />
-              <Stack.Screen
-                name="CriarFuncionario"
-                component={CriarFuncionarioScreen}
-              />
-            </Stack.Navigator>
-          )}
-        </NavigationContainer>
+        <View style={styles.wrapper}>
+          <StatusBar
+            backgroundColor={COLORS.primary}
+            barStyle="light-content"
+          />
+          <NavigationContainer>
+            {!userToken ? (
+              <Stack.Navigator
+                screenOptions={{
+                  headerShown: false,
+                  cardStyle: { backgroundColor: COLORS.primary },
+                  ...modalScreenOptions,
+                }}
+              >
+                <Stack.Screen name="Login">
+                  {(props) => <LoginScreen {...props} onLogin={handleLogin} />}
+                </Stack.Screen>
+              </Stack.Navigator>
+            ) : (
+              <Stack.Navigator
+                screenOptions={{
+                  headerShown: false,
+                  cardStyle: { backgroundColor: COLORS.primary },
+                  ...modalScreenOptions,
+                }}
+              >
+                <Stack.Screen name="Home" component={HomePage} />
+                <Stack.Screen name="Main" component={TabPrincipal} />
+                <Stack.Screen name="GerirPedidos" component={GerirPedidos} />
+                <Stack.Screen name="Gestao" component={FuncionariosScreen} />
+                <Stack.Screen
+                  name="DetalhesFuncionario"
+                  component={DetalhesFuncionarioScreen}
+                />
+                <Stack.Screen
+                  name="CriarFuncionario"
+                  component={CriarFuncionarioScreen}
+                />
+              </Stack.Navigator>
+            )}
+          </NavigationContainer>
+        </View>
       </PaperProvider>
     </ReduxProvider>
   );
 };
+
+const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
+  },
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.primary,
+  },
+});
 
 export default App;

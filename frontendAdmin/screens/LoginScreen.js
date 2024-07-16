@@ -83,6 +83,7 @@ const LoginScreen = ({ onLogin }) => {
           onChangeText={setUsername}
           value={username}
           placeholder="Username"
+          placeholderTextColor={COLORS.text}
           inputMode="name-phone-pad"
         />
         <Ionicons
@@ -98,6 +99,7 @@ const LoginScreen = ({ onLogin }) => {
           onChangeText={setPassword}
           value={password}
           placeholder="Password"
+          placeholderTextColor={COLORS.text}
           secureTextEntry={!passwordVisible}
         />
         <Pressable onPress={togglePasswordVisibility} style={styles.eyeIcon}>
@@ -121,7 +123,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: wp("4%"),
-    backgroundColor: COLORS.secondary,
+    backgroundColor: COLORS.primary,
   },
   title: {
     color: COLORS.text,
@@ -142,6 +144,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   input: {
+    backgroundColor: COLORS.secondary,
     color: COLORS.text,
     flex: 1,
     height: hp("7%"),
