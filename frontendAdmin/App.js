@@ -1,15 +1,19 @@
+// App.js
+
 import React, { useState, useEffect, useCallback } from "react";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Platform } from "react-native";
+import { io } from "socket.io-client";
 import {
-  createStackNavigator,
-  TransitionPresets,
-} from "@react-navigation/stack";
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
+} from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createStackNavigator } from "@react-navigation/stack";
 import { Provider as PaperProvider } from "react-native-paper";
 import { Provider as ReduxProvider } from "react-redux";
-import { io } from "socket.io-client";
-import { View, StyleSheet, StatusBar, Platform } from "react-native";
+import { ThemeProvider, useTheme } from "./ThemeContext";
 import store from "./store";
 import HomePage from "./screens/HomePage";
 import PedidosScreen from "./screens/PedidosScreen";
@@ -18,19 +22,12 @@ import FuncionariosScreen from "./screens/Funcionarios";
 import DetalhesFuncionarioScreen from "./screens/DetalhesFuncionarioScreen";
 import CriarFuncionarioScreen from "./screens/CriarFuncionarioScreen";
 import GerirPedidos from "./screens/GerirPedidos";
-
-const COLORS = {
-  primary: "#15191d",
-  secondary: "#212529",
-  accent: "#FF6A3D",
-  neutral: "#313b4b",
-  text: "#c7c7c7",
-};
-
-const SOCKET_URL = "https://willows-production.up.railway.app";
+import * as NavigationBar from "expo-navigation-bar"; // Import from expo-navigation-bar
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+const SOCKET_URL = "https://willows-production.up.railway.app";
 
 const TabIcon = ({ route, focused, color }) => {
   const iconName =
@@ -46,7 +43,9 @@ const TabIcon = ({ route, focused, color }) => {
 };
 
 const TabPrincipal = () => {
+  const { isDarkMode } = useTheme();
   const [socket, setSocket] = useState(null);
+  const theme = isDarkMode ? DarkTheme : DefaultTheme;
 
   useEffect(() => {
     const newSocket = io(SOCKET_URL);
@@ -63,11 +62,11 @@ const TabPrincipal = () => {
         tabBarIcon: ({ focused, color }) => (
           <TabIcon route={route} focused={focused} color={color} />
         ),
-        tabBarActiveTintColor: COLORS.accent,
-        tabBarInactiveTintColor: COLORS.text,
+        tabBarActiveTintColor: theme.colors.accent,
+        tabBarInactiveTintColor: theme.colors.text,
         tabBarStyle: {
-          backgroundColor: COLORS.primary,
-          borderTopColor: COLORS.neutral,
+          backgroundColor: theme.colors.primary,
+          borderTopColor: theme.colors.neutral,
           borderTopWidth: 1,
         },
         headerShown: false,
@@ -79,80 +78,69 @@ const TabPrincipal = () => {
   );
 };
 
-const App = () => {
+const AppContent = () => {
   const [userToken, setUserToken] = useState(null);
+  const { isDarkMode } = useTheme();
+  const theme = isDarkMode ? DarkTheme : DefaultTheme;
 
-  const handleLogin = useCallback((token) => {
+  useEffect(() => {
+    const changeNavigationBarColor = async () => {
+      try {
+        await NavigationBar.setBackgroundColorAsync(
+          isDarkMode ? "#000000" : "#FFFFFF"
+        );
+      } catch (err) {
+        console.error("Failed to change navigation bar color:", err);
+      }
+    };
+
+    if (Platform.OS === "android") {
+      changeNavigationBarColor();
+    }
+  }, [isDarkMode]);
+
+  const handleLogin = (token) => {
     setUserToken(token);
-  }, []);
-
-  const theme = {
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      background: COLORS.primary,
-    },
   };
 
   return (
-    <ReduxProvider store={store}>
-      <PaperProvider>
-        <View style={styles.wrapper}>
-          <StatusBar
-            backgroundColor={COLORS.primary}
-            barStyle="light-content"
-          />
-          <NavigationContainer theme={theme}>
-            {!userToken ? (
-              <Stack.Navigator
-                screenOptions={{
-                  headerShown: false,
-                  cardStyle: { backgroundColor: COLORS.primary },
-                  ...TransitionPresets.SlideFromRightIOS,
-                }}
-              >
-                <Stack.Screen name="Login">
-                  {(props) => <LoginScreen {...props} onLogin={handleLogin} />}
-                </Stack.Screen>
-              </Stack.Navigator>
-            ) : (
-              <Stack.Navigator
-                screenOptions={{
-                  headerShown: false,
-                  cardStyle: { backgroundColor: COLORS.primary },
-                  ...TransitionPresets.SlideFromRightIOS,
-                }}
-              >
-                <Stack.Screen name="Home" component={HomePage} />
-                <Stack.Screen name="Main" component={TabPrincipal} />
-                <Stack.Screen name="GerirPedidos" component={GerirPedidos} />
-                <Stack.Screen name="Gestao" component={FuncionariosScreen} />
-                <Stack.Screen
-                  name="DetalhesFuncionario"
-                  component={DetalhesFuncionarioScreen}
-                />
-                <Stack.Screen
-                  name="CriarFuncionario"
-                  component={CriarFuncionarioScreen}
-                />
-              </Stack.Navigator>
-            )}
-          </NavigationContainer>
-        </View>
-      </PaperProvider>
-    </ReduxProvider>
+    <PaperProvider theme={theme}>
+      <NavigationContainer theme={theme}>
+        {!userToken ? (
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Login">
+              {(props) => <LoginScreen {...props} onLogin={handleLogin} />}
+            </Stack.Screen>
+          </Stack.Navigator>
+        ) : (
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Home" component={HomePage} />
+            <Stack.Screen name="Main" component={TabPrincipal} />
+            <Stack.Screen name="GerirPedidos" component={GerirPedidos} />
+            <Stack.Screen name="Gestao" component={FuncionariosScreen} />
+            <Stack.Screen
+              name="DetalhesFuncionario"
+              component={DetalhesFuncionarioScreen}
+            />
+            <Stack.Screen
+              name="CriarFuncionario"
+              component={CriarFuncionarioScreen}
+            />
+          </Stack.Navigator>
+        )}
+      </NavigationContainer>
+    </PaperProvider>
   );
 };
 
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.primary,
-  },
-});
+const App = () => {
+  return (
+    <ReduxProvider store={store}>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </ReduxProvider>
+  );
+};
 
 export default App;

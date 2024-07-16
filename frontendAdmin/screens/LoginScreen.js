@@ -6,6 +6,7 @@ import {
   TextInput,
   Pressable,
   Alert,
+  Switch,
 } from "react-native";
 import axios from "axios";
 import { REACT_APP_AUTH_URL } from "@env";
@@ -16,32 +17,23 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
-
-// URL do servidor Socket.IO (substitua pelo endereço do seu backend)
-//const socketUrl = "http://localhost:5000"; // Exemplo de URL, ajuste conforme necessário
+import { useTheme } from "../ThemeContext"; // Certifique-se de que o caminho está correto
+import { colors } from "../config/theme";
 const socketUrl = "https://willows-production.up.railway.app";
-
-const COLORS = {
-  primary: "#15191d",
-  secondary: "#212529",
-  accent: "#FF6A3D",
-  neutral: "#313b4b",
-  text: "#c7c7c7",
-};
 
 const LoginScreen = ({ onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [socket, setSocket] = useState(null);
+  const { isDarkMode, toggleTheme } = useTheme();
 
-  // Conectar ao servidor Socket.IO ao montar o componente
-  // se receber um sinal de  userLogginIn, da um console.log
+  const COLORS = isDarkMode ? colors.dark : colors.light;
+
   useEffect(() => {
     const socket = io(socketUrl);
     setSocket(socket);
 
-    // Lidar com eventos recebidos do servidor
     socket.on("userLoggedIn", (user) => {
       console.log("Usuário Logado:", user);
     });
@@ -60,7 +52,6 @@ const LoginScreen = ({ onLogin }) => {
 
       await AsyncStorage.setItem("token", response.data.token);
 
-      // Chame a função onLogin e passe o token recebido
       onLogin(response.data.token);
     } catch (error) {
       console.error(
@@ -75,11 +66,18 @@ const LoginScreen = ({ onLogin }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Willow's Bar</Text>
+    <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
+      <Text style={[styles.title, { color: COLORS.text }]}>Willow's Bar</Text>
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: COLORS.secondary,
+              color: COLORS.text,
+              borderColor: COLORS.neutral,
+            },
+          ]}
           onChangeText={setUsername}
           value={username}
           placeholder="Username"
@@ -95,7 +93,14 @@ const LoginScreen = ({ onLogin }) => {
       </View>
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: COLORS.secondary,
+              color: COLORS.text,
+              borderColor: COLORS.neutral,
+            },
+          ]}
           onChangeText={setPassword}
           value={password}
           placeholder="Password"
@@ -110,9 +115,26 @@ const LoginScreen = ({ onLogin }) => {
           />
         </Pressable>
       </View>
-      <Pressable style={styles.button} onPress={handleLogin}>
+      <Pressable
+        style={[
+          styles.button,
+          { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+        ]}
+        onPress={handleLogin}
+      >
         <Text style={styles.buttonText}>Login</Text>
       </Pressable>
+      <View style={styles.themeSwitchContainer}>
+        <Text style={[styles.themeSwitchText, { color: COLORS.text }]}>
+          Dark Mode
+        </Text>
+        <Switch
+          value={isDarkMode}
+          onValueChange={toggleTheme}
+          trackColor={{ false: colors.dark.accent, true: colors.dark.accent }}
+          thumbColor={isDarkMode ? colors.light.text : colors.dark.text}
+        />
+      </View>
     </View>
   );
 };
@@ -123,36 +145,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: wp("4%"),
-    backgroundColor: COLORS.primary,
   },
   title: {
-    color: COLORS.text,
     fontSize: wp("6%"),
     marginBottom: hp("3%"),
     fontWeight: "bold",
   },
-  logoIcon: {
-    width: wp("30%"),
-    height: wp("30%"),
-    marginTop: hp("1%"),
-    marginBottom: hp("4%"),
-  },
   inputContainer: {
-    color: COLORS.text,
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
   },
   input: {
-    backgroundColor: COLORS.secondary,
-    color: COLORS.text,
     flex: 1,
     height: hp("7%"),
     marginVertical: hp("1%"),
     borderWidth: 1,
     padding: wp("2.5%"),
     borderRadius: 5,
-    borderColor: COLORS.neutral,
   },
   phoneIcon: {
     position: "absolute",
@@ -165,7 +175,6 @@ const styles = StyleSheet.create({
     padding: wp("2.5%"),
   },
   button: {
-    backgroundColor: COLORS.accent,
     borderRadius: 25,
     paddingVertical: hp("2%"),
     paddingHorizontal: wp("6%"),
@@ -179,9 +188,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: wp("4%"),
   },
-  signupContainer: {
+  themeSwitchContainer: {
     flexDirection: "row",
-    marginTop: hp("2.5%"),
+    alignItems: "center",
+    marginTop: hp("2%"),
+  },
+  themeSwitchText: {
+    marginRight: wp("2%"),
+    fontSize: wp("4%"),
   },
 });
 

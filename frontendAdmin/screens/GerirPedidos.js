@@ -19,21 +19,17 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
+import { useTheme } from "../ThemeContext"; // Importa o contexto de tema
+import { colors } from "../config/theme"; // Importa as cores do tema
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
-const COLORS = {
-  primary: "#15191d",
-  secondary: "#212529",
-  accent: "#FF6A3D",
-  neutral: "#313b4b",
-  text: "#c7c7c7",
-};
-
 const GerirPedidos = () => {
   const [pedidos, setPedidos] = useState([]);
   const navigation = useNavigation();
+  const { isDarkMode } = useTheme(); // Obtém o estado de tema atual
+  const COLORS = isDarkMode ? colors.dark : colors.light; // Define as cores com base no tema
 
   useEffect(() => {
     fetchPedidos();
@@ -53,10 +49,6 @@ const GerirPedidos = () => {
     socket.on("orderGroupUpdated", () => {
       fetchPedidos();
     });
-
-    // socket.on("orderGroups", () => {
-    //   fetchPedidos();
-    // });
 
     // Clean up the socket connection when the component unmounts
     return () => {
@@ -92,19 +84,30 @@ const GerirPedidos = () => {
   };
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>Pedido #{item.id}</Text>
-      <Text style={styles.cardDetail}>Estado: {item.status}</Text>
-      <Text style={styles.cardDetail}>Total: {item.totalPrice}€</Text>
+    <View
+      style={[
+        styles.card,
+        { backgroundColor: COLORS.secondary, borderColor: COLORS.neutral },
+      ]}
+    >
+      <Text style={[styles.cardTitle, { color: COLORS.text }]}>
+        Pedido #{item.id}
+      </Text>
+      <Text style={[styles.cardDetail, { color: COLORS.text }]}>
+        Estado: {item.status}
+      </Text>
+      <Text style={[styles.cardDetail, { color: COLORS.text }]}>
+        Total: {item.totalPrice}€
+      </Text>
       {item.items.map((itemPedido, index) => (
         <View key={index} style={styles.itemContainer}>
-          <Text style={styles.items}>
+          <Text style={[styles.items, { color: COLORS.text }]}>
             {itemPedido.quantidade} {itemPedido.nome}(s)
           </Text>
         </View>
       ))}
       <Pressable
-        style={styles.button}
+        style={[styles.button, { backgroundColor: COLORS.accent }]}
         onPress={() => handleEstadoChange(item.id)}
       >
         <Text style={styles.buttonText}>Marcar como Pronto</Text>
@@ -113,7 +116,7 @@ const GerirPedidos = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
       <FlatList
         data={pedidos}
         renderItem={renderItem}
@@ -126,7 +129,6 @@ const GerirPedidos = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.primary,
     flex: 1,
     paddingTop: screenHeight * 0.1,
     paddingHorizontal: screenWidth * 0.03,
@@ -135,15 +137,12 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   card: {
-    backgroundColor: COLORS.secondary,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: COLORS.neutral,
     padding: 10,
     marginTop: 10,
     marginBottom: 10,
     shadowColor: "#000",
-    justifyContent: "space-between",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -153,7 +152,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardTitle: {
-    color: COLORS.text,
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
@@ -161,7 +159,6 @@ const styles = StyleSheet.create({
     bottom: wp("-10%"),
   },
   cardDetail: {
-    color: COLORS.text,
     fontSize: 16,
     marginBottom: 10,
     bottom: wp("-9.2%"),
@@ -172,12 +169,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   items: {
-    color: COLORS.text,
     fontSize: 16,
     marginBottom: 5,
   },
   button: {
-    backgroundColor: COLORS.accent,
     padding: 10,
     borderRadius: 8,
     alignItems: "center",

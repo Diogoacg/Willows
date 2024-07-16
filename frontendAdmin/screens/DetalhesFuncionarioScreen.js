@@ -8,18 +8,22 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { colors } from "../config/theme";
+import { useTheme } from "../ThemeContext";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
-const itemWidth = screenWidth / numColumns - wp("4%");
-
 const numColumns = 3;
+const itemWidth = screenWidth / numColumns - wp("4%");
 
 const DetalhesFuncionarioScreen = ({ navigation }) => {
   const route = useRoute();
   const { userId } = route.params;
   const [userDetails, setUserDetails] = useState(null);
+  const { isDarkMode } = useTheme();
+
+  const COLORS = isDarkMode ? colors.dark : colors.light;
 
   useEffect(() => {
     fetchUserDetails();
@@ -37,25 +41,31 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
 
   if (!userDetails) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text>Carregando...</Text>
+      <View
+        style={[styles.loadingContainer, { backgroundColor: COLORS.primary }]}
+      >
+        <Text style={{ color: COLORS.text }}>Carregando...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
+      <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
         <Pressable style={styles.button} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back-outline" size={24} color="black" />
+          <Ionicons name="arrow-back-outline" size={24} color={COLORS.accent} />
         </Pressable>
       </View>
       <View style={styles.inContainer}>
-        <Text style={styles.title}>Detalhes do Funcionário</Text>
-        <Text style={styles.label}>
+        <Text style={[styles.title, { color: COLORS.text }]}>
+          Detalhes do Funcionário
+        </Text>
+        <Text style={[styles.label, { color: COLORS.text }]}>
           Nome de Utilizador: {userDetails.username}
         </Text>
-        <Text style={styles.label}>Email: {userDetails.email}</Text>
+        <Text style={[styles.label, { color: COLORS.text }]}>
+          Email: {userDetails.email}
+        </Text>
         {/* Adicione mais detalhes conforme necessário */}
       </View>
     </View>
@@ -77,7 +87,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("4%"),
     paddingVertical: hp("2%"),
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
     marginTop: hp("-6%"), // Espaço extra no topo
   },
   button: {
@@ -94,8 +103,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   loadingContainer: {
-    backgroundColor: "black",
-    color: "black",
     flex: 1,
     justifyContent: "center",
     alignItems: "center",

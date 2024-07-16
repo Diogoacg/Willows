@@ -20,21 +20,19 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
+import { useTheme } from "../ThemeContext";
+import { colors } from "../config/theme";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
-const COLORS = {
-  primary: "#15191d",
-  secondary: "#212529",
-  accent: "#FF6A3D",
-  neutral: "#313b4b",
-  text: "#c7c7c7",
-};
-
 const FuncionariosScreen = () => {
   const [logins, setLogins] = useState([]);
   const navigation = useNavigation();
+
+  const { isDarkMode } = useTheme();
+
+  const COLORS = isDarkMode ? colors.dark : colors.light;
 
   useEffect(() => {
     fetchLogins();
@@ -93,14 +91,16 @@ const FuncionariosScreen = () => {
   };
 
   const renderLogin = ({ item }) => (
-    <View style={styles.itemContainer}>
+    <View style={[styles.itemContainer, { backgroundColor: COLORS.secondary }]}>
       <Pressable
         style={styles.button}
         onPress={() => handleViewDetails(item.id)}
       >
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Funcionário: {item.username}</Text>
+            <Text style={[styles.cardTitle, { color: COLORS.text }]}>
+              Funcionário: {item.username}
+            </Text>
             <Pressable
               style={styles.deleteButton}
               onPress={() => handleDeleteUser(item.id)}
@@ -112,10 +112,10 @@ const FuncionariosScreen = () => {
               />
             </Pressable>
           </View>
-          <Text style={styles.cardDetail}>
+          <Text style={[styles.cardDetail, { color: COLORS.text }]}>
             Estado: {item.status ? "Em serviço" : "Off"}
           </Text>
-          <Text style={styles.cardDetail}>
+          <Text style={[styles.cardDetail, { color: COLORS.text }]}>
             Última Atividade: {item.lastActive}
           </Text>
         </View>
@@ -124,7 +124,7 @@ const FuncionariosScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
       <View style={styles.header}>
         <Pressable
           style={styles.backButton}
@@ -158,7 +158,6 @@ const FuncionariosScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.primary,
     flex: 1,
     paddingTop: (screenHeight * 0.1) / 2,
     paddingHorizontal: 10,
@@ -169,28 +168,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("4%"),
     paddingVertical: hp("2%"),
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.neutral,
     marginTop: hp("-6%"),
   },
   listSpacing: {
     height: 20, // Espaço entre o header e o primeiro card
   },
-  listContainer: {
-    paddingBottom: 20,
-  },
   itemContainer: {
     marginBottom: 20,
     width: "90%",
     alignSelf: "center",
-  },
-  button: {
-    width: "100%",
-    backgroundColor: COLORS.secondary,
-    borderRadius: 25,
-  },
-  card: {
-    width: "100%",
-    backgroundColor: COLORS.secondary,
     borderRadius: 8,
     padding: 15,
     shadowColor: "#000",
@@ -202,6 +188,15 @@ const styles = StyleSheet.create({
     shadowRadius: 2.62,
     elevation: 4,
   },
+  button: {
+    width: "100%",
+    borderRadius: 25,
+  },
+  card: {
+    width: "100%",
+    borderRadius: 8,
+    padding: 15,
+  },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -209,7 +204,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cardTitle: {
-    color: COLORS.text,
     fontSize: 16,
     fontWeight: "bold",
     flex: 1,
@@ -217,30 +211,16 @@ const styles = StyleSheet.create({
   cardDetail: {
     fontSize: 14,
     marginBottom: 5,
-    color: COLORS.text,
   },
   deleteButton: {
-    backgroundColor: COLORS.secondary,
     padding: 8,
     borderRadius: 8,
     marginLeft: 10,
   },
-  buttonText: {
-    color: COLORS.text,
-    fontWeight: "bold",
-    fontSize: 16,
-  },
   createButton: {
-    backgroundColor: COLORS.primary,
     padding: 15,
     borderRadius: 8,
     marginBottom: 15,
-  },
-  createButtonText: {
-    backgroundColor: COLORS.primary,
-    color: COLORS.accent,
-    fontSize: 18,
-    fontWeight: "bold",
   },
   backButton: {
     marginLeft: wp("-4%"),

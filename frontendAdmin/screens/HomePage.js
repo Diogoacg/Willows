@@ -8,22 +8,19 @@ import {
 } from "react-native";
 import React from "react";
 import { useNavigation } from "@react-navigation/native";
+import { useTheme } from "../ThemeContext";
+import { colors } from "../config/theme";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
-const COLORS = {
-  primary: "#15191d",
-  secondary: "#212529",
-  accent: "#FF6A3D",
-  neutral: "#313b4b",
-  text: "#c7c7c7",
-};
 const HomePage = () => {
   const navigation = useNavigation();
+  const { isDarkMode } = useTheme(); // Obtém o estado de tema atual
+  const COLORS = isDarkMode ? colors.dark : colors.light; // Define as cores com base no tema
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
       <Image source={require("../assets/logofinal.jpg")} style={styles.logo} />
       <Image
         source={require("../assets/imagemfundo.jpg")}
@@ -31,18 +28,32 @@ const HomePage = () => {
       />
       <View style={styles.button1Container}>
         <Pressable
-          style={[styles.gerirPedidosButton]}
+          style={[
+            styles.gerirPedidosButton,
+            { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+          ]}
           onPress={() => navigation.navigate("Gestao")}
         >
-          <Text style={styles.gerirPedidosButtonText}>Funcionários</Text>
+          <Text
+            style={[styles.gerirPedidosButtonText, { color: COLORS.primary }]}
+          >
+            Funcionários
+          </Text>
         </Pressable>
       </View>
       <View style={styles.button2Container}>
         <Pressable
-          style={[styles.gerirPedidosButton]}
+          style={[
+            styles.gerirPedidosButton,
+            { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+          ]}
           onPress={() => navigation.navigate("Main")}
         >
-          <Text style={styles.fazerPedidosButtonText}>Fazer Pedidos</Text>
+          <Text
+            style={[styles.fazerPedidosButtonText, { color: COLORS.primary }]}
+          >
+            Fazer Pedidos
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -51,7 +62,6 @@ const HomePage = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.primary,
     flex: 1,
     alignItems: "center",
   },
@@ -68,20 +78,16 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   button1Container: {
-    backgroundColor: COLORS.accent,
     marginTop: screenHeight * 0.02,
     borderWidth: 1,
-    borderColor: COLORS.neutral,
     width: "50%",
     height: screenHeight * 0.08,
     borderRadius: 25,
     overflow: "hidden",
   },
   button2Container: {
-    backgroundColor: COLORS.accent,
     marginTop: screenHeight * 0.02,
     borderWidth: 1,
-    borderColor: COLORS.neutral,
     width: "50%",
     height: screenHeight * 0.08,
     borderRadius: 25,
@@ -94,12 +100,10 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   gerirPedidosButtonText: {
-    color: COLORS.primary,
     fontSize: screenWidth * 0.045,
     fontWeight: "bold",
   },
   fazerPedidosButtonText: {
-    color: COLORS.primary,
     fontSize: screenWidth * 0.045,
     fontWeight: "bold",
   },

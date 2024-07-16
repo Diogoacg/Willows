@@ -28,24 +28,16 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
+import { useTheme } from "../ThemeContext";
+import { colors } from "../config/theme";
 
 const numColumns = 3;
-
-// primary: "#15191d",
-//   secondary: "#212529",
-//   accent: "#FF6A3D",
-//   neutral: "#313b4b",
-//   text: "#c7c7c7",
-
-const primaryColor = "#15191d";
-const secondaryColor = "#212529";
-const accentColor = "#FF6A3D";
-const neutralColor = "#313b4b";
-const textColor = "#c7c7c7";
 
 const Item = ({ item, itemWidth, handleAddToCart }) => {
   const fadeValue = useRef(new Animated.Value(0)).current;
   const [showPlusOne, setShowPlusOne] = useState(false);
+  const { isDarkMode } = useTheme();
+  const COLORS = isDarkMode ? colors.dark : colors.light;
 
   const handlePressIn = () => {
     setShowPlusOne(true);
@@ -68,7 +60,14 @@ const Item = ({ item, itemWidth, handleAddToCart }) => {
 
   return (
     <Pressable
-      style={[styles.itemContainer, { width: itemWidth }]}
+      style={[
+        styles.itemContainer,
+        {
+          width: itemWidth,
+          borderColor: COLORS.neutral,
+          backgroundColor: COLORS.secondary,
+        },
+      ]}
       onPress={() => handleAddToCart(item)}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -85,8 +84,10 @@ const Item = ({ item, itemWidth, handleAddToCart }) => {
           <Text style={styles.plusOneText}>+1</Text>
         </Animated.View>
       )}
-      <Text style={styles.itemName}>{item.nome}</Text>
-      <Text style={styles.itemPreco}>{item.preco.toFixed(2)}€</Text>
+      <Text style={[styles.itemName, { color: COLORS.text }]}>{item.nome}</Text>
+      <Text style={[styles.itemPreco, { color: COLORS.text }]}>
+        {item.preco}€
+      </Text>
     </Pressable>
   );
 };
@@ -99,6 +100,9 @@ const PedidosScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
+
+  const { isDarkMode } = useTheme(); // Obtém o estado de tema atual
+  const COLORS = isDarkMode ? colors.dark : colors.light; // Define as cores com base no tema
 
   const { width: screenWidth } = useWindowDimensions();
 
@@ -261,31 +265,47 @@ const PedidosScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: COLORS.primary }]}
+    >
+      <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
+        <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
           <Pressable onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back-outline" size={24} color={accentColor} />
+            <Ionicons
+              name="arrow-back-outline"
+              size={24}
+              color={COLORS.accent}
+            />
           </Pressable>
-          <View style={styles.searchContainer}>
+          <View
+            style={[
+              styles.searchContainer,
+              {
+                borderColor: COLORS.neutral,
+                backgroundColor: COLORS.secondary,
+              },
+            ]}
+          >
             <Ionicons
               name="search-outline"
               size={24}
-              style={styles.searchIcon}
+              style={[styles.searchIcon, { color: COLORS.text }]}
             />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: COLORS.text }]}
               placeholder="Digite aqui para pesquisar"
-              placeholderTextColor={textColor}
+              placeholderTextColor={COLORS.text}
               onChangeText={handleSearch}
               value={searchText}
             />
           </View>
           <Pressable style={styles.cartButton} onPress={handleOpenModal}>
-            <Ionicons name="cart-outline" size={24} color={accentColor} />
+            <Ionicons name="cart-outline" size={24} color={COLORS.accent} />
             {cartItems.length > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{cartItems.length}</Text>
+              <View style={[styles.badge, { backgroundColor: COLORS.accent }]}>
+                <Text style={[styles.badgeText, { color: COLORS.text }]}>
+                  {cartItems.length}
+                </Text>
               </View>
             )}
           </Pressable>
@@ -317,11 +337,9 @@ const PedidosScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: primaryColor,
   },
   container: {
     flex: 1,
-    backgroundColor: primaryColor,
   },
   header: {
     flexDirection: "row",
@@ -329,7 +347,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("4%"),
     paddingVertical: hp("2%"),
     borderBottomWidth: 1,
-    borderBottomColor: neutralColor,
     marginTop: hp("4%"), // Extra space at the top
   },
   searchContainer: {
@@ -338,21 +355,15 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: wp("2%"),
     borderWidth: 1,
-    borderColor: neutralColor,
-    borderRadius: 5,
     paddingHorizontal: wp("2%"),
-    backgroundColor: secondaryColor,
   },
   input: {
-    placeholderColor: textColor,
     flex: 1,
     height: hp("5%"),
     marginLeft: wp("1%"),
-    color: textColor,
   },
   searchIcon: {
     marginRight: wp("1%"),
-    color: textColor,
   },
   cartButton: {
     marginLeft: "auto",
@@ -361,7 +372,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("3%"),
   },
   badge: {
-    backgroundColor: accentColor,
     borderRadius: 9,
     width: 18,
     height: 18,
@@ -370,7 +380,6 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   badgeText: {
-    color: textColor,
     fontSize: 12,
     fontWeight: "bold",
   },
@@ -383,9 +392,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderRadius: 8,
-    backgroundColor: secondaryColor,
     borderWidth: 1,
-    borderColor: neutralColor,
     elevation: 3,
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
@@ -397,11 +404,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: hp("1%"),
     width: "100%", // Ensure the text takes up all available space
-    color: textColor,
   },
   itemPreco: {
     fontSize: wp("3%"),
-    color: textColor,
     textAlign: "center",
   },
   image: {

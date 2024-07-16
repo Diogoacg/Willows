@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,17 +11,11 @@ import { useNavigation } from "@react-navigation/native";
 import { registarNovoUtilizador } from "../api/apiAuth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import { useTheme } from "../ThemeContext";
+import { colors } from "../config/theme";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
-
-const COLORS = {
-  primary: "#15191d",
-  secondary: "#212529",
-  accent: "#FF6A3D",
-  neutral: "#313b4b",
-  text: "#c7c7c7",
-};
 
 const CriarFuncionarioScreen = () => {
   const [username, setUsername] = useState("");
@@ -29,6 +23,11 @@ const CriarFuncionarioScreen = () => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
   const navigation = useNavigation();
+  const { isDarkMode, toggleTheme } = useTheme();
+
+  const COLORS = isDarkMode ? colors.dark : colors.light;
+
+  const styles = useMemo(() => createStyles(COLORS), [COLORS]);
 
   const handleCreateUser = async () => {
     const token = await AsyncStorage.getItem("token");
@@ -97,58 +96,59 @@ const CriarFuncionarioScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: (screenHeight * 0.1) / 2,
-    flex: 1,
-    backgroundColor: COLORS.primary,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.neutral,
-  },
-  backButton: {
-    marginRight: 10,
-  },
-  formContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  title: {
-    color: COLORS.text,
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  input: {
-    color: COLORS.text,
-    width: screenWidth * 0.8,
-    height: 50,
-    borderColor: COLORS.neutral,
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 20,
-    paddingHorizontal: 10,
-    backgroundColor: COLORS.secondary,
-  },
-  button: {
-    width: screenWidth * 0.8,
-    backgroundColor: COLORS.accent,
-    padding: 15,
-    borderRadius: 25,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#000",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-});
+const createStyles = (COLORS) =>
+  StyleSheet.create({
+    container: {
+      paddingTop: (screenHeight * 0.1) / 2,
+      flex: 1,
+      backgroundColor: COLORS.primary,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.neutral,
+    },
+    backButton: {
+      marginRight: 10,
+    },
+    formContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 20,
+    },
+    title: {
+      color: COLORS.text,
+      fontSize: 24,
+      fontWeight: "bold",
+      marginBottom: 20,
+    },
+    input: {
+      color: COLORS.text,
+      width: screenWidth * 0.8,
+      height: 50,
+      borderColor: COLORS.neutral,
+      borderWidth: 1,
+      borderRadius: 5,
+      marginBottom: 20,
+      paddingHorizontal: 10,
+      backgroundColor: COLORS.secondary,
+    },
+    button: {
+      width: screenWidth * 0.8,
+      backgroundColor: COLORS.accent,
+      padding: 15,
+      borderRadius: 25,
+      alignItems: "center",
+    },
+    buttonText: {
+      color: "#000",
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+  });
 
 export default CriarFuncionarioScreen;
