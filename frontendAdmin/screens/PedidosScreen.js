@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   FlatList,
@@ -76,10 +76,7 @@ const Item = ({ item, itemWidth, handleAddToCart }) => {
       {item.imageUri ? (
         <Image source={{ uri: item.imageUri }} style={styles.image} />
       ) : (
-        <Image
-          source={require("../assets/favicon.png")}
-          style={styles.image}
-        />
+        <Image source={require("../assets/favicon.png")} style={styles.image} />
       )}
       {showPlusOne && (
         <Animated.View
@@ -268,24 +265,24 @@ const PedidosScreen = () => {
       <View style={styles.container}>
         <View style={styles.header}>
           <Pressable onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back-outline" size={24} color="#fff" />
+            <Ionicons name="arrow-back-outline" size={24} color={accentColor} />
           </Pressable>
           <View style={styles.searchContainer}>
             <Ionicons
               name="search-outline"
               size={24}
-              color="#000"
               style={styles.searchIcon}
             />
             <TextInput
               style={styles.input}
               placeholder="Digite aqui para pesquisar"
+              placeholderTextColor={textColor}
               onChangeText={handleSearch}
               value={searchText}
             />
           </View>
           <Pressable style={styles.cartButton} onPress={handleOpenModal}>
-            <Ionicons name="cart-outline" size={24} color="#fff" />
+            <Ionicons name="cart-outline" size={24} color={accentColor} />
             {cartItems.length > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{cartItems.length}</Text>
@@ -324,7 +321,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: secondaryColor,
+    backgroundColor: primaryColor,
   },
   header: {
     flexDirection: "row",
@@ -344,17 +341,18 @@ const styles = StyleSheet.create({
     borderColor: neutralColor,
     borderRadius: 5,
     paddingHorizontal: wp("2%"),
-    backgroundColor: "#fff",
+    backgroundColor: secondaryColor,
   },
   input: {
+    placeholderColor: textColor,
     flex: 1,
     height: hp("5%"),
     marginLeft: wp("1%"),
-    color: primaryColor,
+    color: textColor,
   },
   searchIcon: {
     marginRight: wp("1%"),
-    color: primaryColor,
+    color: textColor,
   },
   cartButton: {
     marginLeft: "auto",
@@ -385,7 +383,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderRadius: 8,
-    backgroundColor: primaryColor,
+    backgroundColor: secondaryColor,
     borderWidth: 1,
     borderColor: neutralColor,
     elevation: 3,
@@ -413,17 +411,17 @@ const styles = StyleSheet.create({
     marginBottom: hp("1%"),
   },
   plusOneContainer: {
-    position: 'absolute',
-    backgroundColor: 'red',
+    position: "absolute",
+    backgroundColor: "red",
     width: 60,
     height: 60,
     borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     top: 40,
   },
   plusOneText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
   },
 });

@@ -21,6 +21,14 @@ import io from "socket.io-client";
 //const socketUrl = "http://localhost:5000"; // Exemplo de URL, ajuste conforme necessário
 const socketUrl = "https://willows-production.up.railway.app";
 
+const COLORS = {
+  primary: "#15191d",
+  secondary: "#212529",
+  accent: "#FF6A3D",
+  neutral: "#313b4b",
+  text: "#c7c7c7",
+};
+
 const LoginScreen = ({ onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -80,7 +88,7 @@ const LoginScreen = ({ onLogin }) => {
         <Ionicons
           name="person-outline"
           size={24}
-          color="grey"
+          color={COLORS.text}
           style={styles.phoneIcon}
         />
       </View>
@@ -96,7 +104,7 @@ const LoginScreen = ({ onLogin }) => {
           <Ionicons
             name={passwordVisible ? "eye-outline" : "eye-off-outline"}
             size={24}
-            color="grey"
+            color={COLORS.text}
           />
         </Pressable>
       </View>
@@ -113,9 +121,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: wp("4%"),
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.secondary,
   },
   title: {
+    color: COLORS.text,
     fontSize: wp("6%"),
     marginBottom: hp("3%"),
     fontWeight: "bold",
@@ -127,18 +136,20 @@ const styles = StyleSheet.create({
     marginBottom: hp("4%"),
   },
   inputContainer: {
+    color: COLORS.text,
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
   },
   input: {
+    color: COLORS.text,
     flex: 1,
     height: hp("7%"),
     marginVertical: hp("1%"),
     borderWidth: 1,
     padding: wp("2.5%"),
     borderRadius: 5,
-    borderColor: "#ddd",
+    borderColor: COLORS.neutral,
   },
   phoneIcon: {
     position: "absolute",
@@ -151,7 +162,7 @@ const styles = StyleSheet.create({
     padding: wp("2.5%"),
   },
   button: {
-    backgroundColor: "#fff",
+    backgroundColor: COLORS.accent,
     borderRadius: 25,
     paddingVertical: hp("2%"),
     paddingHorizontal: wp("6%"),
@@ -165,19 +176,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: wp("4%"),
   },
-  forgotPassword: {
-    color: "#0ed1c0",
-    marginTop: hp("2.5%"),
-    fontSize: wp("3.5%"),
-  },
   signupContainer: {
     flexDirection: "row",
     marginTop: hp("2.5%"),
-  },
-  signupText: {
-    color: "#0ed1c0",
-    marginLeft: wp("1%"),
-    fontSize: wp("3.5%"),
   },
 });
 

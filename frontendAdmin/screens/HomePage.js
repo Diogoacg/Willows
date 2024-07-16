@@ -12,6 +12,13 @@ import { useNavigation } from "@react-navigation/native";
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
+const COLORS = {
+  primary: "#15191d",
+  secondary: "#212529",
+  accent: "#FF6A3D",
+  neutral: "#313b4b",
+  text: "#c7c7c7",
+};
 const HomePage = () => {
   const navigation = useNavigation();
 
@@ -44,6 +51,7 @@ const HomePage = () => {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: COLORS.primary,
     flex: 1,
     alignItems: "center",
   },
@@ -60,21 +68,23 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   button1Container: {
+    backgroundColor: COLORS.accent,
     marginTop: screenHeight * 0.02,
     borderWidth: 1,
-    borderColor: "#000000",
+    borderColor: COLORS.neutral,
     width: "50%",
     height: screenHeight * 0.08,
-    borderRadius: 100,
+    borderRadius: 25,
     overflow: "hidden",
   },
   button2Container: {
+    backgroundColor: COLORS.accent,
     marginTop: screenHeight * 0.02,
     borderWidth: 1,
-    borderColor: "#000",
+    borderColor: COLORS.neutral,
     width: "50%",
     height: screenHeight * 0.08,
-    borderRadius: 100,
+    borderRadius: 25,
     overflow: "hidden",
   },
   gerirPedidosButton: {
@@ -84,12 +94,12 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   gerirPedidosButtonText: {
-    color: "#000",
+    color: COLORS.primary,
     fontSize: screenWidth * 0.045,
     fontWeight: "bold",
   },
   fazerPedidosButtonText: {
-    color: "#000",
+    color: COLORS.primary,
     fontSize: screenWidth * 0.045,
     fontWeight: "bold",
   },

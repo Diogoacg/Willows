@@ -24,6 +24,14 @@ import io from "socket.io-client";
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
+const COLORS = {
+  primary: "#15191d",
+  secondary: "#212529",
+  accent: "#FF6A3D",
+  neutral: "#313b4b",
+  text: "#c7c7c7",
+};
+
 const FuncionariosScreen = () => {
   const [logins, setLogins] = useState([]);
   const navigation = useNavigation();
@@ -85,26 +93,34 @@ const FuncionariosScreen = () => {
   };
 
   const renderLogin = ({ item }) => (
-    <Pressable style={styles.button} onPress={() => handleViewDetails(item.id)}>
-      <View style={styles.card}>
-        <Pressable
-          style={[
-            styles.deleteButton,
-            { backgroundColor: "white", marginTop: 0 },
-          ]}
-          onPress={() => handleDeleteUser(item.id)}
-        >
-          <Ionicons name={"trash-outline"} size={22} color="grey" />
-        </Pressable>
-        <Text style={styles.cardTitle}>Funcionário: {item.username}</Text>
-        <Text style={styles.cardDetail}>
-          Estado: {item.status ? "Em serviço" : "Off"}
-        </Text>
-        <Text style={styles.cardDetail}>
-          Última Atividade: {item.lastActive}
-        </Text>
-      </View>
-    </Pressable>
+    <View style={styles.itemContainer}>
+      <Pressable
+        style={styles.button}
+        onPress={() => handleViewDetails(item.id)}
+      >
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Funcionário: {item.username}</Text>
+            <Pressable
+              style={styles.deleteButton}
+              onPress={() => handleDeleteUser(item.id)}
+            >
+              <Ionicons
+                name={"trash-outline"}
+                size={22}
+                color={COLORS.accent}
+              />
+            </Pressable>
+          </View>
+          <Text style={styles.cardDetail}>
+            Estado: {item.status ? "Em serviço" : "Off"}
+          </Text>
+          <Text style={styles.cardDetail}>
+            Última Atividade: {item.lastActive}
+          </Text>
+        </View>
+      </Pressable>
+    </View>
   );
 
   return (
@@ -114,14 +130,23 @@ const FuncionariosScreen = () => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name={"arrow-back-outline"} size={24} color="grey" />
+          <Ionicons
+            name={"arrow-back-outline"}
+            size={24}
+            color={COLORS.accent}
+          />
         </Pressable>
         <View style={styles.containerAdd}>
           <Pressable style={styles.createButton} onPress={handleCreateUser}>
-            <Ionicons name={"add-circle-outline"} size={24} color="grey" />
+            <Ionicons
+              name={"add-circle-outline"}
+              size={24}
+              color={COLORS.accent}
+            />
           </Pressable>
         </View>
       </View>
+      <View style={styles.listSpacing} />
       <FlatList
         data={logins}
         renderItem={renderLogin}
@@ -133,6 +158,7 @@ const FuncionariosScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: COLORS.primary,
     flex: 1,
     paddingTop: (screenHeight * 0.1) / 2,
     paddingHorizontal: 10,
@@ -143,18 +169,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("4%"),
     paddingVertical: hp("2%"),
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    marginTop: hp("-6%"), // Espaço extra no topo
+    borderBottomColor: COLORS.neutral,
+    marginTop: hp("-6%"),
+  },
+  listSpacing: {
+    height: 20, // Espaço entre o header e o primeiro card
   },
   listContainer: {
     paddingBottom: 20,
   },
+  itemContainer: {
+    marginBottom: 20,
+    width: "90%",
+    alignSelf: "center",
+  },
+  button: {
+    width: "100%",
+    backgroundColor: COLORS.secondary,
+    borderRadius: 25,
+  },
   card: {
-    width: screenWidth * 0.9,
-    backgroundColor: "#fff",
+    width: "100%",
+    backgroundColor: COLORS.secondary,
     borderRadius: 8,
     padding: 15,
-    marginBottom: 10,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -164,49 +202,43 @@ const styles = StyleSheet.create({
     shadowRadius: 2.62,
     elevation: 4,
   },
-  cardTitle: {
-    top: -(screenHeight * 0.1) / 2,
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  cardDetail: {
-    top: -(screenHeight * 0.1) / 2.5,
-    fontSize: 16,
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 10,
   },
-  itemContainer: {
-    marginLeft: 10,
+  cardTitle: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: "bold",
+    flex: 1,
+  },
+  cardDetail: {
+    fontSize: 14,
     marginBottom: 5,
+    color: COLORS.text,
   },
   deleteButton: {
-    backgroundColor: "#000",
-    padding: 10,
+    backgroundColor: COLORS.secondary,
+    padding: 8,
     borderRadius: 8,
-    alignItems: "flex-end",
-    alignSelf: "flex-end",
-  },
-  button: {
-    backgroundColor: "#000",
-    padding: 10,
-    borderRadius: 8,
-    alignItems: "center",
-    backgroundColor: "#f3f3f2",
+    marginLeft: 10,
   },
   buttonText: {
-    color: "#fff",
+    color: COLORS.text,
     fontWeight: "bold",
     fontSize: 16,
   },
   createButton: {
-    top: -(screenHeight * 0.1) / 30,
-    backgroundColor: "#f3f3f2",
+    backgroundColor: COLORS.primary,
     padding: 15,
     borderRadius: 8,
     marginBottom: 15,
   },
   createButtonText: {
-    color: "#fff",
+    backgroundColor: COLORS.primary,
+    color: COLORS.accent,
     fontSize: 18,
     fontWeight: "bold",
   },
