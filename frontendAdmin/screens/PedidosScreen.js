@@ -35,30 +35,44 @@ const numColumns = 3;
 
 const Item = ({ item, itemWidth, handleAddToCart }) => {
   const fadeValue = useRef(new Animated.Value(0)).current;
+  const scaleValue = useRef(new Animated.Value(1)).current;
   const [showPlusOne, setShowPlusOne] = useState(false);
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   const handlePressIn = () => {
     setShowPlusOne(true);
-    Animated.timing(fadeValue, {
-      toValue: 1,
-      duration: 10,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.timing(fadeValue, {
+        toValue: 1,
+        duration: 10,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleValue, {
+        toValue: 0.8,
+        useNativeDriver: true,
+      })
+    ]).start();
   };
 
   const handlePressOut = () => {
-    Animated.timing(fadeValue, {
-      toValue: 0,
-      duration: 400,
-      useNativeDriver: true,
-    }).start(() => {
-      setShowPlusOne(false);
-    });
+    Animated.parallel([
+      Animated.timing(fadeValue, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleValue, {
+        toValue: 1,
+        friction: 3,
+        tension: 40,
+        useNativeDriver: true,
+      })
+    ]).start(() => setShowPlusOne(false));
   };
 
   return (
+    <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
     <Pressable
       style={[
         styles.itemContainer,
@@ -89,6 +103,7 @@ const Item = ({ item, itemWidth, handleAddToCart }) => {
         {item.preco}€
       </Text>
     </Pressable>
+    </Animated.View>
   );
 };
 
