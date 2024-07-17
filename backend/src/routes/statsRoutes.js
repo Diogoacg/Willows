@@ -101,8 +101,10 @@ router.get("/profit", authenticateToken, async (req, res) => {
   try {
     const today = moment().startOf("day").toISOString();
     const startOfWeek = moment().startOf("week").toISOString();
+    const startOfMonth = moment().startOf("month").toISOString();
     console.log(today);
     console.log(startOfWeek);
+    console.log(startOfMonth);
     const dailyProfit = await OrderGroup.sum("totalPrice", {
       where: {
         //status: "pronto", // Supondo que "pronto" indica que o pedido foi finalizado
@@ -121,9 +123,60 @@ router.get("/profit", authenticateToken, async (req, res) => {
       },
     });
 
-    res.json({ dailyProfit, weeklyProfit });
+    const monthlyProfit = await OrderGroup.sum("totalPrice", {
+      where: {
+        //status: "pronto", // Supondo que "pronto" indica que o pedido foi finalizado
+        updatedAt: {
+          [Op.gte]: startOfMonth,
+        },
+      },
+    });
+
+    res.json({ dailyProfit, weeklyProfit , monthlyProfit});
   } catch (error) {
     console.error("Erro ao obter o lucro:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/stats/total-orders-per-day:
+ *   get:
+ *     summary: Retorna o número total de pedidos por dia
+ *     tags: [Statistics]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Número total de pedidos por dia
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 date:
+ *                   type: string
+ *                   description: Data dos pedidos
+ *                 totalOrders:
+ *                   type: integer
+ *                   description: Total de pedidos no dia
+ *       500:
+ *         description: Erro no servidor
+ */
+router.get("/total-orders-per-day", authenticateToken, async (req, res) => {
+  try {
+    const ordersPerDay = await OrderGroup.findAll({
+      attributes: [
+        [sequelize.fn("date", sequelize.col("CreatedAt")), "date"],
+        [sequelize.fn("count", sequelize.col("OrderGroup.id")), "totalOrders"],
+      ],
+      group: [sequelize.fn("DATE", sequelize.col("CreatedAt"))],
+      order: [[sequelize.fn("DATE", sequelize.col("CreatedAt")), "DESC"]],
+    });
+    res.json(ordersPerDay);
+  }catch (error) {
+    console.error("Erro ao obter o número total de pedidos por dia:", error);
     res.status(500).json({ message: error.message });
   }
 });
