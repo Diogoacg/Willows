@@ -5,8 +5,9 @@ import {
   Pressable,
   View,
   Dimensions,
+  Animated,
 } from "react-native";
-import React from "react";
+import React, {useRef} from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
@@ -18,6 +19,24 @@ const HomePage = () => {
   const navigation = useNavigation();
   const { isDarkMode } = useTheme(); // Obtém o estado de tema atual
   const COLORS = isDarkMode ? colors.dark : colors.light; // Define as cores com base no tema
+  const scaleValue1 = useRef(new Animated.Value(1)).current;
+  const scaleValue2 = useRef(new Animated.Value(1)).current;
+
+  const animateScaleIn = (scaleValue) => {
+    Animated.timing(scaleValue, {
+      toValue: 0.9,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const animateScaleOut = (scaleValue) => {
+    Animated.timing(scaleValue, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
@@ -26,8 +45,9 @@ const HomePage = () => {
         source={require("../assets/imagemfundo.jpg")}
         style={styles.bgimage}
       />
+      <Animated.View style={[styles.buttonAnimated1, { transform: [{ scale: scaleValue1 }] }]}>
       <View style={styles.button1Container}>
-        <Pressable
+        <Pressable onPressIn={() => animateScaleIn(scaleValue1)}  onPressOut={() => animateScaleOut(scaleValue1)}
           style={[
             styles.gerirPedidosButton,
             { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
@@ -41,8 +61,10 @@ const HomePage = () => {
           </Text>
         </Pressable>
       </View>
+      </Animated.View>
+      <Animated.View style={[styles.buttonAnimated2, { transform: [{ scale: scaleValue2 }] }]}>
       <View style={styles.button2Container}>
-        <Pressable
+        <Pressable onPressIn={() => animateScaleIn(scaleValue2)}  onPressOut={() => animateScaleOut(scaleValue2)}
           style={[
             styles.gerirPedidosButton,
             { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
@@ -56,6 +78,7 @@ const HomePage = () => {
           </Text>
         </Pressable>
       </View>
+      </Animated.View>
     </View>
   );
 };
@@ -106,6 +129,16 @@ const styles = StyleSheet.create({
   fazerPedidosButtonText: {
     fontSize: screenWidth * 0.045,
     fontWeight: "bold",
+  },
+  buttonAnimated1: {
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonAnimated2: {
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

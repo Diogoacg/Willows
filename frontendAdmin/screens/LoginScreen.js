@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -7,6 +7,7 @@ import {
   Pressable,
   Alert,
   Switch,
+  Animated,
 } from "react-native";
 import axios from "axios";
 import { REACT_APP_AUTH_URL } from "@env";
@@ -27,6 +28,7 @@ const LoginScreen = ({ onLogin }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [socket, setSocket] = useState(null);
   const { isDarkMode, toggleTheme } = useTheme();
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
@@ -43,7 +45,24 @@ const LoginScreen = ({ onLogin }) => {
     setPasswordVisible(!passwordVisible);
   };
 
+  const animateScaleIn = () => {
+    Animated.timing(scaleValue, {
+      toValue: 0.9,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const animateScaleOut = () => {
+    Animated.timing(scaleValue, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handleLogin = async () => {
+    animateScaleIn();
     try {
       const response = await axios.post(`${REACT_APP_AUTH_URL}/login`, {
         username,
@@ -62,6 +81,8 @@ const LoginScreen = ({ onLogin }) => {
         "Erro ao fazer login",
         "Verifique suas credenciais e tente novamente."
       );
+    } finally {
+      animateScaleOut();
     }
   };
 
@@ -115,6 +136,7 @@ const LoginScreen = ({ onLogin }) => {
           />
         </Pressable>
       </View>
+      <Animated.View style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}>
       <Pressable
         style={[
           styles.button,
@@ -124,6 +146,7 @@ const LoginScreen = ({ onLogin }) => {
       >
         <Text style={styles.buttonText}>Login</Text>
       </Pressable>
+      </Animated.View>
       <View style={styles.themeSwitchContainer}>
         <Text style={[styles.themeSwitchText, { color: COLORS.text }]}>
           Dark Mode
@@ -196,6 +219,9 @@ const styles = StyleSheet.create({
   themeSwitchText: {
     marginRight: wp("2%"),
     fontSize: wp("4%"),
+  },
+  buttonAnimated: {
+    width: "100%",
   },
 });
 

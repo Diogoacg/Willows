@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState , useRef} from "react";
 import {
   FlatList,
   Text,
@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   Dimensions,
+  Animated,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -29,6 +30,7 @@ const screenHeight = Dimensions.get("window").height;
 const FuncionariosScreen = () => {
   const [logins, setLogins] = useState([]);
   const navigation = useNavigation();
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
   const { isDarkMode } = useTheme();
 
@@ -90,11 +92,30 @@ const FuncionariosScreen = () => {
     navigation.navigate("CriarFuncionario");
   };
 
+  const animateScaleIn = (scaleValue) => {
+    Animated.timing(scaleValue, {
+      toValue: 0.9,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const animateScaleOut = (scaleValue) => {
+    Animated.timing(scaleValue, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const renderLogin = ({ item }) => (
+    <Animated.View style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}>
     <View style={[styles.itemContainer, { backgroundColor: COLORS.secondary }]}>
       <Pressable
         style={styles.button}
         onPress={() => handleViewDetails(item.id)}
+        onPressIn={() => animateScaleIn(scaleValue)}
+        onPressOut={() => animateScaleOut(scaleValue)}
       >
         <View style={styles.card}>
           <View style={styles.cardHeader}>
@@ -121,6 +142,7 @@ const FuncionariosScreen = () => {
         </View>
       </Pressable>
     </View>
+    </Animated.View>
   );
 
   return (
@@ -230,6 +252,9 @@ const styles = StyleSheet.create({
     top: hp("4%"),
     left: wp("79%"),
     justifyContent: "flex-end",
+  },
+  buttonAnimated: {
+    width: "100%",
   },
 });
 
