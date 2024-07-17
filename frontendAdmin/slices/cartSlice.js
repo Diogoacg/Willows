@@ -7,9 +7,9 @@ const cartSlice = createSlice({
     addToCart: (state, action) => {
       const existingItem = state.find((item) => item.id === action.payload.id);
       if (existingItem) {
-        existingItem.quantity += 1; // Incrementa a quantidade existente por 1
+        existingItem.quantity += 1;
       } else {
-        state.push({ ...action.payload, quantity: 1 }); // Adiciona novo item com quantidade inicial 1
+        state.push({ ...action.payload, quantity: 1 });
       }
     },
     incrementQuantity: (state, action) => {
@@ -24,7 +24,7 @@ const cartSlice = createSlice({
         item.quantity -= 1;
       }
     },
-    clearCart: () => [],
+    clearCart: () => [], // Retorna o estado diretamente vazio ao limpar o carrinho
   },
 });
 

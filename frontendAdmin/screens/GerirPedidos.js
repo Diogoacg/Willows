@@ -110,7 +110,9 @@ const GerirPedidos = () => {
         style={[styles.button, { backgroundColor: COLORS.accent }]}
         onPress={() => handleEstadoChange(item.id)}
       >
-        <Text style={styles.buttonText}>Marcar como Pronto</Text>
+        <Text style={[styles.buttonText, { color: COLORS.secondary }]}>
+          Entregue
+        </Text>
       </Pressable>
     </View>
   );
@@ -180,6 +182,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   buttonText: {
+    fontWeight: "bold",
     color: "#000",
     fontWeight: "bold",
     fontSize: 16,

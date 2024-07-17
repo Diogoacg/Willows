@@ -33,80 +33,78 @@ import { colors } from "../config/theme";
 
 const numColumns = 3;
 
-const Item = ({ item, itemWidth, handleAddToCart }) => {
-  const fadeValue = useRef(new Animated.Value(0)).current;
+const Item = ({ item, itemWidth, handleAddToCart, badgeCount }) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
-  const [showPlusOne, setShowPlusOne] = useState(false);
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   const handlePressIn = () => {
-    setShowPlusOne(true);
-    Animated.parallel([
-      Animated.timing(fadeValue, {
-        toValue: 1,
-        duration: 10,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleValue, {
-        toValue: 0.8,
-        useNativeDriver: true,
-      })
-    ]).start();
+    Animated.timing(scaleValue, {
+      toValue: 0.9,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = () => {
-    Animated.parallel([
-      Animated.timing(fadeValue, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleValue, {
-        toValue: 1,
-        friction: 3,
-        tension: 40,
-        useNativeDriver: true,
-      })
-    ]).start(() => setShowPlusOne(false));
+    Animated.timing(scaleValue, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePress = () => {
+    handleAddToCart(item);
   };
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-    <Pressable
-      style={[
-        styles.itemContainer,
-        {
-          width: itemWidth,
-          borderColor: COLORS.neutral,
-          backgroundColor: COLORS.secondary,
-        },
-      ]}
-      onPress={() => handleAddToCart(item)}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-    >
-      {item.imageUri ? (
-        <Image source={{ uri: item.imageUri }} style={styles.image} />
-      ) : (
-        <Image source={require("../assets/favicon.png")} style={styles.image} />
-      )}
-      {showPlusOne && (
-        <Animated.View
-          style={[styles.plusOneContainer, { opacity: fadeValue }]}
-        >
-          <Text style={styles.plusOneText}>+1</Text>
-        </Animated.View>
-      )}
-      <Text style={[styles.itemName, { color: COLORS.text }]}>{item.nome}</Text>
-      <Text style={[styles.itemPreco, { color: COLORS.text }]}>
-        {item.preco}€
-      </Text>
-    </Pressable>
+      <Pressable
+        style={[
+          styles.itemContainer,
+          {
+            width: itemWidth,
+            borderColor: COLORS.neutral,
+            backgroundColor: COLORS.secondary,
+          },
+        ]}
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        {item.imageUri ? (
+          <View>
+            <Image source={{ uri: item.imageUri }} style={styles.image} />
+          </View>
+        ) : (
+          <Image
+            source={require("../assets/favicon.png")}
+            style={styles.image}
+          />
+        )}
+        {badgeCount > 0 && (
+          <View
+            style={[
+              styles.itemBadgeContainer,
+              { backgroundColor: COLORS.accent },
+            ]}
+          >
+            <Text style={[styles.itemBadgeText, { color: COLORS.text }]}>
+              {badgeCount}
+            </Text>
+          </View>
+        )}
+        <Text style={[styles.itemName, { color: COLORS.text }]}>
+          {item.nome}
+        </Text>
+        <Text style={[styles.itemPreco, { color: COLORS.text }]}>
+          {item.preco}€
+        </Text>
+      </Pressable>
     </Animated.View>
   );
 };
-
 const PedidosScreen = () => {
   const [visibleModal, setVisibleModal] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -116,8 +114,8 @@ const PedidosScreen = () => {
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
 
-  const { isDarkMode } = useTheme(); // Obtém o estado de tema atual
-  const COLORS = isDarkMode ? colors.dark : colors.light; // Define as cores com base no tema
+  const { isDarkMode } = useTheme();
+  const COLORS = isDarkMode ? colors.dark : colors.light;
 
   const { width: screenWidth } = useWindowDimensions();
 
@@ -132,10 +130,6 @@ const PedidosScreen = () => {
     socket.on("itemCreated", () => {
       fetchInventoryItems();
     });
-
-    // socket.on("getItems", () => {
-    //   fetchInventoryItems();
-    // });
 
     socket.on("itemDeleted", () => {
       fetchInventoryItems();
@@ -160,7 +154,6 @@ const PedidosScreen = () => {
           // Se não tiver imageUri, busca no Unsplash
           if (!item.imageUri) {
             const uri = await fetchImageUri(item.nome);
-            // atualizar base de dados dando updatde ao item
             const token = await AsyncStorage.getItem("token");
             await atualizarItemNoInventario(
               token,
@@ -203,7 +196,6 @@ const PedidosScreen = () => {
       }
     } catch (error) {
       console.error("Erro ao buscar imagem do Unsplash:", error.message);
-      // Pode retornar um placeholder ou tratar o erro de outra forma
       return ""; // URI de imagem padrão ou vazia
     }
   };
@@ -232,13 +224,10 @@ const PedidosScreen = () => {
     dispatch(addToCart(item));
   };
 
-  const handleOpenModal = () => {
-    setVisibleModal(true);
-  };
-
   const handleCloseModal = () => {
     setVisibleModal(false);
     dispatch(clearCart());
+    setFilteredItems(filteredItems.map((item) => ({ ...item, badgeCount: 0 })));
   };
 
   const handleBackModal = () => {
@@ -270,11 +259,14 @@ const PedidosScreen = () => {
   const itemWidth = screenWidth / numColumns - wp("4%");
 
   const renderItem = ({ item }) => {
+    const badgeCount =
+      cartItems.find((cartItem) => cartItem.id === item.id)?.quantity || 0;
     return (
       <Item
         item={item}
         itemWidth={itemWidth}
         handleAddToCart={handleAddToCart}
+        badgeCount={badgeCount}
       />
     );
   };
@@ -314,7 +306,10 @@ const PedidosScreen = () => {
               value={searchText}
             />
           </View>
-          <Pressable style={styles.cartButton} onPress={handleOpenModal}>
+          <Pressable
+            style={styles.cartButton}
+            onPress={() => setVisibleModal(true)}
+          >
             <Ionicons name="cart-outline" size={24} color={COLORS.accent} />
             {cartItems.length > 0 && (
               <View style={[styles.badge, { backgroundColor: COLORS.accent }]}>
@@ -386,6 +381,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: wp("3%"),
   },
+  itemContainer: {
+    marginTop: hp("2%"),
+    margin: wp("2%"),
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderRadius: 8,
+    borderWidth: 1,
+    elevation: 3,
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    padding: wp("4%"),
+    position: "relative", // Para badges ficarem posicionados corretamente
+  },
+  image: {
+    width: wp("25%"),
+    height: wp("25%"),
+    resizeMode: "cover",
+    marginBottom: hp("1%"),
+  },
   badge: {
     borderRadius: 9,
     width: 18,
@@ -398,51 +412,30 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
   },
-  listContainer: {
-    paddingHorizontal: wp("2%"),
-  },
-  itemContainer: {
-    marginTop: hp("2%"),
-    margin: wp("1.2%"),
-    justifyContent: "space-between",
+  itemBadgeContainer: {
+    position: "absolute",
+    top: hp("-1%"),
+    right: wp("-1.5%"),
+    borderRadius: 90,
+    width: hp("3.5%"),
+    height: hp("3.5%"),
+    justifyContent: "center",
     alignItems: "center",
-    borderRadius: 8,
-    borderWidth: 1,
-    elevation: 3,
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    padding: wp("4%"),
+  },
+  itemBadgeText: {
+    fontSize: 12,
+    fontWeight: "bold",
   },
   itemName: {
     fontSize: wp("3.5%"),
     fontWeight: "bold",
     textAlign: "center",
     marginTop: hp("1%"),
-    width: "100%", // Ensure the text takes up all available space
+    width: "100%",
   },
   itemPreco: {
     fontSize: wp("3%"),
     textAlign: "center",
-  },
-  image: {
-    width: wp("25%"),
-    height: wp("25%"),
-    resizeMode: "cover",
-    marginBottom: hp("1%"),
-  },
-  plusOneContainer: {
-    position: "absolute",
-    backgroundColor: "red",
-    width: 60,
-    height: 60,
-    borderRadius: 50,
-    alignItems: "center",
-    justifyContent: "center",
-    top: 40,
-  },
-  plusOneText: {
-    color: "white",
-    fontSize: 16,
   },
 });
 

@@ -22,7 +22,8 @@ import FuncionariosScreen from "./screens/Funcionarios";
 import DetalhesFuncionarioScreen from "./screens/DetalhesFuncionarioScreen";
 import CriarFuncionarioScreen from "./screens/CriarFuncionarioScreen";
 import GerirPedidos from "./screens/GerirPedidos";
-import * as NavigationBar from "expo-navigation-bar"; // Import from expo-navigation-bar
+import * as NavigationBar from "expo-navigation-bar";
+import { colors } from "./config/theme";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -46,6 +47,7 @@ const TabPrincipal = () => {
   const { isDarkMode } = useTheme();
   const [socket, setSocket] = useState(null);
   const theme = isDarkMode ? DarkTheme : DefaultTheme;
+  const COLORS = isDarkMode ? colors.dark : colors.light;
 
   useEffect(() => {
     const newSocket = io(SOCKET_URL);
@@ -62,11 +64,11 @@ const TabPrincipal = () => {
         tabBarIcon: ({ focused, color }) => (
           <TabIcon route={route} focused={focused} color={color} />
         ),
-        tabBarActiveTintColor: theme.colors.accent,
-        tabBarInactiveTintColor: theme.colors.text,
+        tabBarActiveTintColor: COLORS.accent,
+        tabBarInactiveTintColor: COLORS.text,
         tabBarStyle: {
-          backgroundColor: theme.colors.primary,
-          borderTopColor: theme.colors.neutral,
+          backgroundColor: COLORS.primary,
+          borderTopColor: COLORS.neutral,
           borderTopWidth: 1,
         },
         headerShown: false,
