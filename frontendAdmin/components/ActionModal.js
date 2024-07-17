@@ -9,16 +9,12 @@ import {
 } from "react-native";
 import { useDispatch } from "react-redux";
 import { incrementQuantity, decrementQuantity } from "../slices/cartSlice";
-
-const COLORS = {
-  primary: "#15191d",
-  secondary: "#212529",
-  accent: "#FF6A3D",
-  neutral: "#313b4b",
-  text: "#c7c7c7",
-};
+import { useTheme } from "../ThemeContext";
+import { colors } from "../config/theme";
 
 const ActionModal = ({ handleClose, handleConfirm, handleBack, cartItems }) => {
+  const { isDarkMode } = useTheme();
+  const COLORS = isDarkMode ? colors.dark : colors.light;
   const dispatch = useDispatch();
 
   const handleIncrement = (id) => {
@@ -30,18 +26,28 @@ const ActionModal = ({ handleClose, handleConfirm, handleBack, cartItems }) => {
   };
 
   const renderItem = ({ item }) => (
-    <View style={styles.cartItem}>
-      <Text style={styles.itemName}>{item.nome}</Text>
-      <View style={styles.quantityContainer}>
+    <View style={[styles.cartItem, { borderBottomColor: COLORS.neutral }]}>
+      <Text style={[styles.itemName, { color: COLORS.text }]}>{item.nome}</Text>
+      <View style={[styles.quantityContainer, { borderColor: COLORS.neutral }]}>
         <Pressable onPress={() => handleDecrement(item.id)}>
-          <Text style={styles.quantityButton}>-</Text>
+          <Text
+            style={[styles.quantityButton, { backgroundColor: COLORS.accent }]}
+          >
+            -
+          </Text>
         </Pressable>
-        <Text style={styles.itemQuantity}>{item.quantity}</Text>
+        <Text style={[styles.itemQuantity, { color: COLORS.text }]}>
+          {item.quantity}
+        </Text>
         <Pressable onPress={() => handleIncrement(item.id)}>
-          <Text style={styles.quantityButton}>+</Text>
+          <Text
+            style={[styles.quantityButton, { backgroundColor: COLORS.accent }]}
+          >
+            +
+          </Text>
         </Pressable>
       </View>
-      <Text style={styles.itemPrice}>
+      <Text style={[styles.itemPrice, { color: COLORS.text }]}>
         {(item.preco * item.quantity).toFixed(2)}€
       </Text>
     </View>
@@ -54,33 +60,39 @@ const ActionModal = ({ handleClose, handleConfirm, handleBack, cartItems }) => {
 
   return (
     <Modal visible={true} transparent={true} onRequestClose={handleClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.title}>Pedido</Text>
+      <View
+        style={[styles.modalOverlay, { backgroundColor: COLORS.primary + 80 }]}
+      >
+        <View
+          style={[styles.modalContainer, { backgroundColor: COLORS.secondary }]}
+        >
+          <Text style={[styles.title, { color: COLORS.text }]}>Carrinho</Text>
           <FlatList
             data={cartItems}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
             style={styles.cartList}
           />
-          <Text style={styles.total}>Total: {totalPrice.toFixed(2)}€</Text>
+          <Text style={[styles.total, { color: COLORS.text }]}>
+            Total: {totalPrice.toFixed(2)}€
+          </Text>
           <Pressable
             activeOpacity={0.9}
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: COLORS.accent }]}
             onPress={handleConfirm}
           >
             <Text style={styles.actionText}>Confirmar Pedido</Text>
           </Pressable>
           <Pressable
             activeOpacity={0.9}
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: COLORS.accent }]}
             onPress={handleBack}
           >
             <Text style={styles.actionText}>Voltar</Text>
           </Pressable>
           <Pressable
             activeOpacity={0.9}
-            style={[styles.actionButton, styles.cancelButton]}
+            style={[styles.actionButton, { backgroundColor: COLORS.neutral }]}
             onPress={handleClose}
           >
             <Text style={[styles.actionText, styles.cancelText]}>Cancelar</Text>
@@ -96,10 +108,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: COLORS.primary + "80",
   },
   modalContainer: {
-    backgroundColor: COLORS.secondary,
     borderRadius: 16,
     padding: 20,
     width: "80%",
@@ -114,7 +124,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   title: {
-    color: COLORS.text,
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 10,
@@ -130,11 +139,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.neutral,
     width: "100%",
   },
   itemName: {
-    color: COLORS.text,
     flex: 3,
     textAlign: "left",
     fontSize: 16,
@@ -144,27 +151,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   quantityButton: {
-    color: COLORS.accent,
     fontSize: 20,
     width: 30,
     textAlign: "center",
-    backgroundColor: COLORS.secondary,
     borderRadius: 4,
     marginHorizontal: 5,
   },
   itemQuantity: {
-    color: COLORS.text,
     fontSize: 16,
     marginHorizontal: 10,
   },
   itemPrice: {
-    color: COLORS.text,
     flex: 1,
     textAlign: "right",
     fontSize: 10,
   },
   total: {
-    color: COLORS.text,
     fontSize: 18,
     fontWeight: "bold",
     marginTop: 10,
@@ -174,12 +176,8 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 10,
     marginTop: 10,
-    backgroundColor: COLORS.accent,
     borderRadius: 8,
     alignItems: "center",
-  },
-  cancelButton: {
-    backgroundColor: COLORS.neutral,
   },
   actionText: {
     color: "#000",
