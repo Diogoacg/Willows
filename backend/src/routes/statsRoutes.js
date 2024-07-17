@@ -82,7 +82,7 @@ router.get("/top-users", async (req, res) => {
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lucro no dia,na semana e no mês
+ *         description: Lucro no dia, na semana e no mês
  *         content:
  *           application/json:
  *             schema:
@@ -94,9 +94,9 @@ router.get("/top-users", async (req, res) => {
  *                 weeklyProfit:
  *                   type: number
  *                   description: Lucro na semana
- *                monthlyProfit:
- *                  type: number
- *                 description: Lucro no mês
+ *                 monthlyProfit:
+ *                   type: number
+ *                   description: Lucro no mês
  *       500:
  *         description: Erro no servidor
  */
@@ -135,7 +135,7 @@ router.get("/profit", authenticateToken, async (req, res) => {
       },
     });
 
-    res.json({ dailyProfit, weeklyProfit , monthlyProfit});
+    res.json({ dailyProfit, weeklyProfit, monthlyProfit });
   } catch (error) {
     console.error("Erro ao obter o lucro:", error);
     res.status(500).json({ message: error.message });
@@ -144,42 +144,66 @@ router.get("/profit", authenticateToken, async (req, res) => {
 
 /**
  * @swagger
- * /api/stats/total-orders-per-day:
+ * /api/stats/total-orders-dmw:
  *   get:
- *     summary: Retorna o número total de pedidos por dia
+ *     summary: Retorna o número total de pedidos do dia, semana e mês
  *     tags: [Statistics]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Número total de pedidos por dia
+ *         description: Número total de pedidos do dia, semana e mês
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 date:
- *                   type: string
- *                   description: Data dos pedidos
- *                 totalOrders:
+ *                 dailyOrders:
  *                   type: integer
- *                   description: Total de pedidos no dia
+ *                   description: Total de pedidos do dia
+ *                 weeklyOrders:
+ *                   type: integer
+ *                   description: Total de pedidos da semana
+ *                 monthlyOrders:
+ *                   type: integer
+ *                   description: Total de pedidos do mês
  *       500:
  *         description: Erro no servidor
  */
-router.get("/total-orders-per-day", authenticateToken, async (req, res) => {
+router.get("/total-orders-dmw", authenticateToken, async (req, res) => {
   try {
-    const ordersPerDay = await OrderGroup.findAll({
-      attributes: [
-        [sequelize.fn("date", sequelize.col("CreatedAt")), "date"],
-        [sequelize.fn("count", sequelize.col("OrderGroup.id")), "totalOrders"],
-      ],
-      group: [sequelize.fn("DATE", sequelize.col("CreatedAt"))],
-      order: [[sequelize.fn("DATE", sequelize.col("CreatedAt")), "DESC"]],
+    const today = moment().startOf("day").toISOString();
+    const startOfWeek = moment().startOf("week").toISOString();
+    const startOfMonth = moment().startOf("month").toISOString();
+    console.log(today);
+    console.log(startOfWeek);
+    console.log(startOfMonth);
+    const dailyOrders = await OrderGroup.count({
+      where: {
+        createdAt: {
+          [Op.gte]: today,
+        },
+      },
     });
-    res.json(ordersPerDay);
+
+    const weeklyOrders = await OrderGroup.count({
+      where: {
+        createdAt: {
+          [Op.gte]: startOfWeek,
+        },
+      },
+    });
+
+    const monthlyOrders = await OrderGroup.count({
+      where: {
+        createdAt: {
+          [Op.gte]: startOfMonth,
+        },
+      },
+    });
+    res.json({ dailyOrders, weeklyOrders, monthlyOrders });
   }catch (error) {
-    console.error("Erro ao obter o número total de pedidos por dia:", error);
+    console.error("Erro ao obter o número total de pedidos:", error);
     res.status(500).json({ message: error.message });
   }
 });
