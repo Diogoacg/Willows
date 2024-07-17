@@ -76,13 +76,13 @@ router.get("/top-users", async (req, res) => {
  * @swagger
  * /api/stats/profit:
  *   get:
- *     summary: Retorna o lucro no dia e na semana
+ *     summary: Retorna o lucro no dia, na semana e no mês
  *     tags: [Statistics]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lucro no dia e na semana
+ *         description: Lucro no dia,na semana e no mês
  *         content:
  *           application/json:
  *             schema:
@@ -94,6 +94,9 @@ router.get("/top-users", async (req, res) => {
  *                 weeklyProfit:
  *                   type: number
  *                   description: Lucro na semana
+ *                monthlyProfit:
+ *                  type: number
+ *                 description: Lucro no mês
  *       500:
  *         description: Erro no servidor
  */
@@ -179,6 +182,51 @@ router.get("/total-orders-per-day", authenticateToken, async (req, res) => {
     console.error("Erro ao obter o número total de pedidos por dia:", error);
     res.status(500).json({ message: error.message });
   }
+});
+
+/**
+ * @swagger
+ * /api/stats/total-orders-per-user:
+ *   get:
+ *     summary: Retorna o número total de pedidos por usuário
+ *     tags: [Statistics]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Número total de pedidos por usuário
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   userId:
+ *                     type: integer
+ *                     description: ID do usuário
+ *                   totalOrders:
+ *                     type: integer
+ *                     description: Total de pedidos pelo usuário
+ *       500:
+ *         description: Erro no servidor
+ */
+
+router.get("/total-orders-per-user", authenticateToken, async (req, res) => {
+  try{
+    const ordersPerUser = await OrderGroup.findAll({
+      attributes: [
+        "userId",
+        [sequelize.fn("count", sequelize.col("OrderGroup.id")), "totalOrders"],
+      ],
+      group: ["userId"],
+      order: [[sequelize.literal("totalOrders"), "DESC"]],
+    });
+    res.json(ordersPerUser);
+  }catch (error) {
+    console.error("Erro ao obter o número total de pedidos por user:", error);
+    res.status(500).json({ message: error.message });
+    }
 });
 
 module.exports = router;
