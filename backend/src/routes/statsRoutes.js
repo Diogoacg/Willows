@@ -7,6 +7,8 @@ const sequelize = require("../config/database"); // Caminho para sua configuraç
 
 const OrderGroup = require("../models/OrderGroup");
 const User = require("../models/User");
+const Item = require("../models/Item");
+const OrderItem = require("../models/OrderItem");
 
 // Middleware de autenticação
 const authenticateToken = require("../middleWare/authMiddleware");
@@ -251,6 +253,66 @@ router.get("/total-orders-per-user", authenticateToken, async (req, res) => {
     console.error("Erro ao obter o número total de pedidos por user:", error);
     res.status(500).json({ message: error.message });
     }
+});
+
+/**
+ * @swagger
+ * /api/stats/orders-per-item:
+ *   get:
+ *     summary: Retorna o número de pedidos que envolvem cada item
+ *     tags: [Statistics]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Número de pedidos por item
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   itemId:
+ *                     type: integer
+ *                     description: ID do item
+ *                   itemName:
+ *                     type: string
+ *                     description: Nome do item
+ *                   totalOrders:
+ *                     type: integer
+ *                     description: Total de pedidos que envolvem o item
+ *       500:
+ *         description: Erro no servidor
+ */
+router.get("/orders-per-item", authenticateToken, async (req, res) => {
+  try {
+    const ordersPerItem = await OrderItem.findAll({
+      attributes: [
+        'itemId',
+        [sequelize.fn('count', sequelize.col('OrderItem.id')), 'totalOrders'],
+      ],
+      include: [
+        {
+          model: Item,
+          attributes: ['nome'],
+        },
+      ],
+      group: ['itemId', 'Item.nome'],
+      order: [[sequelize.literal('totalOrders'), 'DESC']],
+    });
+
+    const result = ordersPerItem.map(order => ({
+      itemId: order.itemId,
+      itemName: order.Item.nome,
+      totalOrders: order.getDataValue('totalOrders'),
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Erro ao obter pedidos por item:', error);
+    res.status(500).json({ message: error.message });
+  }
 });
 
 module.exports = router;
