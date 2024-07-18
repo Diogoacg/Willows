@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { obterInformacoesDoUtilizador } from "../api/apiAuth";
 import {
-  obterLucroPorUsuario,
+  obterLucroTotalPorUsuario,
   obterTotalPedidosPorUsuario,
 } from "../api/apiStats"; // Importa as funções de estatísticas
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -48,9 +48,10 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
   const fetchUserStatistics = async () => {
     const token = await AsyncStorage.getItem("token");
     try {
-      const profitStatistics = await obterLucroPorUsuario(token, userId);
+      const profitStatistics = await obterLucroTotalPorUsuario(token, userId);
       const ordersStatistics = await obterTotalPedidosPorUsuario(token, userId);
 
+      console.log(profitStatistics, ordersStatistics);
       setUserStatistics({
         lucroTotal: profitStatistics.totalProfit,
         totalPedidos: ordersStatistics.totalOrders,

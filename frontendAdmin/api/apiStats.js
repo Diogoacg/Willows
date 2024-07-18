@@ -43,7 +43,7 @@ export const obterTotalPedidosDMW = async (token) => {
   }
 };
 
-export const obterLucroTotalPorUsuario = async (token) => {
+export const obterLucroTotalPorUsuario = async (token, userId) => {
   try {
     const response = await fetch(`${REACT_APP_API_URL}/stats/profit-per-user`, {
       method: "GET",
@@ -59,13 +59,14 @@ export const obterLucroTotalPorUsuario = async (token) => {
 
     const data = await response.json();
 
-    // Mapeia a resposta para o formato esperado
-    const lucroTotalPorUsuario = data.map((item) => ({
-      userId: item.userId,
-      totalProfit: parseFloat(item.totalProfit).toFixed(2), // Converte para número e fixa duas casas decimais
-      totalOrders: item.totalOrders,
-      username: item.username,
-    }));
+    // Filtra os dados para encontrar o lucro total do usuário específico
+    const lucroTotalPorUsuario = data.find((item) => item.userId === userId);
+
+    if (!lucroTotalPorUsuario) {
+      throw new Error(
+        `Lucro total não encontrado para o usuário com ID ${userId}`
+      );
+    }
 
     return lucroTotalPorUsuario;
   } catch (error) {
@@ -73,7 +74,7 @@ export const obterLucroTotalPorUsuario = async (token) => {
   }
 };
 
-export const obterTotalPedidosPorUsuario = async (token) => {
+export const obterTotalPedidosPorUsuario = async (token, userId) => {
   try {
     const response = await fetch(
       `${REACT_APP_API_URL}/stats/total-orders-per-user`,
@@ -92,11 +93,7 @@ export const obterTotalPedidosPorUsuario = async (token) => {
 
     const data = await response.json();
 
-    // Mapeia a resposta para o formato esperado
-    const totalPedidosPorUsuario = data.map((item) => ({
-      userId: item.userId,
-      totalOrders: item.totalOrders,
-    }));
+    const totalPedidosPorUsuario = data.find((item) => item.userId === userId);
 
     return totalPedidosPorUsuario;
   } catch (error) {
