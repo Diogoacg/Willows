@@ -1,9 +1,31 @@
 import { REACT_APP_AUTH_URL } from "@env";
 
-// Função para realizar login
-export const realizarLogin = async (loginData) => {
+// // Função para realizar login para um utilizador
+// export const realizarLogin = async (loginData) => {
+//   try {
+//     const response = await fetch(`${REACT_APP_AUTH_URL}/login`, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(loginData),
+//     });
+
+//     if (!response.ok) {
+//       const errorData = await response.json();
+//       throw new Error(errorData.message);
+//     }
+
+//     return await response.json();
+//   } catch (error) {
+//     throw new Error(error.message);
+//   }
+// };
+
+// Função para login utizador com role de admin
+export const realizarLoginAdmin = async (loginData) => {
   try {
-    const response = await fetch(`${REACT_APP_AUTH_URL}/login`, {
+    const response = await fetch(`${REACT_APP_AUTH_URL}/login-admin`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

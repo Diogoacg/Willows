@@ -20,17 +20,18 @@ const authenticateToken = require("../middleWare/authMiddleware");
  *   description: Endpoints para estatísticas do sistema
  */
 
+// Rota para obter os usuários com mais lucro nos pedidos que fizeram dando uma resposta com  nr de pedidos, lucro total e nome do usuário, ordenado por lucro total
 /**
  * @swagger
- * /api/stats/top-users:
+ * /api/stats/profit-per-user:
  *   get:
- *     summary: Retorna os usuários com mais pedidos feitos
+ *     summary: Retorna o lucro total de cada usuário
  *     tags: [Statistics]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de usuários com mais pedidos
+ *         description: Lucro total de cada usuário
  *         content:
  *           application/json:
  *             schema:
@@ -41,36 +42,48 @@ const authenticateToken = require("../middleWare/authMiddleware");
  *                   userId:
  *                     type: integer
  *                     description: ID do usuário
+ *                   totalProfit:
+ *                     type: number
+ *                     description: Lucro total do usuário
  *                   totalOrders:
  *                     type: integer
- *                     description: Total de pedidos feitos pelo usuário
+ *                     description: Número total de pedidos do usuário
+ *                   name:
+ *                     type: string
+ *                     description: Nome do usuário
  *       500:
  *         description: Erro no servidor
  */
-router.get("/top-users", async (req, res) => {
+
+router.get("/profit-per-user", authenticateToken, async (req, res) => {
   try {
-    // Consulta para obter os usuários com mais pedidos
-    const topUsers = await OrderGroup.findAll({
+    const profitPerUser = await OrderGroup.findAll({
       attributes: [
         "userId",
+        [sequelize.fn("sum", sequelize.col("totalPrice")), "totalProfit"],
         [sequelize.fn("count", sequelize.col("OrderGroup.id")), "totalOrders"],
       ],
       include: [
         {
           model: User,
-          as: "user",
-          attributes: [],
+          attributes: ["username"], // Atributo do nome do usuário
         },
       ],
-      group: ["userId"],
-      order: [[sequelize.literal("totalOrders"), "DESC"]],
-      limit: 10, // Por exemplo, os top 10 usuários com mais pedidos
+      group: ["userId", "User.username"],
+      order: [[sequelize.literal("totalProfit"), "DESC"]],
     });
 
-    res.json(topUsers);
+    const result = profitPerUser.map((profit) => ({
+      userId: profit.userId,
+      totalProfit: profit.getDataValue("totalProfit"),
+      totalOrders: profit.getDataValue("totalOrders"),
+      username: profit.User.username,
+    }));
+
+    res.json(result);
   } catch (error) {
-    console.error("Erro ao obter os top users:", error);
-    res.status(500).json({ message: "Erro no servidor" });
+    console.error("Erro ao obter lucro por usuário:", error);
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -204,7 +217,7 @@ router.get("/total-orders-dmw", authenticateToken, async (req, res) => {
       },
     });
     res.json({ dailyOrders, weeklyOrders, monthlyOrders });
-  }catch (error) {
+  } catch (error) {
     console.error("Erro ao obter o número total de pedidos:", error);
     res.status(500).json({ message: error.message });
   }
@@ -239,7 +252,7 @@ router.get("/total-orders-dmw", authenticateToken, async (req, res) => {
  */
 
 router.get("/total-orders-per-user", authenticateToken, async (req, res) => {
-  try{
+  try {
     const ordersPerUser = await OrderGroup.findAll({
       attributes: [
         "userId",
@@ -249,10 +262,10 @@ router.get("/total-orders-per-user", authenticateToken, async (req, res) => {
       order: [[sequelize.literal("totalOrders"), "DESC"]],
     });
     res.json(ordersPerUser);
-  }catch (error) {
+  } catch (error) {
     console.error("Erro ao obter o número total de pedidos por user:", error);
     res.status(500).json({ message: error.message });
-    }
+  }
 });
 
 /**
@@ -289,28 +302,28 @@ router.get("/orders-per-item", authenticateToken, async (req, res) => {
   try {
     const ordersPerItem = await OrderItem.findAll({
       attributes: [
-        'itemId',
-        [sequelize.fn('count', sequelize.col('OrderItem.id')), 'totalOrders'],
+        "itemId",
+        [sequelize.fn("count", sequelize.col("OrderItem.id")), "totalOrders"],
       ],
       include: [
         {
           model: Item,
-          attributes: ['nome'],
+          attributes: ["nome"],
         },
       ],
-      group: ['itemId', 'Item.nome'],
-      order: [[sequelize.literal('totalOrders'), 'DESC']],
+      group: ["itemId", "Item.nome"],
+      order: [[sequelize.literal("totalOrders"), "DESC"]],
     });
 
-    const result = ordersPerItem.map(order => ({
+    const result = ordersPerItem.map((order) => ({
       itemId: order.itemId,
       itemName: order.Item.nome,
-      totalOrders: order.getDataValue('totalOrders'),
+      totalOrders: order.getDataValue("totalOrders"),
     }));
 
     res.json(result);
   } catch (error) {
-    console.error('Erro ao obter pedidos por item:', error);
+    console.error("Erro ao obter pedidos por item:", error);
     res.status(500).json({ message: error.message });
   }
 });

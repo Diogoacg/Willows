@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { obterInformacoesDoUtilizador } from "../api/apiAuth";
+import {
+  obterLucroPorUsuario,
+  obterTotalPedidosPorUsuario,
+} from "../api/apiStats"; // Importa as funções de estatísticas
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   widthPercentageToDP as wp,
@@ -21,12 +25,14 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
   const route = useRoute();
   const { userId } = route.params;
   const [userDetails, setUserDetails] = useState(null);
+  const [userStatistics, setUserStatistics] = useState(null);
   const { isDarkMode } = useTheme();
 
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   useEffect(() => {
     fetchUserDetails();
+    fetchUserStatistics();
   }, []);
 
   const fetchUserDetails = async () => {
@@ -39,7 +45,25 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
     }
   };
 
-  if (!userDetails) {
+  const fetchUserStatistics = async () => {
+    const token = await AsyncStorage.getItem("token");
+    try {
+      const profitStatistics = await obterLucroPorUsuario(token, userId);
+      const ordersStatistics = await obterTotalPedidosPorUsuario(token, userId);
+
+      setUserStatistics({
+        lucroTotal: profitStatistics.totalProfit,
+        totalPedidos: ordersStatistics.totalOrders,
+      });
+    } catch (error) {
+      console.error(
+        "Erro ao buscar estatísticas do utilizador:",
+        error.message
+      );
+    }
+  };
+
+  if (!userDetails || !userStatistics) {
     return (
       <View
         style={[styles.loadingContainer, { backgroundColor: COLORS.primary }]}
@@ -65,6 +89,12 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
         </Text>
         <Text style={[styles.label, { color: COLORS.text }]}>
           Email: {userDetails.email}
+        </Text>
+        <Text style={[styles.label, { color: COLORS.text }]}>
+          Lucro Total: {userStatistics.lucroTotal}
+        </Text>
+        <Text style={[styles.label, { color: COLORS.text }]}>
+          Total de Pedidos: {userStatistics.totalPedidos}
         </Text>
         {/* Adicione mais detalhes conforme necessário */}
       </View>

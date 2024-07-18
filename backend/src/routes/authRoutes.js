@@ -69,6 +69,7 @@ module.exports = (io) => {
     }
   });
 
+  // login para todos os utilizadores na app cliente
   /**
    * @swagger
    * /auth/login:
@@ -133,6 +134,80 @@ module.exports = (io) => {
       // Emitir um evento com o Socket.IO
       io.emit("userLoggedIn", user);
       console.log(token);
+      res.json({ token });
+    } catch (error) {
+      console.error("Erro ao tentar fazer login:", error); // Log do erro para depuração
+      res.status(500).json({ message: "Erro interno do servidor" });
+    }
+  });
+
+  /**
+   * @swagger
+   * /auth/login-admin:
+   *   post:
+   *     summary: Faz login de um Utilizador com papel de Admin
+   *     tags: [Auth]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - username
+   *               - password
+   *             properties:
+   *               username:
+   *                 type: string
+   *               password:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Login bem sucedido
+   *       401:
+   *         description: Credenciais inválidas
+   *       404:
+   *         description: Utilizador não encontrado
+   *       400:
+   *         description: Erro ao fazer login
+   *       403:
+   *         description: Acesso negado
+   */
+
+  // Rota de login para administradores
+
+  router.post("/login-admin", async (req, res) => {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res
+        .status(400)
+        .json({ message: "Username e senha são obrigatórios" });
+    }
+
+    try {
+      const user = await User.findOne({ where: { username } });
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      if (user.role !== "admin") {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Senha incorreta" });
+      }
+
+      const token = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
+      // Emitir um evento com o Socket.IO
+      io.emit("adminLoggedIn", user);
       res.json({ token });
     } catch (error) {
       console.error("Erro ao tentar fazer login:", error); // Log do erro para depuração
@@ -298,5 +373,6 @@ module.exports = (io) => {
       res.status(400).json({ error: error.message });
     }
   });
+
   return router;
 };

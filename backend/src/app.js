@@ -70,11 +70,16 @@ const OrderItem = require("./models/OrderItem");
 
 // Definição de associações entre modelos Sequelize
 OrderGroup.hasMany(OrderItem, { as: "items", foreignKey: "orderGroupId" });
-OrderItem.belongsTo(OrderGroup, { foreignKey: "orderGroupId",as: "orderGroup",});
+OrderItem.belongsTo(OrderGroup, {
+  foreignKey: "orderGroupId",
+  as: "orderGroup",
+});
 OrderGroup.belongsTo(User, { foreignKey: "userId", as: "user" });
-Item.hasMany(OrderItem, { foreignKey: "itemId"});
-OrderItem.belongsTo(Item, { foreignKey: "itemId"});
-OrderGroup.hasMany(OrderItem, { foreignKey: "orderGroupId"});
+Item.hasMany(OrderItem, { foreignKey: "itemId" });
+OrderItem.belongsTo(Item, { foreignKey: "itemId" });
+OrderGroup.hasMany(OrderItem, { foreignKey: "orderGroupId" });
+User.hasMany(OrderGroup, { foreignKey: "userId" });
+OrderGroup.belongsTo(User, { foreignKey: "userId" });
 
 // Sincronização do banco de dados (alter: true para alterar automaticamente o esquema)
 sequelize

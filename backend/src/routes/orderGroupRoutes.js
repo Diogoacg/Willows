@@ -119,10 +119,12 @@ module.exports = (io) => {
 
       // Cria os itens do pedido e associa ao grupo
       for (const item of items) {
+        console.log(item);
         await OrderItem.create({
           nome: item.nome,
           quantidade: item.quantidade,
           orderGroupId: orderGroup.id,
+          itemId: existingItems.find((i) => i.nome === item.nome).id,
         });
       }
 
@@ -280,6 +282,55 @@ module.exports = (io) => {
       res.sendStatus(200);
     } catch (error) {
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  // ordersbyuser route recebe um id de usuário e retorna todos os pedidos feitos por esse usuário
+  /**
+   * @swagger
+   * /api/order-groups/ordersbyuser/{id}:
+   *   get:
+   *     summary: Retorna todos os pedidos feitos por um usuário
+   *     tags: [OrderGroups]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *         description: ID do usuário
+   *     responses:
+   *       200:
+   *         description: Lista de pedidos feitos pelo usuário
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/OrderGroup'
+   *       404:
+   *         description: Usuário não encontrado
+   *       500:
+   *         description: Erro no servidor
+   */
+  router.get("/ordersbyuser/:id", authenticateToken, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const orderGroups = await OrderGroup.findAll({
+        where: { userId: id },
+        include: [{ model: OrderItem, as: "items" }],
+      });
+
+      if (orderGroups.length === 0) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      res.json(orderGroups);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
   });
 

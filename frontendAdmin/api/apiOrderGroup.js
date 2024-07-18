@@ -86,3 +86,27 @@ export const atualizarStatusDoGrupoDePedidos = async (token, id, status) => {
     throw new Error(error.message);
   }
 };
+
+// funçao para os a app cliente, na admin usar a funçao obterGruposDePedidos
+export const obterPedidosPorUtilizador = async (token, userId) => {
+  try {
+    const response = await fetch(
+      `${process.env.REACT_APP_API_URL}/order-groups/ordersbyuser/${userId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message);
+    }
+
+    return await response.json();
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};

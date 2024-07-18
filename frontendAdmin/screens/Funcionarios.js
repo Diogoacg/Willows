@@ -1,4 +1,4 @@
-import React, { useEffect, useState , useRef} from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   FlatList,
   Text,
@@ -109,39 +109,40 @@ const FuncionariosScreen = () => {
   };
 
   const renderLogin = ({ item }) => (
-    <Animated.View style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}>
-    <View style={[styles.itemContainer, { backgroundColor: COLORS.secondary }]}>
-      <Pressable
-        style={styles.button}
-        onPress={() => handleViewDetails(item.id)}
-        onPressIn={() => animateScaleIn(scaleValue)}
-        onPressOut={() => animateScaleOut(scaleValue)}
+    <Animated.View
+      style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}
+    >
+      <View
+        style={[styles.itemContainer, { backgroundColor: COLORS.secondary }]}
       >
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={[styles.cardTitle, { color: COLORS.text }]}>
-              Funcionário: {item.username}
+        <Pressable
+          style={styles.button}
+          onPress={() => handleViewDetails(item.id)}
+          onPressIn={() => animateScaleIn(scaleValue)}
+          onPressOut={() => animateScaleOut(scaleValue)}
+        >
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={[styles.cardTitle, { color: COLORS.text }]}>
+                Funcionário: {item.username}
+              </Text>
+              <Pressable
+                style={styles.deleteButton}
+                onPress={() => handleDeleteUser(item.id)}
+              >
+                <Ionicons
+                  name={"trash-outline"}
+                  size={22}
+                  color={COLORS.accent}
+                />
+              </Pressable>
+            </View>
+            <Text style={[styles.cardDetail, { color: COLORS.text }]}>
+              Email: {item.email}
             </Text>
-            <Pressable
-              style={styles.deleteButton}
-              onPress={() => handleDeleteUser(item.id)}
-            >
-              <Ionicons
-                name={"trash-outline"}
-                size={22}
-                color={COLORS.accent}
-              />
-            </Pressable>
           </View>
-          <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-            Estado: {item.status ? "Em serviço" : "Off"}
-          </Text>
-          <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-            Última Atividade: {item.lastActive}
-          </Text>
-        </View>
-      </Pressable>
-    </View>
+        </Pressable>
+      </View>
     </Animated.View>
   );
 
