@@ -100,3 +100,19 @@ export const obterTotalPedidosPorUsuario = async (token, userId) => {
     throw new Error(error.message);
   }
 };
+
+export const obterOrdersPorItem = async (token) => {
+  try {
+    const response = await fetch(`${REACT_APP_API_URL}/stats/orders-per-item`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching orders per item:", error);
+    throw error;
+  }
+};

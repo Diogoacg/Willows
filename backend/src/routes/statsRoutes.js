@@ -87,6 +87,8 @@ router.get("/profit-per-user", authenticateToken, async (req, res) => {
   }
 });
 
+// obter lucro total por usuario recebendo o user
+
 /**
  * @swagger
  * /api/stats/profit:

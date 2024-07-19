@@ -1,46 +1,67 @@
-import React, {useState} from 'react';
-import { View } from 'react-native';
-import { PieChart } from 'react-native-svg-charts';
-import { Text } from 'react-native-svg';
-
-const data = [
-    { key: 'Categoria 1', value: 400 },
-    { key: 'Categoria 2', value: 300 },
-    { key: 'Categoria 3', value: 200 },
-    { key: 'Categoria 4', value: 100 },
-];
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-// const [categories, setCategories] = useState(null);
-// const [selectedCategory, setSelectedCategory] = useState(null);
+import React, { useState, useEffect } from "react";
+import { View, Text, ActivityIndicator } from "react-native";
+import {
+  obterLucroTotalPorUsuario,
+  obterTotalPedidosDMW,
+  obterOrdersPorItem,
+  obterLucro,
+} from "../api/apiStats";
+import DoughnutChart from "../components/DoughnutChart";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const StatsScreen = () => {
-    return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <PieChart
-                style={{ height: 300, width: 300 }}
-                data={data}
-                innerRadius={60}
-                outerRadius={80}
-                padAngle={0.05}
-                animate={true}
-            >
-                {data.map((item, index) => (
-                    <Text
-                        key={`label-${index}`}
-                        x={item.labelX || 0}
-                        y={item.labelY || 0}
-                        fill="white"
-                        textAnchor="middle"
-                        alignmentBaseline="middle"
-                        fontSize={16}
-                    >
-                        Estatísticas
-                    </Text>
-                ))}
-            </PieChart>
-        </View>
-    );
+  const [profitPerUser, setProfitPerUser] = useState(null);
+  const [totalOrdersDMW, setTotalOrdersDMW] = useState(null);
+  const [ordersPerItem, setOrdersPerItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = await AsyncStorage.getItem("token");
+      try {
+        const profitData = await obterLucro(token);
+        const ordersData = await obterTotalPedidosDMW(token);
+        const itemsData = await obterOrdersPorItem(token);
+
+        console.log("profitData", profitData);
+        console.log("ordersData", ordersData);
+        console.log("itemsData", itemsData);
+
+        setProfitPerUser(profitData);
+        setTotalOrdersDMW(ordersData);
+        setOrdersPerItem(itemsData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+  console.log("ordersPerItem", ordersPerItem);
+  // Prepare data for doughnut chart (first 5 items + others)
+  const doughnutData = ordersPerItem.slice(0, 5);
+  if (ordersPerItem.length > 5) {
+    const others = ordersPerItem
+      .slice(5)
+      .reduce((acc, item) => acc + item.totalOrders, 0);
+    doughnutData.push({ key: "Outros", value: others });
+  }
+
+  return (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>Estatísticas</Text>
+      <DoughnutChart data={doughnutData} />
+      <Text>Lucro diário: {totalOrdersDMW.dailyProfit}</Text>
+      <Text>Lucro semanal: {totalOrdersDMW.weeklyProfit}</Text>
+      <Text>Lucro mensal: {totalOrdersDMW.monthlyProfit}</Text>
+    </View>
+  );
 };
 
 export default StatsScreen;
