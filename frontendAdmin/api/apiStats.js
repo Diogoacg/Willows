@@ -100,3 +100,30 @@ export const obterTotalPedidosPorUsuario = async (token, userId) => {
     throw new Error(error.message);
   }
 };
+
+export const obterTotalItensPedidos = async (token, itemId) => {
+  try {
+    const response = await fetch(
+      `${REACT_APP_API_URL}/stats/total-items-per-order`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message);
+    }
+
+    const data = await response.json();
+
+    const totalItensPedidos = data.find((item) => OrderItem.itemId === itemId);
+
+    return totalItensPedidos;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};

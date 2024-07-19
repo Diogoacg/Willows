@@ -4,18 +4,29 @@ import { PieChart } from 'react-native-svg-charts';
 import { Text } from 'react-native-svg';
 
 const data = [
-    { key: 'Categoria 1', value: 400 },
-    { key: 'Categoria 2', value: 300 },
-    { key: 'Categoria 3', value: 200 },
+    { key: 'Categoria 1', value: 100 },
+    { key: 'Categoria 2', value: 100 },
+    { key: 'Categoria 3', value: 100 },
     { key: 'Categoria 4', value: 100 },
 ];
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
-// const [categories, setCategories] = useState(null);
-// const [selectedCategory, setSelectedCategory] = useState(null);
 
 const StatsScreen = () => {
-    return (
+    // const[data, setData] = useState([]);
+
+    // useEffect(() => {
+    //  //   usar socket.io para atualizar os dados em tempo real
+
+    //     obterTotalItensPedidos(token, itemId)
+    //         .then(totalItensPedidos => {
+    //             setData([{ key: 1, value: totalItensPedidos.totalItens }]);
+    //         })
+    //         .catch(error => {
+    //             console.error(error.message);
+    //         });
+    // }, []);
+     return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <PieChart
                 style={{ height: 300, width: 300 }}
