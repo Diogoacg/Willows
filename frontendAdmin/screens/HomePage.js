@@ -81,7 +81,7 @@ const HomePage = () => {
         </Pressable>
       </View>
       </Animated.View>
-      <Animated.View style={[styles.buttonAnimated3, { transform: [{ scale: scaleValue2 }] }]}>
+      <Animated.View style={[styles.buttonAnimated3, { transform: [{ scale: scaleValue3 }] }]}>
       <View style={styles.button3Container}>
         <Pressable onPressIn={() => animateScaleIn(scaleValue3)}  onPressOut={() => animateScaleOut(scaleValue3)}
           style={[

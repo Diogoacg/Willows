@@ -29,8 +29,8 @@ const screenHeight = Dimensions.get("window").height;
 
 const FuncionariosScreen = () => {
   const [logins, setLogins] = useState([]);
+  const [scaleValues, setScaleValues] = useState({});
   const navigation = useNavigation();
-  const scaleValue = useRef(new Animated.Value(1)).current;
 
   const { isDarkMode } = useTheme();
 
@@ -67,6 +67,11 @@ const FuncionariosScreen = () => {
     try {
       const loginsData = await obterTodosOsUtilizadores(token);
       setLogins(loginsData);
+      const initialScaleValues = {};
+      loginsData.forEach((login) => {
+        initialScaleValues[login.id] = new Animated.Value(1);
+      });
+      setScaleValues(initialScaleValues);
     } catch (error) {
       console.error("Erro ao buscar logins:", error.message);
     }
@@ -110,7 +115,10 @@ const FuncionariosScreen = () => {
 
   const renderLogin = ({ item }) => (
     <Animated.View
-      style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}
+    style={[
+      styles.buttonAnimated,
+      { transform: [{ scale: scaleValues[item.id] || new Animated.Value(1) }] },
+    ]}
     >
       <View
         style={[styles.itemContainer, { backgroundColor: COLORS.secondary }]}
@@ -118,8 +126,8 @@ const FuncionariosScreen = () => {
         <Pressable
           style={styles.button}
           onPress={() => handleViewDetails(item.id)}
-          onPressIn={() => animateScaleIn(scaleValue)}
-          onPressOut={() => animateScaleOut(scaleValue)}
+          onPressIn={() => animateScaleIn(scaleValues[item.id])}
+          onPressOut={() => animateScaleOut(scaleValues[item.id])}
         >
           <View style={styles.card}>
             <View style={styles.cardHeader}>
