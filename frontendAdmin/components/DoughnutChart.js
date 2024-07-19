@@ -1,45 +1,152 @@
-import React from "react";
+import React, { useState } from "react";
+import { View, Text as RNText, Dimensions, StyleSheet } from "react-native";
 import { PieChart } from "react-native-svg-charts";
-import { Text } from "react-native-svg";
+import { G, Text } from "react-native-svg";
 import { colors } from "../config/theme";
 import { useTheme } from "../ThemeContext";
-
 const DoughnutChart = ({ data }) => {
-  const { isDarkMode, toggleTheme } = useTheme();
+  const COLORS = [
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28",
+    "#FF8042",
+    "#AF19FF",
+    "#FF1919",
+  ];
 
-  const COLORS = isDarkMode ? colors.dark : colors.light;
-  const pieData = data
-    .filter((item) => item.value > 0)
+  const { isDarkMode } = useTheme();
+  const THEME = isDarkMode ? colors.dark : colors.light;
+
+  const [selectedSlice, setSelectedSlice] = useState({ label: "", value: 0 });
+  const [labelWidth, setLabelWidth] = useState(0);
+  const deviceWidth = Dimensions.get("window").width;
+
+  // Sort the data by totalOrders in descending order
+  const sortedData = data
+    .filter((item) => item.totalOrders !== undefined)
+    .sort((a, b) => b.totalOrders - a.totalOrders);
+
+  // Get the top 5 items and the rest as "Others"
+  const topItems = sortedData.slice(0, 6);
+  const totalOrders = topItems.reduce((sum, item) => sum + item.totalOrders, 0);
+
+  const pieData = topItems
+    .filter((item) => item.totalOrders > 0)
     .map((item, index) => ({
-      key: item.key,
-      value: item.value,
+      key: item.itemId,
+      value: item.totalOrders,
+      percentage: ((item.totalOrders / totalOrders) * 100).toFixed(2),
       svg: { fill: COLORS[index % COLORS.length] },
+      arc: {
+        outerRadius: 70 + (item.itemId === selectedSlice.label ? 10 : 0) + "%",
+        padAngle: item.itemId === selectedSlice.label ? 0.1 : 0,
+      },
+      onPress: () =>
+        setSelectedSlice({ label: item.itemId, value: item.totalOrders }),
     }));
 
   return (
-    <PieChart
-      style={{ height: 300, width: 300 }}
-      data={pieData}
-      innerRadius={60}
-      outerRadius={80}
-      padAngle={0.05}
-      animate={true}
-    >
-      {pieData.map((item, index) => (
-        <Text
-          key={`label-${index}`}
-          x={item.labelX || 0}
-          y={item.labelY || 0}
-          fill="white"
-          textAnchor="middle"
-          alignmentBaseline="middle"
-          fontSize={16}
-        >
-          {item.value}
-        </Text>
-      ))}
-    </PieChart>
+    <View style={[styles.container, { backgroundColor: THEME.secondary }]}>
+      <PieChart
+        style={styles.chart}
+        outerRadius={"80%"}
+        innerRadius={"45%"}
+        data={pieData}
+      >
+        {selectedSlice.label !== "" && (
+          <G key="label" x={0} y={0}>
+            <Text
+              x={0}
+              y={-10}
+              fill={THEME.text}
+              textAnchor="middle"
+              alignmentBaseline="middle"
+              fontSize={16}
+              stroke={THEME.text}
+              strokeWidth={0.2}
+              onLayout={({
+                nativeEvent: {
+                  layout: { width },
+                },
+              }) => setLabelWidth(width)}
+            >
+              {topItems.find((item) => item.itemId === selectedSlice.label)
+                ?.itemName || ""}
+            </Text>
+            <Text
+              x={0}
+              y={10}
+              fill={THEME.text}
+              textAnchor="middle"
+              alignmentBaseline="middle"
+              fontSize={16}
+              stroke={THEME.text}
+              strokeWidth={0.2}
+            >
+              {`${selectedSlice.value} (${(
+                (selectedSlice.value / totalOrders) *
+                100
+              ).toFixed(2)}%)`}
+            </Text>
+          </G>
+        )}
+      </PieChart>
+      <View style={styles.labelsContainer}>
+        {pieData.map((item, index) => (
+          <View key={`legend-${index}`} style={styles.label}>
+            <View
+              style={[
+                styles.labelColor,
+                { backgroundColor: COLORS[index % COLORS.length] },
+              ]}
+            />
+            <RNText
+              style={[styles.labelText, { color: THEME.text }]}
+              numberOfLines={1}
+            >
+              {item.key === "others"
+                ? "Outros"
+                : data.find((d) => d.itemId === item.key).itemName}
+            </RNText>
+          </View>
+        ))}
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: "center",
+    padding: 20,
+    borderRadius: 10,
+  },
+  chart: {
+    height: 300,
+    width: 300,
+    marginBottom: -50,
+  },
+  labelsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  label: {
+    flexDirection: "row",
+    alignItems: "center",
+    margin: 5,
+  },
+  labelColor: {
+    width: 12,
+    height: 12,
+    marginRight: 5,
+    borderRadius: 6,
+  },
+  labelText: {
+    fontSize: 8,
+  },
+});
 
 export default DoughnutChart;

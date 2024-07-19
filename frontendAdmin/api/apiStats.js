@@ -43,6 +43,28 @@ export const obterTotalPedidosDMW = async (token) => {
   }
 };
 
+export const obterRankingUtilizadores = async (token) => {
+  try {
+    const response = await fetch(`${REACT_APP_API_URL}/stats/profit-per-user`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message);
+    }
+
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 export const obterLucroTotalPorUsuario = async (token, userId) => {
   try {
     const response = await fetch(`${REACT_APP_API_URL}/stats/profit-per-user`, {
