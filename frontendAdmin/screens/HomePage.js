@@ -7,7 +7,7 @@ import {
   Dimensions,
   Animated,
 } from "react-native";
-import React, {useRef} from "react";
+import React, { useRef } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
@@ -17,11 +17,12 @@ const screenHeight = Dimensions.get("window").height;
 
 const HomePage = () => {
   const navigation = useNavigation();
-  const { isDarkMode } = useTheme(); // Obtém o estado de tema atual
-  const COLORS = isDarkMode ? colors.dark : colors.light; // Define as cores com base no tema
+  const { isDarkMode } = useTheme();
+  const COLORS = isDarkMode ? colors.dark : colors.light;
   const scaleValue1 = useRef(new Animated.Value(1)).current;
   const scaleValue2 = useRef(new Animated.Value(1)).current;
   const scaleValue3 = useRef(new Animated.Value(1)).current;
+  const scaleValue4 = useRef(new Animated.Value(1)).current;
 
   const animateScaleIn = (scaleValue) => {
     Animated.timing(scaleValue, {
@@ -47,57 +48,114 @@ const HomePage = () => {
         style={styles.bgimage}
       />
       <View style={styles.containerButtons}>
-      <Animated.View style={[styles.buttonAnimated1, { transform: [{ scale: scaleValue1 }] }]}>
-      <View style={styles.button1Container}>
-        <Pressable onPressIn={() => animateScaleIn(scaleValue1)}  onPressOut={() => animateScaleOut(scaleValue1)}
+        <Animated.View
           style={[
-            styles.gerirPedidosButton,
-            { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+            styles.buttonAnimated1,
+            { transform: [{ scale: scaleValue1 }] },
           ]}
-          onPress={() => navigation.navigate("Gestao")}
         >
-          <Text
-            style={[styles.gerirPedidosButtonText, { color: COLORS.primary }]}
-          >
-            Funcionários
-          </Text>
-        </Pressable>
-      </View>
-      </Animated.View>
-      <Animated.View style={[styles.buttonAnimated2, { transform: [{ scale: scaleValue2 }] }]}>
-      <View style={styles.button2Container}>
-        <Pressable onPressIn={() => animateScaleIn(scaleValue2)}  onPressOut={() => animateScaleOut(scaleValue2)}
+          <View style={styles.button1Container}>
+            <Pressable
+              onPressIn={() => animateScaleIn(scaleValue1)}
+              onPressOut={() => animateScaleOut(scaleValue1)}
+              style={[
+                styles.gerirPedidosButton,
+                { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+              ]}
+              onPress={() => navigation.navigate("Gestao")}
+            >
+              <Text
+                style={[
+                  styles.gerirPedidosButtonText,
+                  { color: COLORS.primary },
+                ]}
+              >
+                Funcionários
+              </Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+        <Animated.View
           style={[
-            styles.gerirPedidosButton,
-            { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+            styles.buttonAnimated2,
+            { transform: [{ scale: scaleValue2 }] },
           ]}
-          onPress={() => navigation.navigate("Main")}
         >
-          <Text
-            style={[styles.fazerPedidosButtonText, { color: COLORS.primary }]}
-          >
-            Fazer Pedidos
-          </Text>
-        </Pressable>
-      </View>
-      </Animated.View>
-      <Animated.View style={[styles.buttonAnimated3, { transform: [{ scale: scaleValue3 }] }]}>
-      <View style={styles.button3Container}>
-        <Pressable onPressIn={() => animateScaleIn(scaleValue3)}  onPressOut={() => animateScaleOut(scaleValue3)}
+          <View style={styles.button2Container}>
+            <Pressable
+              onPressIn={() => animateScaleIn(scaleValue2)}
+              onPressOut={() => animateScaleOut(scaleValue2)}
+              style={[
+                styles.gerirPedidosButton,
+                { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+              ]}
+              onPress={() => navigation.navigate("Main")}
+            >
+              <Text
+                style={[
+                  styles.fazerPedidosButtonText,
+                  { color: COLORS.primary },
+                ]}
+              >
+                Fazer Pedidos
+              </Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+        <Animated.View
           style={[
-            styles.gerirPedidosButton,
-            { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+            styles.buttonAnimated3,
+            { transform: [{ scale: scaleValue3 }] },
           ]}
-          onPress={() => navigation.navigate("Estatisticas")}
         >
-          <Text
-            style={[styles.fazerPedidosButtonText, { color: COLORS.primary }]}
-          >
-            Estatisticas
-          </Text>
-        </Pressable>
-      </View>
-      </Animated.View>
+          <View style={styles.button3Container}>
+            <Pressable
+              onPressIn={() => animateScaleIn(scaleValue3)}
+              onPressOut={() => animateScaleOut(scaleValue3)}
+              style={[
+                styles.gerirPedidosButton,
+                { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+              ]}
+              onPress={() => navigation.navigate("Estatisticas")}
+            >
+              <Text
+                style={[
+                  styles.fazerPedidosButtonText,
+                  { color: COLORS.primary },
+                ]}
+              >
+                Estatísticas
+              </Text>
+            </Pressable>
+          </View>
+        </Animated.View>
+        <Animated.View
+          style={[
+            styles.buttonAnimated4,
+            { transform: [{ scale: scaleValue4 }] },
+          ]}
+        >
+          <View style={styles.button4Container}>
+            <Pressable
+              onPressIn={() => animateScaleIn(scaleValue4)}
+              onPressOut={() => animateScaleOut(scaleValue4)}
+              style={[
+                styles.gerirPedidosButton,
+                { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+              ]}
+              onPress={() => navigation.navigate("Inventario")}
+            >
+              <Text
+                style={[
+                  styles.fazerPedidosButtonText,
+                  { color: COLORS.primary },
+                ]}
+              >
+                Inventário
+              </Text>
+            </Pressable>
+          </View>
+        </Animated.View>
       </View>
     </View>
   );
@@ -151,6 +209,14 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     overflow: "hidden",
   },
+  button4Container: {
+    marginTop: screenHeight * 0.02,
+    borderWidth: 1,
+    width: "50%",
+    height: screenHeight * 0.08,
+    borderRadius: 25,
+    overflow: "hidden",
+  },
   gerirPedidosButton: {
     justifyContent: "center",
     alignItems: "center",
@@ -176,6 +242,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonAnimated3: {
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonAnimated4: {
     width: "100%",
     justifyContent: "center",
     alignItems: "center",

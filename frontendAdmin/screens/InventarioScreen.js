@@ -7,10 +7,14 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
+  TextInput,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { obterTodosOsUtilizadores, deleteUser } from "../api/apiAuth";
+import {
+  obterItensDoInventario,
+  deletarItemDoInventario,
+} from "../api/apiInventory";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   widthPercentageToDP as wp,
@@ -23,32 +27,34 @@ import { colors } from "../config/theme";
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
 
-const FuncionariosScreen = () => {
-  const [logins, setLogins] = useState([]);
-  const [scaleValues, setScaleValues] = useState({});
+const InventarioScreen = () => {
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [searchText, setSearchText] = useState("");
   const navigation = useNavigation();
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   useEffect(() => {
-    fetchLogins();
+    fetchItems();
 
     // Set up Socket.IO client
     const socket = io("https://willows-production.up.railway.app");
     //const socket = io("http://localhost:5000");
 
     // Listen for relevant events
-    socket.on("userCreated", () => {
-      fetchLogins();
+    socket.on("itemUpdated", () => {
+      fetchItems();
     });
 
-    socket.on("userDeleted", () => {
-      fetchLogins();
+    socket.on("itemDeleted", () => {
+      fetchItems();
     });
 
-    socket.on("userRoleUpdated", () => {
-      fetchLogins();
+    socket.on("itemCreated", () => {
+      fetchItems();
     });
 
     // Clean up the socket connection when the component unmounts
@@ -57,43 +63,43 @@ const FuncionariosScreen = () => {
     };
   }, []);
 
-  const fetchLogins = async () => {
+  useEffect(() => {
+    handleSearch(searchText); // Filtra os itens conforme o texto da pesquisa
+  }, [searchText, items]);
+
+  const fetchItems = async () => {
     const token = await AsyncStorage.getItem("token");
     try {
-      const loginsData = await obterTodosOsUtilizadores(token);
-      setLogins(loginsData);
-      const initialScaleValues = {};
-      loginsData.forEach((login) => {
-        initialScaleValues[login.id] = new Animated.Value(1);
-      });
-      setScaleValues(initialScaleValues);
+      const itemsData = await obterItensDoInventario(token);
+      setItems(itemsData);
+      setFilteredItems(itemsData);
     } catch (error) {
-      console.error("Erro ao buscar logins:", error.message);
+      console.error("Erro ao buscar itens:", error.message);
     }
   };
 
-  const handleDeleteUser = async (userId) => {
+  const handleDeleteItem = async (itemId) => {
     const token = await AsyncStorage.getItem("token");
     try {
-      await deleteUser(token, userId);
-      fetchLogins();
-      alert("Utilizador eliminado com sucesso!");
+      await deletarItemDoInventario(token, itemId);
+      fetchItems();
+      alert("Item eliminado com sucesso!");
     } catch (error) {
-      console.error("Erro ao eliminar utilizador:", error.message);
-      alert("Falha ao eliminar utilizador.");
+      console.error("Erro ao eliminar item:", error.message);
+      alert("Falha ao eliminar item.");
     }
   };
 
-  const handleViewDetails = (userId) => {
-    navigation.navigate("DetalhesFuncionario", { userId });
+  const handleViewDetails = (itemId) => {
+    navigation.navigate("DetalhesItem", { itemId });
   };
 
-  const handleEditUser = (user) => {
-    navigation.navigate("EditaFuncionario", { user });
+  const handleEditItem = (item) => {
+    navigation.navigate("EditaItem", { item });
   };
 
-  const handleCreateUser = () => {
-    navigation.navigate("CriarFuncionario");
+  const handleCreateItem = () => {
+    navigation.navigate("CriarItem");
   };
 
   const animateScaleIn = (scaleValue) => {
@@ -112,14 +118,29 @@ const FuncionariosScreen = () => {
     }).start();
   };
 
-  const renderLogin = ({ item }) => (
+  const handleSearch = (text) => {
+    setSearchText(text);
+    const normalizedText = text
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+    if (text) {
+      const filtered = items.filter((item) =>
+        item.nome
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .includes(normalizedText)
+      );
+      setFilteredItems(filtered);
+    } else {
+      setFilteredItems(items);
+    }
+  };
+
+  const renderItem = ({ item }) => (
     <Animated.View
-      style={[
-        styles.buttonAnimated,
-        {
-          transform: [{ scale: scaleValues[item.id] || new Animated.Value(1) }],
-        },
-      ]}
+      style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}
     >
       <View
         style={[styles.itemContainer, { backgroundColor: COLORS.secondary }]}
@@ -127,18 +148,18 @@ const FuncionariosScreen = () => {
         <Pressable
           style={styles.button}
           onPress={() => handleViewDetails(item.id)}
-          onPressIn={() => animateScaleIn(scaleValues[item.id])}
-          onPressOut={() => animateScaleOut(scaleValues[item.id])}
+          onPressIn={() => animateScaleIn(scaleValue)}
+          onPressOut={() => animateScaleOut(scaleValue)}
         >
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={[styles.cardTitle, { color: COLORS.text }]}>
-                Funcionário: {item.username}
+                Item: {item.nome}
               </Text>
-              <View style={styles.cardActions}>
+              <View style={{ flexDirection: "row" }}>
                 <Pressable
                   style={styles.editButton}
-                  onPress={() => handleEditUser(item)}
+                  onPress={() => handleEditItem(item)}
                 >
                   <Ionicons
                     name={"pencil-outline"}
@@ -148,7 +169,7 @@ const FuncionariosScreen = () => {
                 </Pressable>
                 <Pressable
                   style={styles.deleteButton}
-                  onPress={() => handleDeleteUser(item.id)}
+                  onPress={() => handleDeleteItem(item.id)}
                 >
                   <Ionicons
                     name={"trash-outline"}
@@ -159,7 +180,7 @@ const FuncionariosScreen = () => {
               </View>
             </View>
             <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-              Email: {item.email}
+              Preço: {item.preco}
             </Text>
           </View>
         </Pressable>
@@ -180,8 +201,18 @@ const FuncionariosScreen = () => {
             color={COLORS.accent}
           />
         </Pressable>
+        <TextInput
+          style={[
+            styles.searchInput,
+            { backgroundColor: COLORS.secondary, color: COLORS.text },
+          ]}
+          placeholder="Pesquisar item"
+          placeholderTextColor={COLORS.text}
+          onChangeText={handleSearch}
+          value={searchText}
+        />
         <View style={styles.containerAdd}>
-          <Pressable style={styles.createButton} onPress={handleCreateUser}>
+          <Pressable style={styles.createButton} onPress={handleCreateItem}>
             <Ionicons
               name={"add-circle-outline"}
               size={24}
@@ -192,8 +223,8 @@ const FuncionariosScreen = () => {
       </View>
       <View style={styles.listSpacing} />
       <FlatList
-        data={logins}
-        renderItem={renderLogin}
+        data={filteredItems}
+        renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
       />
     </View>
@@ -203,7 +234,7 @@ const FuncionariosScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: wp("12%"),
+    paddingTop: wp("15%"),
     paddingHorizontal: 10,
   },
   header: {
@@ -214,6 +245,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     marginTop: hp("-6%"),
     paddingBottom: hp("0%"),
+  },
+  searchInput: {
+    flex: 1,
+    height: hp("5%"),
+    marginLeft: wp("2%"),
+    borderRadius: 25,
+    paddingHorizontal: wp("2%"),
   },
   listSpacing: {
     height: 20, // Espaço entre o header e o primeiro card
@@ -282,9 +320,6 @@ const styles = StyleSheet.create({
   buttonAnimated: {
     width: "100%",
   },
-  cardActions: {
-    flexDirection: "row",
-  },
 });
 
-export default FuncionariosScreen;
+export default InventarioScreen;

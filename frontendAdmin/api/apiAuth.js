@@ -73,10 +73,15 @@ export const registarNovoUtilizador = async (
 };
 
 // Função para atualizar informações do utilizador
-export const atualizarInformacoesDoUsuario = async (token, userData) => {
+export const atualizarInformacoesDoUsuario = async (
+  token,
+  userId,
+  userData
+) => {
+  console.log(userData);
   try {
     const response = await fetch(
-      `${REACT_APP_AUTH_URL}/update-role/${userData.id}`,
+      `${REACT_APP_AUTH_URL}/update-role/${userId}`,
       {
         method: "PATCH",
         headers: {
@@ -87,9 +92,12 @@ export const atualizarInformacoesDoUsuario = async (token, userData) => {
       }
     );
 
+    // Verifique o status da resposta e o conteúdo
+    const responseText = await response.text();
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message);
+      const errorData = JSON.parse(responseText);
+      throw new Error(errorData.message || "Erro desconhecido");
     }
 
     return { message: "Informações do usuário atualizadas com sucesso" };

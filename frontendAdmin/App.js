@@ -25,6 +25,10 @@ import GerirPedidos from "./screens/GerirPedidos";
 import * as NavigationBar from "expo-navigation-bar";
 import { colors } from "./config/theme";
 import StatsScreen from "./screens/StatsScreen";
+import CriarItemScreen from "./screens/CriarItemScreen";
+import InventarioScreen from "./screens/InventarioScreen";
+import EditaItemScreen from "./screens/EditaItemScreen";
+import EditaFuncionarioScreen from "./screens/EditaFuncionariosScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -129,9 +133,13 @@ const AppContent = () => {
               name="CriarFuncionario"
               component={CriarFuncionarioScreen}
             />
+            <Stack.Screen name="Estatisticas" component={StatsScreen} />
+            <Stack.Screen name="CriarItem" component={CriarItemScreen} />
+            <Stack.Screen name="Inventario" component={InventarioScreen} />
+            <Stack.Screen name="EditaItem" component={EditaItemScreen} />
             <Stack.Screen
-              name="Estatisticas"
-              component={StatsScreen}
+              name="EditaFuncionario"
+              component={EditaFuncionarioScreen}
             />
           </Stack.Navigator>
         )}

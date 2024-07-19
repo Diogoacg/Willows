@@ -1,7 +1,11 @@
 import { REACT_APP_API_URL } from "@env";
 
 // Função para criar um novo item no inventário
-export const criarNovoItem = async (token, nome, preco) => {
+export const criarNovoItem = async (token, nome, preco, imageUri) => {
+  console.log(REACT_APP_API_URL);
+  console.log(token);
+  console.log(nome);
+  console.log(preco);
   try {
     const response = await fetch(`${REACT_APP_API_URL}/inventory`, {
       method: "POST",
@@ -9,7 +13,7 @@ export const criarNovoItem = async (token, nome, preco) => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ nome, preco }),
+      body: JSON.stringify({ nome, preco, imageUri }),
     });
 
     if (!response.ok) {
