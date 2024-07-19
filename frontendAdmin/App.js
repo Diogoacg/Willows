@@ -24,6 +24,7 @@ import CriarFuncionarioScreen from "./screens/CriarFuncionarioScreen";
 import GerirPedidos from "./screens/GerirPedidos";
 import * as NavigationBar from "expo-navigation-bar";
 import { colors } from "./config/theme";
+import StatsScreen from "./screens/StatsScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -127,6 +128,10 @@ const AppContent = () => {
             <Stack.Screen
               name="CriarFuncionario"
               component={CriarFuncionarioScreen}
+            />
+            <Stack.Screen
+              name="Estatisticas"
+              component={StatsScreen}
             />
           </Stack.Navigator>
         )}

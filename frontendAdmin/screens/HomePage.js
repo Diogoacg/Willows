@@ -21,6 +21,7 @@ const HomePage = () => {
   const COLORS = isDarkMode ? colors.dark : colors.light; // Define as cores com base no tema
   const scaleValue1 = useRef(new Animated.Value(1)).current;
   const scaleValue2 = useRef(new Animated.Value(1)).current;
+  const scaleValue3 = useRef(new Animated.Value(1)).current;
 
   const animateScaleIn = (scaleValue) => {
     Animated.timing(scaleValue, {
@@ -45,6 +46,7 @@ const HomePage = () => {
         source={require("../assets/imagemfundo.jpg")}
         style={styles.bgimage}
       />
+      <View style={styles.containerButtons}>
       <Animated.View style={[styles.buttonAnimated1, { transform: [{ scale: scaleValue1 }] }]}>
       <View style={styles.button1Container}>
         <Pressable onPressIn={() => animateScaleIn(scaleValue1)}  onPressOut={() => animateScaleOut(scaleValue1)}
@@ -79,6 +81,24 @@ const HomePage = () => {
         </Pressable>
       </View>
       </Animated.View>
+      <Animated.View style={[styles.buttonAnimated3, { transform: [{ scale: scaleValue2 }] }]}>
+      <View style={styles.button3Container}>
+        <Pressable onPressIn={() => animateScaleIn(scaleValue3)}  onPressOut={() => animateScaleOut(scaleValue3)}
+          style={[
+            styles.gerirPedidosButton,
+            { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+          ]}
+          onPress={() => navigation.navigate("Estatisticas")}
+        >
+          <Text
+            style={[styles.fazerPedidosButtonText, { color: COLORS.primary }]}
+          >
+            Estatisticas
+          </Text>
+        </Pressable>
+      </View>
+      </Animated.View>
+      </View>
     </View>
   );
 };
@@ -93,6 +113,13 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.35,
     marginVertical: screenHeight * 0.05,
     resizeMode: "contain",
+  },
+  containerButtons: {
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    top: screenHeight * 0.05 - 82,
   },
   bgimage: {
     height: screenHeight * 0.55,
@@ -109,6 +136,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   button2Container: {
+    marginTop: screenHeight * 0.02,
+    borderWidth: 1,
+    width: "50%",
+    height: screenHeight * 0.08,
+    borderRadius: 25,
+    overflow: "hidden",
+  },
+  button3Container: {
     marginTop: screenHeight * 0.02,
     borderWidth: 1,
     width: "50%",
@@ -136,6 +171,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonAnimated2: {
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonAnimated3: {
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
