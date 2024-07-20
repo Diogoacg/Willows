@@ -32,7 +32,7 @@ const InventarioScreen = () => {
   const [filteredItems, setFilteredItems] = useState([]);
   const [searchText, setSearchText] = useState("");
   const navigation = useNavigation();
-  const scaleValue = useRef(new Animated.Value(1)).current;
+  const [scaleValues, setScaleValues] = useState({});
 
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -73,6 +73,11 @@ const InventarioScreen = () => {
       const itemsData = await obterItensDoInventario(token);
       setItems(itemsData);
       setFilteredItems(itemsData);
+      const initialScaleValues = {};
+      itemsData.forEach((item) => {
+        initialScaleValues[item.id] = new Animated.Value(1);
+      });
+      setScaleValues(initialScaleValues);
     } catch (error) {
       console.error("Erro ao buscar itens:", error.message);
     }
@@ -140,7 +145,7 @@ const InventarioScreen = () => {
 
   const renderItem = ({ item }) => (
     <Animated.View
-      style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}
+      style={[styles.buttonAnimated, { transform: [{ scale: scaleValues[item.id] || new Animated.Value(1) }], }]}
     >
       <View
         style={[styles.itemContainer, { backgroundColor: COLORS.secondary }]}
@@ -148,8 +153,8 @@ const InventarioScreen = () => {
         <Pressable
           style={styles.button}
           onPress={() => handleViewDetails(item.id)}
-          onPressIn={() => animateScaleIn(scaleValue)}
-          onPressOut={() => animateScaleOut(scaleValue)}
+          onPressIn={() => animateScaleIn(scaleValues[item.id])}
+          onPressOut={() => animateScaleOut(scaleValues[item.id])}
         >
           <View style={styles.card}>
             <View style={styles.cardHeader}>
