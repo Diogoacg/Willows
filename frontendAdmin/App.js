@@ -1,6 +1,7 @@
 // App.js
-
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect} from "react";
+import 'react-native-gesture-handler';
+import { createDrawerNavigator } from "@react-navigation/drawer";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { Platform } from "react-native";
 import { io } from "socket.io-client";
@@ -32,9 +33,22 @@ import EditaFuncionarioScreen from "./screens/EditaFuncionariosScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-// const Drawer = createDrawerNavigator();
+const Drawer = createDrawerNavigator();
 
 const SOCKET_URL = "https://willows-production.up.railway.app";
+
+const CustomHeader = ({ title }) => {
+  const navigation = useNavigation();
+
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10, backgroundColor: '#FFF' }}>
+      <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
+        <Ionicons name="menu-outline" size={24} color="#000" />
+      </TouchableOpacity>
+      <Text style={{ marginLeft: 20, fontSize: 18 }}>{title}</Text>
+    </View>
+  );
+};
 
 const TabIcon = ({ route, focused, color }) => {
   const iconName =
@@ -86,35 +100,16 @@ const TabPrincipal = () => {
   );
 };
 
-const DrawerContent = (props) => {
-  const { isDarkMode } = useTheme();
-  const COLORS = isDarkMode ? colors.dark : colors.light;
-
+const MenuContent = () => {
   return (
-    <DrawerContentScrollView {...props}>
-      <DrawerItemList {...props} />
-      <DrawerItem
-        label="Logout"
-        onPress={() => {
-          // Handle logout
-        }}
-        labelStyle={{ color: COLORS.text }}
-      />
-    </DrawerContentScrollView>
-  );
-};
-
-const DrawerNavigator = () => {
-  return (
-    <Drawer.Navigator drawerContent={(props) => <DrawerContent {...props} />}>
-      <Drawer.Screen name="Home" component={HomePage} />
-      <Drawer.Screen name="Main" component={TabPrincipal} />
-      <Drawer.Screen name="Gestao" component={FuncionariosScreen} />
-      <Drawer.Screen name="Estatisticas" component={StatsScreen} />
-      <Drawer.Screen name="Inventario" component={InventarioScreen} />
-    </Drawer.Navigator>
-  );
-};
+      <Drawer.Navigator>
+        <Drawer.Screen name="Pedidos" component={TabPrincipal} />
+        <Drawer.Screen name="Funcionarios" component={FuncionariosScreen}/>
+        <Drawer.Screen name="Inventario" component={InventarioScreen}/>
+        <Drawer.Screen name="Estatisticas" component={StatsScreen}/>
+      </Drawer.Navigator>
+  )
+}
 
 const AppContent = () => {
   const [userToken, setUserToken] = useState(null);
@@ -152,26 +147,15 @@ const AppContent = () => {
           </Stack.Navigator>
         ) : (
           <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Menu" component={MenuContent} />
             <Stack.Screen name="Home" component={HomePage} />
-            <Stack.Screen name="Main" component={TabPrincipal} />
             <Stack.Screen name="GerirPedidos" component={GerirPedidos} />
             <Stack.Screen name="Gestao" component={FuncionariosScreen} />
-            <Stack.Screen
-              name="DetalhesFuncionario"
-              component={DetalhesFuncionarioScreen}
-            />
-            <Stack.Screen
-              name="CriarFuncionario"
-              component={CriarFuncionarioScreen}
-            />
-            <Stack.Screen name="Estatisticas" component={StatsScreen} />
+            <Stack.Screen name="DetalhesFuncionario" component={DetalhesFuncionarioScreen} />
+            <Stack.Screen name="CriarFuncionario" component={CriarFuncionarioScreen} />
             <Stack.Screen name="CriarItem" component={CriarItemScreen} />
-            <Stack.Screen name="Inventario" component={InventarioScreen} />
             <Stack.Screen name="EditaItem" component={EditaItemScreen} />
-            <Stack.Screen
-              name="EditaFuncionario"
-              component={EditaFuncionarioScreen}
-            />
+            <Stack.Screen name="EditaFuncionario" component={EditaFuncionarioScreen} />
           </Stack.Navigator>
         )}
       </NavigationContainer>
