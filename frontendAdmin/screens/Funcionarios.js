@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
+  TextInput,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -20,12 +21,12 @@ import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
-
 const FuncionariosScreen = () => {
   const [logins, setLogins] = useState([]);
   const [scaleValues, setScaleValues] = useState({});
+  const [searchText, setSearchText] = useState("");
+  const [filteredLogins, setFilteredLogins] = useState([]);
+
   const navigation = useNavigation();
 
   const { isDarkMode } = useTheme();
@@ -57,11 +58,16 @@ const FuncionariosScreen = () => {
     };
   }, []);
 
+  useEffect(() => {
+    handleSearch(searchText); // Filtra os itens conforme o texto da pesquisa
+  }, [searchText, logins]);
+
   const fetchLogins = async () => {
     const token = await AsyncStorage.getItem("token");
     try {
       const loginsData = await obterTodosOsUtilizadores(token);
       setLogins(loginsData);
+      setFilteredLogins(loginsData);
       const initialScaleValues = {};
       loginsData.forEach((login) => {
         initialScaleValues[login.id] = new Animated.Value(1);
@@ -69,6 +75,26 @@ const FuncionariosScreen = () => {
       setScaleValues(initialScaleValues);
     } catch (error) {
       console.error("Erro ao buscar logins:", error.message);
+    }
+  };
+
+  const handleSearch = (text) => {
+    setSearchText(text);
+    const normalizedText = text
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+    if (text) {
+      const filtered = logins.filter((login) =>
+        (login.username + " " + login.email) // Concatenate username and email
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .includes(normalizedText)
+      );
+      setFilteredLogins(filtered);
+    } else {
+      setFilteredLogins(logins); // Show all if search text is empty
     }
   };
 
@@ -122,7 +148,10 @@ const FuncionariosScreen = () => {
       ]}
     >
       <View
-        style={[styles.itemContainer, { backgroundColor: COLORS.secondary }]}
+        style={[
+          styles.itemContainer,
+          { backgroundColor: COLORS.secondary, borderColor: COLORS.neutral },
+        ]}
       >
         <Pressable
           style={styles.button}
@@ -170,29 +199,35 @@ const FuncionariosScreen = () => {
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
       <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
-        <Pressable
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
+        <View
+          style={[
+            styles.searchContainer,
+            {
+              borderColor: COLORS.neutral,
+              backgroundColor: COLORS.secondary,
+            },
+          ]}
         >
           <Ionicons
-            name={"arrow-back-outline"}
+            name="search-outline"
             size={24}
-            color={COLORS.accent}
+            style={[styles.searchIcon, { color: COLORS.text }]}
           />
-        </Pressable>
-        <View style={styles.containerAdd}>
-          <Pressable style={styles.createButton} onPress={handleCreateUser}>
-            <Ionicons
-              name={"add-circle-outline"}
-              size={24}
-              color={COLORS.accent}
-            />
-          </Pressable>
+          <TextInput
+            style={[styles.searchInput, { color: COLORS.text }]}
+            placeholder="Digite aqui para pesquisar"
+            placeholderTextColor={COLORS.text}
+            onChangeText={handleSearch}
+            value={searchText}
+          />
         </View>
+        <Pressable style={styles.createButton} onPress={handleCreateUser}>
+          <Ionicons name="add-circle-outline" size={24} color={COLORS.accent} />
+        </Pressable>
       </View>
-      <View style={styles.listSpacing} />
+
       <FlatList
-        data={logins}
+        data={filteredLogins}
         renderItem={renderLogin}
         keyExtractor={(item) => item.id.toString()}
       />
@@ -203,27 +238,32 @@ const FuncionariosScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: wp("12%"),
-    paddingHorizontal: 10,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("4%"),
     paddingVertical: hp("2%"),
-    borderBottomWidth: 1,
-    marginTop: hp("-6%"),
-    paddingBottom: hp("0%"),
   },
-  listSpacing: {
-    height: 20, // Espaço entre o header e o primeiro card
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: wp("2%"),
+  },
+  searchInput: {
+    flex: 1,
+    height: hp("5%"),
+    marginLeft: wp("1%"),
   },
   itemContainer: {
-    marginBottom: 20,
-    width: "90%",
-    alignSelf: "center",
     borderRadius: 8,
-    padding: 15,
+    borderWidth: 1,
+    padding: 10,
+    marginTop: 10,
+    marginBottom: 10,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -231,7 +271,9 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
-    elevation: 4,
+    elevation: 3,
+    marginLeft: wp("4%"),
+    marginRight: wp("4%"),
   },
   button: {
     width: "100%",
@@ -267,10 +309,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   createButton: {
-    paddingTop: hp("3%"),
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 15,
+    marginLeft: "auto",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: wp("3%"),
   },
   backButton: {
     marginRight: wp("2%"),

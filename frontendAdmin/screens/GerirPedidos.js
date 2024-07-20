@@ -132,8 +132,8 @@ const GerirPedidos = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: screenHeight * 0.1,
-    paddingHorizontal: screenWidth * 0.03,
+    paddingTop: hp("2%"),
+    paddingHorizontal: wp("4%"),
   },
   listContainer: {
     paddingBottom: 20,

@@ -1,14 +1,15 @@
 // App.js
-import React, { useState, useEffect} from "react";
-import 'react-native-gesture-handler';
+import React, { useState, useEffect } from "react";
+import "react-native-gesture-handler";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import { Platform } from "react-native";
+import { Platform, Pressable, StyleSheet, View } from "react-native";
 import { io } from "socket.io-client";
 import {
   NavigationContainer,
   DefaultTheme,
   DarkTheme,
+  useNavigation,
 } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -24,31 +25,18 @@ import DetalhesFuncionarioScreen from "./screens/DetalhesFuncionarioScreen";
 import CriarFuncionarioScreen from "./screens/CriarFuncionarioScreen";
 import GerirPedidos from "./screens/GerirPedidos";
 import * as NavigationBar from "expo-navigation-bar";
-import { colors } from "./config/theme";
 import StatsScreen from "./screens/StatsScreen";
 import CriarItemScreen from "./screens/CriarItemScreen";
 import InventarioScreen from "./screens/InventarioScreen";
 import EditaItemScreen from "./screens/EditaItemScreen";
 import EditaFuncionarioScreen from "./screens/EditaFuncionariosScreen";
+import { colors } from "./config/theme";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
 const SOCKET_URL = "https://willows-production.up.railway.app";
-
-const CustomHeader = ({ title }) => {
-  const navigation = useNavigation();
-
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10, backgroundColor: '#FFF' }}>
-      <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
-        <Ionicons name="menu-outline" size={24} color="#000" />
-      </TouchableOpacity>
-      <Text style={{ marginLeft: 20, fontSize: 18 }}>{title}</Text>
-    </View>
-  );
-};
 
 const TabIcon = ({ route, focused, color }) => {
   const iconName =
@@ -100,17 +88,54 @@ const TabPrincipal = () => {
   );
 };
 
-const MenuContent = () => {
-  return (
-      <Drawer.Navigator>
-        <Drawer.Screen name="Pedidos" component={TabPrincipal} />
-        <Drawer.Screen name="Funcionarios" component={FuncionariosScreen}/>
-        <Drawer.Screen name="Inventario" component={InventarioScreen}/>
-        <Drawer.Screen name="Estatisticas" component={StatsScreen}/>
-      </Drawer.Navigator>
-  )
-}
+const CustomDrawerHeader = () => {
+  const navigation = useNavigation();
+  const { isDarkMode } = useTheme();
+  const theme = isDarkMode ? colors.dark : colors.light;
 
+  return (
+    <View style={[styles.headerContainer, { backgroundColor: theme.primary }]}>
+      <Ionicons
+        name="menu"
+        size={24}
+        color={theme.text}
+        onPress={() => navigation.openDrawer()}
+      />
+    </View>
+  );
+};
+
+const MenuContent = () => {
+  const { isDarkMode } = useTheme();
+  const theme = isDarkMode ? colors.dark : colors.light;
+
+  return (
+    <Drawer.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.primary,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.neutral,
+        },
+        headerTintColor: theme.text,
+        headerTitleStyle: {
+          fontWeight: "bold",
+        },
+        headerLeft: () => <CustomDrawerHeader />,
+        headerRight: () => (
+          <View style={styles.headerRightContainer}>
+            {/* Add more header actions here */}
+          </View>
+        ),
+      }}
+    >
+      <Drawer.Screen name="Pedidos" component={PedidosScreen} />
+      <Drawer.Screen name="Funcionarios" component={FuncionariosScreen} />
+      <Drawer.Screen name="Inventario" component={InventarioScreen} />
+      <Drawer.Screen name="Estatisticas" component={StatsScreen} />
+    </Drawer.Navigator>
+  );
+};
 const AppContent = () => {
   const [userToken, setUserToken] = useState(null);
   const { isDarkMode } = useTheme();
@@ -151,11 +176,20 @@ const AppContent = () => {
             <Stack.Screen name="Home" component={HomePage} />
             <Stack.Screen name="GerirPedidos" component={GerirPedidos} />
             <Stack.Screen name="Gestao" component={FuncionariosScreen} />
-            <Stack.Screen name="DetalhesFuncionario" component={DetalhesFuncionarioScreen} />
-            <Stack.Screen name="CriarFuncionario" component={CriarFuncionarioScreen} />
+            <Stack.Screen
+              name="DetalhesFuncionario"
+              component={DetalhesFuncionarioScreen}
+            />
+            <Stack.Screen
+              name="CriarFuncionario"
+              component={CriarFuncionarioScreen}
+            />
             <Stack.Screen name="CriarItem" component={CriarItemScreen} />
             <Stack.Screen name="EditaItem" component={EditaItemScreen} />
-            <Stack.Screen name="EditaFuncionario" component={EditaFuncionarioScreen} />
+            <Stack.Screen
+              name="EditaFuncionario"
+              component={EditaFuncionarioScreen}
+            />
           </Stack.Navigator>
         )}
       </NavigationContainer>
@@ -172,5 +206,14 @@ const App = () => {
     </ReduxProvider>
   );
 };
+
+const styles = StyleSheet.create({
+  headerContainer: {
+    marginLeft: 10,
+  },
+  headerRightContainer: {
+    marginRight: 10,
+  },
+});
 
 export default App;

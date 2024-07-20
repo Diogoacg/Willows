@@ -17,6 +17,8 @@ module.exports = function (api) {
       ["@babel/plugin-transform-private-methods", { loose: true }],
       ["@babel/plugin-proposal-class-properties", { loose: true }],
       ["@babel/plugin-transform-private-property-in-object", { loose: true }],
+      "@babel/plugin-transform-export-namespace-from", // Adicione esta linha
+      "react-native-reanimated/plugin", // Certifique-se de que esta linha também está presente
     ],
   };
 };

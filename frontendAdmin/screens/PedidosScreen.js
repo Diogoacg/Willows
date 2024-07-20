@@ -272,82 +272,67 @@ const PedidosScreen = () => {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: COLORS.primary }]}
-    >
-      <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
-        <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
-          <Pressable onPress={() => navigation.goBack()}>
-            <Ionicons
-              name="arrow-back-outline"
-              size={24}
-              color={COLORS.accent}
-            />
-          </Pressable>
-          <View
-            style={[
-              styles.searchContainer,
-              {
-                borderColor: COLORS.neutral,
-                backgroundColor: COLORS.secondary,
-              },
-            ]}
-          >
-            <Ionicons
-              name="search-outline"
-              size={24}
-              style={[styles.searchIcon, { color: COLORS.text }]}
-            />
-            <TextInput
-              style={[styles.input, { color: COLORS.text }]}
-              placeholder="Digite aqui para pesquisar"
-              placeholderTextColor={COLORS.text}
-              onChangeText={handleSearch}
-              value={searchText}
-            />
-          </View>
-          <Pressable
-            style={styles.cartButton}
-            onPress={() => setVisibleModal(true)}
-          >
-            <Ionicons name="cart-outline" size={24} color={COLORS.accent} />
-            {cartItems.length > 0 && (
-              <View style={[styles.badge, { backgroundColor: COLORS.accent }]}>
-                <Text style={[styles.badgeText, { color: COLORS.text }]}>
-                  {cartItems.length}
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        </View>
-        <FlatList
-          data={filteredItems}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={numColumns}
-          contentContainerStyle={styles.listContainer}
-        />
-        <Modal
-          visible={visibleModal}
-          transparent={true}
-          onRequestClose={handleBackModal}
+    <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
+      <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
+        <View
+          style={[
+            styles.searchContainer,
+            {
+              borderColor: COLORS.neutral,
+              backgroundColor: COLORS.secondary,
+            },
+          ]}
         >
-          <ActionModal
-            handleClose={handleCloseModal}
-            handleBack={handleBackModal}
-            handleConfirm={handleConfirmOrder}
-            cartItems={cartItems}
+          <Ionicons
+            name="search-outline"
+            size={24}
+            style={[styles.searchIcon, { color: COLORS.text }]}
           />
-        </Modal>
+          <TextInput
+            style={[styles.input, { color: COLORS.text }]}
+            placeholder="Digite aqui para pesquisar"
+            placeholderTextColor={COLORS.text}
+            onChangeText={handleSearch}
+            value={searchText}
+          />
+        </View>
+        <Pressable
+          style={styles.cartButton}
+          onPress={() => setVisibleModal(true)}
+        >
+          <Ionicons name="cart-outline" size={24} color={COLORS.accent} />
+          {cartItems.length > 0 && (
+            <View style={[styles.badge, { backgroundColor: COLORS.accent }]}>
+              <Text style={[styles.badgeText, { color: COLORS.text }]}>
+                {cartItems.length}
+              </Text>
+            </View>
+          )}
+        </Pressable>
       </View>
-    </SafeAreaView>
+      <FlatList
+        data={filteredItems}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={numColumns}
+      />
+      <Modal
+        visible={visibleModal}
+        transparent={true}
+        onRequestClose={handleBackModal}
+      >
+        <ActionModal
+          handleClose={handleCloseModal}
+          handleBack={handleBackModal}
+          handleConfirm={handleConfirmOrder}
+          cartItems={cartItems}
+        />
+      </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
   container: {
     flex: 1,
   },
@@ -356,14 +341,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: wp("4%"),
     paddingVertical: hp("2%"),
-    borderBottomWidth: 1,
-    marginTop: hp("4%"), // Extra space at the top
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
     marginLeft: wp("2%"),
+    borderRadius: 8,
     borderWidth: 1,
     paddingHorizontal: wp("2%"),
   },

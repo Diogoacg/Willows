@@ -24,9 +24,6 @@ import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
-
 const InventarioScreen = () => {
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -145,10 +142,22 @@ const InventarioScreen = () => {
 
   const renderItem = ({ item }) => (
     <Animated.View
-      style={[styles.buttonAnimated, { transform: [{ scale: scaleValues[item.id] || new Animated.Value(1) }], }]}
+      style={[
+        styles.buttonAnimated,
+        {
+          transform: [{ scale: scaleValues[item.id] || new Animated.Value(1) }],
+        },
+      ]}
     >
       <View
-        style={[styles.itemContainer, { backgroundColor: COLORS.secondary }]}
+        style={[
+          styles.itemContainer,
+          {
+            backgroundColor: COLORS.secondary,
+            borderColor: COLORS.neutral,
+            shadowColor: COLORS.neutral,
+          },
+        ]}
       >
         <Pressable
           style={styles.button}
@@ -196,37 +205,32 @@ const InventarioScreen = () => {
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
       <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
-        <Pressable
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
+        <View
+          style={[
+            styles.searchContainer,
+            {
+              borderColor: COLORS.neutral,
+              backgroundColor: COLORS.secondary,
+            },
+          ]}
         >
           <Ionicons
-            name={"arrow-back-outline"}
+            name="search-outline"
             size={24}
-            color={COLORS.accent}
+            style={[styles.searchIcon, { color: COLORS.text }]}
           />
-        </Pressable>
-        <TextInput
-          style={[
-            styles.searchInput,
-            { backgroundColor: COLORS.secondary, color: COLORS.text },
-          ]}
-          placeholder="Pesquisar item"
-          placeholderTextColor={COLORS.text}
-          onChangeText={handleSearch}
-          value={searchText}
-        />
-        <View style={styles.containerAdd}>
-          <Pressable style={styles.createButton} onPress={handleCreateItem}>
-            <Ionicons
-              name={"add-circle-outline"}
-              size={24}
-              color={COLORS.accent}
-            />
-          </Pressable>
+          <TextInput
+            style={[styles.searchInput, { color: COLORS.text }]}
+            placeholder="Digite aqui para pesquisar"
+            placeholderTextColor={COLORS.text}
+            onChangeText={handleSearch}
+            value={searchText}
+          />
         </View>
+        <Pressable style={styles.createButton} onPress={handleCreateItem}>
+          <Ionicons name="add-circle-outline" size={24} color={COLORS.accent} />
+        </Pressable>
       </View>
-      <View style={styles.listSpacing} />
       <FlatList
         data={filteredItems}
         renderItem={renderItem}
@@ -239,34 +243,32 @@ const InventarioScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: wp("15%"),
-    paddingHorizontal: 10,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("4%"),
     paddingVertical: hp("2%"),
-    borderBottomWidth: 1,
-    marginTop: hp("-6%"),
-    paddingBottom: hp("0%"),
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: wp("2%"),
   },
   searchInput: {
     flex: 1,
     height: hp("5%"),
-    marginLeft: wp("2%"),
-    borderRadius: 25,
-    paddingHorizontal: wp("2%"),
-  },
-  listSpacing: {
-    height: 20, // Espaço entre o header e o primeiro card
+    marginLeft: wp("1%"),
   },
   itemContainer: {
-    marginBottom: 20,
-    width: "90%",
-    alignSelf: "center",
     borderRadius: 8,
-    padding: 15,
+    borderWidth: 1,
+    padding: 10,
+    marginTop: 10,
+    marginBottom: 10,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -274,7 +276,9 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
-    elevation: 4,
+    elevation: 3,
+    marginLeft: wp("4%"),
+    marginRight: wp("4%"),
   },
   button: {
     width: "100%",
@@ -310,10 +314,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   createButton: {
-    paddingTop: hp("3%"),
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 15,
+    marginLeft: "auto",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: wp("3%"),
   },
   backButton: {
     marginRight: wp("2%"),

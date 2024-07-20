@@ -107,14 +107,6 @@ const StatsScreen = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.background }]}>
-      <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
-        <Pressable style={styles.button} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back-outline" size={24} color={COLORS.accent} />
-        </Pressable>
-        <Text style={[styles.headerTitle, { color: COLORS.text }]}>
-          Estatísticas
-        </Text>
-      </View>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <DoughnutChart data={doughnutData} />
         <View style={styles.cardsContainer}>
