@@ -32,6 +32,7 @@ import EditaFuncionarioScreen from "./screens/EditaFuncionariosScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+// const Drawer = createDrawerNavigator();
 
 const SOCKET_URL = "https://willows-production.up.railway.app";
 
@@ -82,6 +83,36 @@ const TabPrincipal = () => {
       <Tab.Screen name="Pedidos" component={PedidosScreen} />
       <Tab.Screen name="Gerir Pedidos" component={GerirPedidos} />
     </Tab.Navigator>
+  );
+};
+
+const DrawerContent = (props) => {
+  const { isDarkMode } = useTheme();
+  const COLORS = isDarkMode ? colors.dark : colors.light;
+
+  return (
+    <DrawerContentScrollView {...props}>
+      <DrawerItemList {...props} />
+      <DrawerItem
+        label="Logout"
+        onPress={() => {
+          // Handle logout
+        }}
+        labelStyle={{ color: COLORS.text }}
+      />
+    </DrawerContentScrollView>
+  );
+};
+
+const DrawerNavigator = () => {
+  return (
+    <Drawer.Navigator drawerContent={(props) => <DrawerContent {...props} />}>
+      <Drawer.Screen name="Home" component={HomePage} />
+      <Drawer.Screen name="Main" component={TabPrincipal} />
+      <Drawer.Screen name="Gestao" component={FuncionariosScreen} />
+      <Drawer.Screen name="Estatisticas" component={StatsScreen} />
+      <Drawer.Screen name="Inventario" component={InventarioScreen} />
+    </Drawer.Navigator>
   );
 };
 
