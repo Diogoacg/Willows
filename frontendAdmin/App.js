@@ -127,7 +127,9 @@ const MenuContent = () => {
             {/* Add more header actions here */}
           </View>
         ),
-      }}
+        drawerActiveTintColor: theme.primary, // Cor do texto do item ativo
+        drawerActiveBackgroundColor: theme.accent, // Cor de fundo do item ativo
+  }}
     >
       <Drawer.Screen name="Pedidos" component={PedidosScreen} />
       <Drawer.Screen name="Funcionarios" component={FuncionariosScreen} />
