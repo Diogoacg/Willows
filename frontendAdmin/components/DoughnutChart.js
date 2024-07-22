@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text as RNText, Dimensions, StyleSheet } from "react-native";
 import { PieChart } from "react-native-svg-charts";
 import { G, Text } from "react-native-svg";
 import { colors } from "../config/theme";
 import { useTheme } from "../ThemeContext";
+
 const DoughnutChart = ({ data }) => {
   const COLORS = [
     "#0088FE",
@@ -21,34 +22,45 @@ const DoughnutChart = ({ data }) => {
   const [labelWidth, setLabelWidth] = useState(0);
   const deviceWidth = Dimensions.get("window").width;
 
-  // Sort the data by totalOrders in descending order
-  const sortedData = data
-    .filter((item) => item.totalOrders !== undefined)
-    .sort((a, b) => b.totalOrders - a.totalOrders);
+  // Memoize sorted data
+  const sortedData = useMemo(() => {
+    return data
+      .filter((item) => item.totalOrders !== undefined)
+      .sort((a, b) => b.totalOrders - a.totalOrders);
+  }, [data]);
 
-  // Get the top 5 items and the rest as "Others"
-  const topItems = sortedData.slice(0, 6);
-  const totalOrders = topItems.reduce((sum, item) => sum + item.totalOrders, 0);
+  // Get the top 6 items and the rest as "Others"
+  const topItems = useMemo(() => sortedData.slice(0, 6), [sortedData]);
+  const totalOrders = useMemo(
+    () => topItems.reduce((sum, item) => sum + item.totalOrders, 0),
+    [topItems]
+  );
 
-  const pieData = topItems
-    .filter((item) => item.totalOrders > 0)
-    .map((item, index) => ({
-      key: item.itemId,
-      value: item.totalOrders,
-      percentage: ((item.totalOrders / totalOrders) * 100).toFixed(2),
-      svg: { fill: COLORS[index % COLORS.length] },
-      arc: {
-        outerRadius: 70 + (item.itemId === selectedSlice.label ? 10 : 0) + "%",
-        padAngle: item.itemId === selectedSlice.label ? 0.1 : 0,
-      },
-      onPress: () =>
-        setSelectedSlice({ label: item.itemId, value: item.totalOrders }),
-    }));
+  const pieData = useMemo(
+    () =>
+      topItems
+        .filter((item) => item.totalOrders > 0)
+        .map((item, index) => ({
+          key: item.itemId,
+          value: item.totalOrders,
+          percentage: ((item.totalOrders / totalOrders) * 100).toFixed(2),
+          svg: { fill: COLORS[index % COLORS.length] },
+          arc: {
+            outerRadius: `70%${
+              item.itemId === selectedSlice.label ? " + 10" : ""
+            }`,
+            padAngle: item.itemId === selectedSlice.label ? 0.1 : 0,
+          },
+          onPress: () =>
+            setSelectedSlice({ label: item.itemId, value: item.totalOrders }),
+        })),
+    [topItems, selectedSlice, totalOrders]
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: THEME.secondary }]}>
       <PieChart
-        style={styles.chart}
+        style={[styles.chart, { width: deviceWidth * 0.8 }]} // Dynamic width
         outerRadius={"80%"}
         innerRadius={"45%"}
         data={pieData}
@@ -123,7 +135,6 @@ const styles = StyleSheet.create({
   },
   chart: {
     height: 300,
-    width: 300,
     marginBottom: -50,
   },
   labelsContainer: {

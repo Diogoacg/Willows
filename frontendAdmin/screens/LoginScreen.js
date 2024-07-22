@@ -136,16 +136,18 @@ const LoginScreen = ({ onLogin }) => {
           />
         </Pressable>
       </View>
-      <Animated.View style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}>
-      <Pressable
-        style={[
-          styles.button,
-          { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
-        ]}
-        onPress={handleLogin}
+      <Animated.View
+        style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}
       >
-        <Text style={styles.buttonText}>Login</Text>
-      </Pressable>
+        <Pressable
+          style={[
+            styles.button,
+            { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+          ]}
+          onPress={handleLogin}
+        >
+          <Text style={styles.buttonText}>Login</Text>
+        </Pressable>
       </Animated.View>
       <View style={styles.themeSwitchContainer}>
         <Text style={[styles.themeSwitchText, { color: COLORS.text }]}>

@@ -23,6 +23,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import io from "socket.io-client";
 
 const StatsScreen = ({ navigation }) => {
   const [data, setData] = useState({
@@ -35,32 +36,56 @@ const StatsScreen = ({ navigation }) => {
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
+  const fetchData = async () => {
+    const token = await AsyncStorage.getItem("token");
+    try {
+      const [profitData, ordersData, itemsData, rankingData] =
+        await Promise.all([
+          obterLucro(token),
+          obterTotalPedidosDMW(token),
+          obterOrdersPorItem(token),
+          obterRankingUtilizadores(token),
+        ]);
+
+      setData({
+        profitPerUser: profitData,
+        totalOrdersDMW: ordersData,
+        ordersPerItem: itemsData,
+        rankingUsers: rankingData,
+      });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      const token = await AsyncStorage.getItem("token");
-      try {
-        const [profitData, ordersData, itemsData, rankingData] =
-          await Promise.all([
-            obterLucro(token),
-            obterTotalPedidosDMW(token),
-            obterOrdersPorItem(token),
-            obterRankingUtilizadores(token),
-          ]);
-
-        setData({
-          profitPerUser: profitData,
-          totalOrdersDMW: ordersData,
-          ordersPerItem: itemsData,
-          rankingUsers: rankingData,
-        });
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    // Set up Socket.IO client
+    const socket = io("https://willows-production.up.railway.app");
+    //const socket = io("http://localhost:5000");
+
+    // Listen for relevant events
+    socket.on("orderGroupCreated", () => {
+      fetchData();
+    });
+
+    socket.on("orderGroupDeleted", () => {
+      fetchData();
+    });
+
+    socket.on("orderGroupUpdated", () => {
+      fetchData();
+    });
+
+    // Clean up the socket connection when the component unmounts
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   if (loading) {
@@ -106,7 +131,7 @@ const StatsScreen = ({ navigation }) => {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: COLORS.background }]}>
+    <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <DoughnutChart data={doughnutData} />
         <View style={styles.cardsContainer}>
