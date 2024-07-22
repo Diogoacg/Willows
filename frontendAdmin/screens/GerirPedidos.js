@@ -5,10 +5,8 @@ import {
   Pressable,
   FlatList,
   StyleSheet,
-  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import {
   obterGruposDePedidos,
   atualizarStatusDoGrupoDePedidos,
@@ -21,9 +19,6 @@ import {
 import io from "socket.io-client";
 import { useTheme } from "../ThemeContext"; // Importa o contexto de tema
 import { colors } from "../config/theme"; // Importa as cores do tema
-
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
 
 const GerirPedidos = () => {
   const [pedidos, setPedidos] = useState([]);
@@ -158,12 +153,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 5,
     marginTop: wp("-9%"),
+    marginBottom: wp("3%"),
     bottom: wp("-10%"),
   },
   cardDetail: {
     fontSize: 16,
     marginBottom: 10,
-    bottom: wp("-9.2%"),
+    bottom: wp("-8%"),
   },
   itemContainer: {
     bottom: wp("6%"),
@@ -180,6 +176,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderColor: "#000",
     borderWidth: 1,
+    top: wp("0.75%"),
   },
   buttonText: {
     fontWeight: "bold",
