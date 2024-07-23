@@ -29,7 +29,7 @@ const TabNavigator = () => {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="PedidosTab" component={PedidosScreen} />
+      <Tab.Screen name="Fazer Pedido" component={PedidosScreen} />
       <Tab.Screen name="Gerir Pedidos" component={GerirPedidos} />
     </Tab.Navigator>
   );

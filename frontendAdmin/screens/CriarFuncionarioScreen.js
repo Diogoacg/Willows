@@ -17,14 +17,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
-
+import CustomAlertModal from "../components/CustomAlertModal";
 const CriarFuncionarioScreen = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode } = useTheme();
   const scaleValue = useRef(new Animated.Value(1)).current;
 
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -52,11 +55,14 @@ const CriarFuncionarioScreen = () => {
     const token = await AsyncStorage.getItem("token");
     try {
       await registarNovoUtilizador(token, username, email, password, role);
-      alert("Funcionário criado com sucesso!");
-      navigation.goBack();
+      setModalTitle("Sucesso");
+      setModalMessage("Funcionário criado com sucesso!");
+      setModalVisible(true);
     } catch (error) {
       console.error("Erro ao criar funcionário:", error.message);
-      alert("Falha ao criar funcionário.");
+      setModalTitle("Erro");
+      setModalMessage("Erro ao criar funcionário: " + error.message);
+      setModalVisible(true);
     } finally {
       animateScaleOut();
     }
@@ -105,12 +111,25 @@ const CriarFuncionarioScreen = () => {
           value={role}
           onChangeText={setRole}
         />
-        <Animated.View style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}>
+        <Animated.View
+          style={[
+            styles.buttonAnimated,
+            { transform: [{ scale: scaleValue }] },
+          ]}
+        >
           <Pressable style={styles.button} onPress={handleCreateUser}>
             <Text style={styles.buttonText}>Criar Funcionário</Text>
           </Pressable>
         </Animated.View>
       </View>
+
+      {/* Custom Alert Modal */}
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };

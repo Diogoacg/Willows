@@ -1,6 +1,6 @@
 // src/components/CustomDrawerContent.js
 import React from "react";
-import { View, Pressable, Text, StyleSheet } from "react-native";
+import { View, Pressable, Text, StyleSheet, Alert } from "react-native";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -18,6 +18,7 @@ const CustomDrawerContent = ({ navigation, state, onLogout }) => {
       await onLogout();
       navigation.navigate("Login");
     } catch (error) {
+      Alert.alert("Erro", "Erro ao fazer logout: " + error.message);
       console.error("Failed to logout:", error);
     }
   };

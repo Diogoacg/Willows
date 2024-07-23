@@ -20,10 +20,14 @@ import {
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { criarNovoItem } from "../api/apiInventory";
+import CustomAlertModal from "../components/CustomAlertModal";
 
 const CriarItemScreen = () => {
   const [nome, setNome] = useState("");
   const [preco, setPreco] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
   const { isDarkMode } = useTheme();
   const scaleValue = useRef(new Animated.Value(1)).current;
@@ -53,10 +57,13 @@ const CriarItemScreen = () => {
     const token = await AsyncStorage.getItem("token");
     try {
       await criarNovoItem(token, nome, preco);
-      Alert.alert("Item adicionado com sucesso!");
-      navigation.goBack();
+      setModalTitle("Sucesso");
+      setModalMessage("Item adicionado com sucesso!");
+      setModalVisible(true);
     } catch (error) {
-      Alert.alert("Erro ao adicionar item", error.message);
+      setModalTitle("Erro");
+      setModalMessage("Erro ao adicionar item: " + error.message);
+      setModalVisible(true);
     } finally {
       animateScaleOut();
     }
@@ -90,12 +97,25 @@ const CriarItemScreen = () => {
           onChangeText={setPreco}
           keyboardType="numeric"
         />
-        <Animated.View style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}>
+        <Animated.View
+          style={[
+            styles.buttonAnimated,
+            { transform: [{ scale: scaleValue }] },
+          ]}
+        >
           <Pressable style={styles.button} onPress={handleCreateItem}>
             <Text style={styles.buttonText}>Adicionar Item</Text>
           </Pressable>
         </Animated.View>
       </View>
+
+      {/* Custom Alert Modal */}
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };

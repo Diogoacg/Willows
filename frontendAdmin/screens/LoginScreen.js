@@ -1,3 +1,4 @@
+// src/LoginScreen.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
@@ -5,7 +6,6 @@ import {
   Text,
   TextInput,
   Pressable,
-  Alert,
   Switch,
   Animated,
 } from "react-native";
@@ -18,8 +18,10 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
-import { useTheme } from "../ThemeContext"; // Certifique-se de que o caminho está correto
+import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
+import CustomAlertModal from "../components/CustomAlertModal";
+
 const socketUrl = "https://willows-production.up.railway.app";
 
 const LoginScreen = ({ onLogin }) => {
@@ -29,6 +31,9 @@ const LoginScreen = ({ onLogin }) => {
   const [socket, setSocket] = useState(null);
   const { isDarkMode, toggleTheme } = useTheme();
   const scaleValue = useRef(new Animated.Value(1)).current;
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
 
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
@@ -79,10 +84,11 @@ const LoginScreen = ({ onLogin }) => {
         "Login error:",
         error.response ? error.response.data : error.message
       );
-      Alert.alert(
-        "Erro ao fazer login",
-        "Verifique suas credenciais e tente novamente."
+      setModalTitle("Erro");
+      setModalMessage(
+        error.response ? error.response.data.message : error.message
       );
+      setModalVisible(true);
     } finally {
       animateScaleOut();
     }
@@ -148,7 +154,7 @@ const LoginScreen = ({ onLogin }) => {
           ]}
           onPress={handleLogin}
         >
-          <Text style={styles.buttonText}>Login</Text>
+          <Text style={[styles.buttonText, { color: COLORS.text }]}>Login</Text>
         </Pressable>
       </Animated.View>
       <View style={styles.themeSwitchContainer}>
@@ -162,6 +168,12 @@ const LoginScreen = ({ onLogin }) => {
           thumbColor={isDarkMode ? colors.light.text : colors.dark.text}
         />
       </View>
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };
@@ -182,15 +194,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
-    marginBottom: hp('1%'),
+    marginBottom: hp("1%"),
   },
   input: {
     flex: 1,
     height: hp("7%"),
     marginVertical: hp("1%"),
-    borderWidth: wp('0.2%'),
+    borderWidth: wp("0.2%"),
     padding: wp("2.5%"),
-    borderRadius: wp('1%'),
+    borderRadius: wp("1%"),
   },
   phoneIcon: {
     position: "absolute",
@@ -203,13 +215,13 @@ const styles = StyleSheet.create({
     padding: wp("2.5%"),
   },
   button: {
-    borderRadius: wp('6%'),
+    borderRadius: wp("6%"),
     paddingVertical: hp("2%"),
     paddingHorizontal: wp("6%"),
     alignItems: "center",
     marginTop: hp("2.5%"),
     width: "100%",
-    borderWidth: wp('0.2%'),
+    borderWidth: wp("0.2%"),
   },
   buttonText: {
     color: "#000",

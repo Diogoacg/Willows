@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  Pressable,
+  Animated,
+} from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { obterInformacoesDoUtilizador } from "../api/apiAuth";
 import {
   obterLucroTotalPorUsuario,
   obterTotalPedidosPorUsuario,
-} from "../api/apiStats"; // Importa as funções de estatísticas
+} from "../api/apiStats";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   widthPercentageToDP as wp,
@@ -14,18 +21,18 @@ import {
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { colors } from "../config/theme";
 import { useTheme } from "../ThemeContext";
-
+import CustomAlertModal from "../components/CustomAlertModal";
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
-
-const numColumns = 3;
-const itemWidth = screenWidth / numColumns - wp("4%");
 
 const DetalhesFuncionarioScreen = ({ navigation }) => {
   const route = useRoute();
   const { userId } = route.params;
   const [userDetails, setUserDetails] = useState(null);
   const [userStatistics, setUserStatistics] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
   const { isDarkMode } = useTheme();
 
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -41,6 +48,11 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
       const details = await obterInformacoesDoUtilizador(token, userId);
       setUserDetails(details);
     } catch (error) {
+      setModalTitle("Erro");
+      setModalMessage(
+        "Erro ao buscar informações do utilizador: " + error.message
+      );
+      setModalVisible(true);
       console.error("Erro ao buscar informações do utilizador:", error.message);
     }
   };
@@ -51,12 +63,16 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
       const profitStatistics = await obterLucroTotalPorUsuario(token, userId);
       const ordersStatistics = await obterTotalPedidosPorUsuario(token, userId);
 
-      console.log(profitStatistics, ordersStatistics);
       setUserStatistics({
         lucroTotal: profitStatistics.totalProfit,
         totalPedidos: ordersStatistics.totalOrders,
       });
     } catch (error) {
+      setModalTitle("Erro");
+      setModalMessage(
+        "Erro ao buscar estatísticas do utilizador: " + error.message
+      );
+      setModalVisible(true);
       console.error(
         "Erro ao buscar estatísticas do utilizador:",
         error.message
@@ -115,6 +131,14 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
         <Card title="Lucro Total" value={userStatistics.lucroTotal + "€"} />
         <Card title="Total de Pedidos" value={userStatistics.totalPedidos} />
       </View>
+
+      {/* Custom Alert Modal */}
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };
@@ -130,9 +154,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: wp("2%"),
   },
-  inContainer: {
-    paddingTop: hp("2%"),
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -144,15 +165,6 @@ const styles = StyleSheet.create({
   button: {
     marginLeft: wp("-4%"),
     justifyContent: "flex-start",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
   },
   loadingContainer: {
     flex: 1,

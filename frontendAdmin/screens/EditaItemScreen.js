@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   Dimensions,
-  Alert,
   Animated,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -19,12 +18,16 @@ import { atualizarItemNoInventario } from "../api/apiInventory";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
+import CustomAlertModal from "../components/CustomAlertModal";
 
 const screenHeight = Dimensions.get("window").height;
 
 const EditaItemScreen = () => {
   const [nome, setNome] = useState("");
   const [preco, setPreco] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
   const route = useRoute();
   const { item } = route.params;
@@ -61,13 +64,21 @@ const EditaItemScreen = () => {
     const token = await AsyncStorage.getItem("token");
     try {
       await atualizarItemNoInventario(token, item.id, nome, preco);
-      Alert.alert("Sucesso", "Item atualizado com sucesso!");
-      navigation.goBack();
+      setModalTitle("Sucesso");
+      setModalMessage("Item atualizado com sucesso!");
+      setModalVisible(true);
+      // Wait for the modal to be closed before navigating back
+      setTimeout(() => {
+        navigation.goBack();
+      }, 2000);
     } catch (error) {
       console.error("Erro ao atualizar item:", error.message);
-      Alert.alert("Erro", "Falha ao atualizar item.");
+      setModalTitle("Erro");
+      setModalMessage("Falha ao atualizar item: " + error.message);
+      setModalVisible(true);
+    } finally {
+      animateScaleOut();
     }
-    animateScaleOut();
   };
 
   return (
@@ -116,6 +127,14 @@ const EditaItemScreen = () => {
           </Pressable>
         </Animated.View>
       </View>
+
+      {/* Custom Alert Modal */}
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };
@@ -123,43 +142,43 @@ const EditaItemScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: hp('5%'),
-    paddingHorizontal: wp('2.5%'),
+    paddingTop: hp("5%"),
+    paddingHorizontal: wp("2.5%"),
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: wp('2.5%'),
-    paddingVertical: hp('1.5%'),
+    paddingHorizontal: wp("2.5%"),
+    paddingVertical: hp("1.5%"),
     borderBottomWidth: 1,
   },
   headerTitle: {
-    fontSize: wp('4.5%'),
+    fontSize: wp("4.5%"),
     fontWeight: "bold",
-    marginLeft: wp('2%'),
+    marginLeft: wp("2%"),
   },
   backButton: {
-    marginRight: wp('2%'),
+    marginRight: wp("2%"),
   },
   form: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: wp('5%'),
+    paddingHorizontal: wp("5%"),
   },
   input: {
-    height: hp('6%'),
+    height: hp("6%"),
     borderRadius: 8,
-    paddingHorizontal: wp('4.5%'),
-    marginBottom: hp('2.2%'),
-    fontSize: wp('4%'),
+    paddingHorizontal: wp("4.5%"),
+    marginBottom: hp("2.2%"),
+    fontSize: wp("4%"),
   },
   saveButton: {
-    padding: hp('2%'),
+    padding: hp("2%"),
     borderRadius: 8,
     alignItems: "center",
   },
   saveButtonText: {
-    fontSize: wp('4%'),
+    fontSize: wp("4%"),
     fontWeight: "bold",
   },
 });

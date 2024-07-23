@@ -42,8 +42,8 @@ const LoginScreen = ({ onLogin }) => {
         error.response ? error.response.data : error.message
       );
       Alert.alert(
-        "Erro ao fazer login",
-        "Verifique suas credenciais e tente novamente."
+        "Login error",
+        error.response ? error.response.data.message : error.message
       );
     }
   };

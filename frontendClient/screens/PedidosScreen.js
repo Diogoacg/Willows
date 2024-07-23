@@ -24,6 +24,7 @@ import {
 import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
+import { Alert } from "react-native";
 
 const numColumns = 3;
 
@@ -148,6 +149,7 @@ const PedidosScreen = () => {
       const items = await obterItensDoInventario();
       setInventoryItems(items);
     } catch (error) {
+      Alert.alert("Erro", "Erro ao buscar itens do inventário:", error.message);
       console.error("Erro ao buscar itens do inventário:", error.message);
     }
   };
@@ -204,6 +206,7 @@ const PedidosScreen = () => {
       dispatch(clearCart());
       handleCloseModal();
     } catch (error) {
+      Alert.alert("Erro", "Erro ao confirmar pedido:", error.message);
       console.error("Erro ao confirmar pedido:", error.message);
     }
   };

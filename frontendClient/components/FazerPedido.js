@@ -17,7 +17,7 @@ export default function FazerPedido() {
       setItem("");
       setQuantidade("1");
     } catch (error) {
-      Alert.alert("Erro ao fazer pedido");
+      Alert.alert("Erro ao fazer pedido: " + error.message);
     }
   };
 

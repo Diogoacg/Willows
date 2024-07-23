@@ -4,7 +4,7 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 
 const TabIcon = ({ route, focused, color }) => {
   const iconName =
-    route.name === "Pedidos"
+    route.name === "Fazer Pedido"
       ? focused
         ? "cart"
         : "cart-outline"

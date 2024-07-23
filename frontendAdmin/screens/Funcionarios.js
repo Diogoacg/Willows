@@ -8,6 +8,7 @@ import {
   Dimensions,
   Animated,
   TextInput,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -20,12 +21,16 @@ import {
 import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
+import CustomAlertModal from "../components/CustomAlertModal";
 
 const FuncionariosScreen = () => {
   const [logins, setLogins] = useState([]);
   const [scaleValues, setScaleValues] = useState({});
   const [searchText, setSearchText] = useState("");
   const [filteredLogins, setFilteredLogins] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
 
   const navigation = useNavigation();
 
@@ -37,7 +42,7 @@ const FuncionariosScreen = () => {
 
     // Set up Socket.IO client
     const socket = io("https://willows-production.up.railway.app");
-    //const socket = io("http://localhost:5000");
+    // const socket = io("http://localhost:5000");
 
     // Listen for relevant events
     socket.on("userCreated", () => {
@@ -74,6 +79,9 @@ const FuncionariosScreen = () => {
       });
       setScaleValues(initialScaleValues);
     } catch (error) {
+      setModalTitle("Erro");
+      setModalMessage("Erro ao obter utilizadores: " + error.message);
+      setModalVisible(true);
       console.error("Erro ao buscar logins:", error.message);
     }
   };
@@ -103,10 +111,14 @@ const FuncionariosScreen = () => {
     try {
       await deleteUser(token, userId);
       fetchLogins();
-      alert("Utilizador eliminado com sucesso!");
+      setModalTitle("Sucesso");
+      setModalMessage("Utilizador eliminado com sucesso!");
+      setModalVisible(true);
     } catch (error) {
       console.error("Erro ao eliminar utilizador:", error.message);
-      alert("Falha ao eliminar utilizador.");
+      setModalTitle("Erro");
+      setModalMessage("Erro ao eliminar utilizador: " + error.message);
+      setModalVisible(true);
     }
   };
 
@@ -231,6 +243,13 @@ const FuncionariosScreen = () => {
         renderItem={renderLogin}
         keyExtractor={(item) => item.id.toString()}
       />
+
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };
@@ -261,9 +280,9 @@ const styles = StyleSheet.create({
   itemContainer: {
     borderRadius: 8,
     borderWidth: 1,
-    padding: wp('2.5%'),
-    marginTop: hp('1%'),
-    marginBottom: hp('1%'),
+    padding: wp("2.5%"),
+    marginTop: hp("1%"),
+    marginBottom: hp("1%"),
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -277,36 +296,36 @@ const styles = StyleSheet.create({
   },
   button: {
     width: "100%",
-    borderRadius: wp('6%'),
+    borderRadius: wp("6%"),
   },
   card: {
     width: "100%",
-    borderRadius: wp('2%'),
-    padding: wp('3.4%'),
+    borderRadius: wp("2%"),
+    padding: wp("3.4%"),
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: hp('1%'),
+    marginBottom: hp("1%"),
   },
   cardTitle: {
-    fontSize: wp('4%'),
+    fontSize: wp("4%"),
     fontWeight: "bold",
     flex: 1,
   },
   cardDetail: {
-    fontSize: wp('3.5%'),
-    marginBottom: hp('0.5%'),
+    fontSize: wp("3.5%"),
+    marginBottom: hp("0.5%"),
   },
   deleteButton: {
-    padding: wp('2%'),
-    borderRadius: wp('2%'),
-    marginLeft: wp('2%'),
+    padding: wp("2%"),
+    borderRadius: wp("2%"),
+    marginLeft: wp("2%"),
   },
   editButton: {
-    padding: wp('2%'),
-    borderRadius: wp('2%'),
+    padding: wp("2%"),
+    borderRadius: wp("2%"),
   },
   createButton: {
     marginLeft: "auto",

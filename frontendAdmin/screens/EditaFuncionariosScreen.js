@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   Dimensions,
-  Alert,
   Animated,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -19,6 +18,7 @@ import { atualizarInformacoesDoUsuario } from "../api/apiAuth";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
+import CustomAlertModal from "../components/CustomAlertModal";
 
 const screenHeight = Dimensions.get("window").height;
 
@@ -27,6 +27,9 @@ const EditaFuncionarioScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
   const route = useRoute();
   const { user } = route.params;
@@ -70,13 +73,19 @@ const EditaFuncionarioScreen = () => {
         role: role,
         password: password,
       };
-      console.log(userData);
       await atualizarInformacoesDoUsuario(token, user.id, userData);
-      Alert.alert("Sucesso", "Funcionário atualizado com sucesso!");
-      navigation.goBack();
+      setModalTitle("Sucesso");
+      setModalMessage("Funcionário atualizado com sucesso!");
+      setModalVisible(true);
+      // Wait for the modal to be closed before navigating back
+      setTimeout(() => {
+        navigation.goBack();
+      }, 2000);
     } catch (error) {
       console.error("Erro ao atualizar funcionário:", error.message);
-      Alert.alert("Erro", "Falha ao atualizar funcionário.");
+      setModalTitle("Erro");
+      setModalMessage("Falha ao atualizar funcionário: " + error.message);
+      setModalVisible(true);
     } finally {
       animateScaleOut();
     }
@@ -84,7 +93,7 @@ const EditaFuncionarioScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
         <Pressable
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -136,15 +145,28 @@ const EditaFuncionarioScreen = () => {
           value={role}
           onChangeText={setRole}
         />
-        <Animated.View style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}>
-        <Pressable
-          style={[styles.saveButton, { backgroundColor: COLORS.accent }]}
-          onPress={handleSave}
+        <Animated.View
+          style={[
+            styles.buttonAnimated,
+            { transform: [{ scale: scaleValue }] },
+          ]}
         >
-          <Text style={styles.saveButtonText}>Salvar</Text>
-        </Pressable>
+          <Pressable
+            style={[styles.saveButton, { backgroundColor: COLORS.accent }]}
+            onPress={handleSave}
+          >
+            <Text style={styles.saveButtonText}>Salvar</Text>
+          </Pressable>
         </Animated.View>
       </View>
+
+      {/* Custom Alert Modal */}
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };
@@ -152,44 +174,44 @@ const EditaFuncionarioScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: hp('5%'),
-    paddingHorizontal: wp('2.5%'),
+    paddingTop: hp("5%"),
+    paddingHorizontal: wp("2.5%"),
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: wp('2.5%'),
-    paddingVertical: hp('1.25%'),
+    paddingHorizontal: wp("2.5%"),
+    paddingVertical: hp("1.25%"),
     borderBottomWidth: 1,
   },
   headerTitle: {
-    fontSize: wp('4.5%'),
+    fontSize: wp("4.5%"),
     fontWeight: "bold",
-    marginLeft: wp('2.5%'),
+    marginLeft: wp("2.5%"),
   },
   backButton: {
-    marginRight: wp('2.5%'),
+    marginRight: wp("2.5%"),
   },
   form: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: wp('5%'),
+    paddingHorizontal: wp("5%"),
   },
   input: {
-    height: hp('5.95%'),
+    height: hp("5.95%"),
     borderRadius: 8,
-    paddingHorizontal: wp('3.75%'),
-    marginBottom: hp('2.5%'),
-    fontSize: wp('3.85%'),
+    paddingHorizontal: wp("3.75%"),
+    marginBottom: hp("2.5%"),
+    fontSize: wp("3.85%"),
   },
   saveButton: {
-    padding: hp('2%'),
+    padding: hp("2%"),
     borderRadius: 8,
     alignItems: "center",
   },
   saveButtonText: {
     color: "#FFF",
-    fontSize: wp('4%'),
+    fontSize: wp("4%"),
     fontWeight: "bold",
   },
 });

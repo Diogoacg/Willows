@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   ScrollView,
+  Pressable,
 } from "react-native";
 import {
   obterLucro,
@@ -21,6 +22,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
+import CustomAlertModal from "../components/CustomAlertModal";
 
 const StatsScreen = ({ navigation }) => {
   const [data, setData] = useState({
@@ -30,12 +32,24 @@ const StatsScreen = ({ navigation }) => {
     rankingUsers: [],
   });
   const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   const fetchData = async () => {
-    const token = await AsyncStorage.getItem("token");
     try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        setModalTitle("Erro");
+        setModalMessage(
+          "Usuário não autenticado. Por favor, faça login novamente."
+        );
+        setModalVisible(true);
+        return;
+      }
+
       const [profitData, ordersData, itemsData, rankingData] =
         await Promise.all([
           obterLucro(token),
@@ -51,6 +65,9 @@ const StatsScreen = ({ navigation }) => {
         rankingUsers: rankingData,
       });
     } catch (error) {
+      setModalTitle("Erro");
+      setModalMessage("Erro ao obter dados do servidor: " + error.message);
+      setModalVisible(true);
       console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
@@ -59,27 +76,13 @@ const StatsScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
 
-  useEffect(() => {
-    // Set up Socket.IO client
     const socket = io("https://willows-production.up.railway.app");
-    //const socket = io("http://localhost:5000");
 
-    // Listen for relevant events
-    socket.on("orderGroupCreated", () => {
-      fetchData();
-    });
+    socket.on("orderGroupCreated", fetchData);
+    socket.on("orderGroupDeleted", fetchData);
+    socket.on("orderGroupUpdated", fetchData);
 
-    socket.on("orderGroupDeleted", () => {
-      fetchData();
-    });
-
-    socket.on("orderGroupUpdated", () => {
-      fetchData();
-    });
-
-    // Clean up the socket connection when the component unmounts
     return () => {
       socket.disconnect();
     };
@@ -89,7 +92,6 @@ const StatsScreen = ({ navigation }) => {
     return <ActivityIndicator size="large" color={COLORS.accent} />;
   }
 
-  // Prepare data for doughnut chart (first 5 items + others)
   const doughnutData = (data.ordersPerItem || []).slice(0, 5).concat(
     (data.ordersPerItem || []).slice(5).reduce(
       (acc, item) => ({
@@ -101,7 +103,6 @@ const StatsScreen = ({ navigation }) => {
     )
   );
 
-  // Top 3 users ranking
   const top3Users = data.rankingUsers.slice(0, 3);
 
   const Card = ({ title, value }) => (
@@ -178,6 +179,12 @@ const StatsScreen = ({ navigation }) => {
           )}
         </View>
       </ScrollView>
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };
@@ -189,55 +196,55 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     alignItems: "center",
-    padding: wp('4%'),
+    padding: wp("4%"),
   },
   cardsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    marginTop: hp('3%'),
+    marginTop: hp("3%"),
     flexWrap: "wrap",
   },
   card: {
-    padding: wp('4%'),
-    borderRadius: wp('2%'),
-    borderWidth: wp('0.2%'),
+    padding: wp("4%"),
+    borderRadius: wp("2%"),
+    borderWidth: wp("0.2%"),
     elevation: 3,
-    width: wp('28%'),
-    margin: wp('1%'),
+    width: wp("28%"),
+    margin: wp("1%"),
     alignItems: "center",
   },
   cardTitle: {
-    fontSize: wp('4%'),
+    fontSize: wp("4%"),
     fontWeight: "bold",
   },
   cardValue: {
-    fontSize: wp('3.5%'),
-    marginTop: hp('1%'),
+    fontSize: wp("3.5%"),
+    marginTop: hp("1%"),
   },
   rankingContainer: {
-    marginTop: hp('4%'),
+    marginTop: hp("4%"),
     width: "100%",
-    padding: wp('4%'),
-    borderRadius: wp('2%'),
-    borderWidth: wp('0.2%'),
+    padding: wp("4%"),
+    borderRadius: wp("2%"),
+    borderWidth: wp("0.2%"),
     elevation: 3,
   },
   rankingTitle: {
-    fontSize: wp('5%'),
+    fontSize: wp("5%"),
     fontWeight: "bold",
-    marginBottom: hp('2%'),
+    marginBottom: hp("2%"),
   },
   rankingCard: {
-    paddingVertical: hp('1.5%'),
-    borderBottomWidth: wp('0.5%'),
+    paddingVertical: hp("1.5%"),
+    borderBottomWidth: wp("0.5%"),
   },
   rankingCardTitle: {
-    fontSize: wp('4%'),
+    fontSize: wp("4%"),
   },
   rankingCardValue: {
-    fontSize: wp('3.5%'),
-    marginTop: hp('0.5%'),
+    fontSize: wp("3.5%"),
+    marginTop: hp("0.5%"),
   },
 });
 

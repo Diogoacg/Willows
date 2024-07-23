@@ -85,9 +85,7 @@ export const obterLucroTotalPorUsuario = async (token, userId) => {
     const lucroTotalPorUsuario = data.find((item) => item.userId === userId);
 
     if (!lucroTotalPorUsuario) {
-      throw new Error(
-        `Lucro total não encontrado para o usuário com ID ${userId}`
-      );
+      return { totalProfit: 0 };
     }
 
     return lucroTotalPorUsuario;
@@ -116,6 +114,9 @@ export const obterTotalPedidosPorUsuario = async (token, userId) => {
     const data = await response.json();
 
     const totalPedidosPorUsuario = data.find((item) => item.userId === userId);
+    if (!totalPedidosPorUsuario) {
+      return { totalOrders: 0 };
+    }
 
     return totalPedidosPorUsuario;
   } catch (error) {

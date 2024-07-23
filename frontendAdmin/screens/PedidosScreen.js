@@ -8,6 +8,7 @@ import {
   TextInput,
   Animated,
   useWindowDimensions,
+  Alert,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { addToCart, clearCart } from "../slices/cartSlice";
@@ -22,6 +23,7 @@ import {
 import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
+import CustomAlertModal from "../components/CustomAlertModal"; // Atualize o caminho conforme necessário
 
 const numColumns = 3;
 
@@ -107,6 +109,9 @@ const PedidosScreen = () => {
   const [inventoryItems, setInventoryItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [itemHeights, setItemHeights] = useState({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
@@ -149,6 +154,9 @@ const PedidosScreen = () => {
       const items = await obterItensDoInventario();
       setInventoryItems(items);
     } catch (error) {
+      setModalTitle("Erro");
+      setModalMessage("Erro ao obter itens do inventário: " + error.message);
+      setModalVisible(true);
       console.error("Erro ao buscar itens do inventário:", error.message);
     }
   };
@@ -251,6 +259,12 @@ const PedidosScreen = () => {
         keyExtractor={(item) => item.id.toString()}
         numColumns={numColumns}
       />
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };
@@ -265,16 +279,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("4%"),
     paddingVertical: hp("2%"),
   },
-  backButton: {
-    marginRight: wp("2%"),
-  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
     marginLeft: wp("2%"),
-    borderRadius: wp('2%'),
-    borderWidth: wp('0.2%'),
+    borderRadius: wp("2%"),
+    borderWidth: wp("0.2%"),
     paddingHorizontal: wp("2%"),
   },
   input: {
@@ -305,53 +316,41 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     marginTop: hp("2%"),
-    marginHorizontal: wp('2%'),
+    marginHorizontal: wp("2%"),
     justifyContent: "space-between",
     alignItems: "center",
-    borderRadius: wp('2%'),
-    borderWidth: wp('0.2%'),
+    borderRadius: wp("2%"),
+    borderWidth: wp("0.2%"),
     elevation: 3,
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
     padding: wp("4%"),
     position: "relative",
-    minHeight: hp('10.75%'),
-  },
-  badge: {
-    borderRadius: wp('4.5%'),
-    width: hp('3.5%'),
-    height: hp('3.5%'),
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: wp('1%'),
-  },
-  badgeText: {
-    fontSize: wp('3%'),
-    fontWeight: "bold",
+    minHeight: hp("10.75%"),
   },
   itemBadgeContainer: {
     position: "absolute",
     top: hp("-1%"),
     right: wp("-1.5%"),
-    borderRadius: wp('10%'),
+    borderRadius: wp("10%"),
     width: hp("3.5%"),
     height: hp("3.5%"),
     justifyContent: "center",
     alignItems: "center",
   },
   itemBadgeText: {
-    fontSize: wp('3%'),
+    fontSize: wp("3%"),
     fontWeight: "bold",
   },
   itemName: {
-    fontSize: wp('3.6%'),
+    fontSize: wp("3.6%"),
     fontWeight: "bold",
     textAlign: "center",
     marginTop: hp("1%"),
     width: "100%",
   },
   itemPreco: {
-    fontSize: wp('3%'),
+    fontSize: wp("3%"),
     textAlign: "center",
     marginBottom: hp("1%"),
   },

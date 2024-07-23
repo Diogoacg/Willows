@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Animated,
   TextInput,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -22,11 +23,15 @@ import {
 import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
+import CustomAlertModal from "../components/CustomAlertModal"; // Atualize o caminho conforme necessário
 
 const InventarioScreen = () => {
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [searchText, setSearchText] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
   const [scaleValues, setScaleValues] = useState({});
 
@@ -38,9 +43,8 @@ const InventarioScreen = () => {
 
     // Set up Socket.IO client
     const socket = io("https://willows-production.up.railway.app");
-    //const socket = io("http://localhost:5000");
+    // const socket = io("http://localhost:5000");
 
-    // Listen for relevant events
     socket.on("itemUpdated", () => {
       fetchItems();
     });
@@ -53,14 +57,13 @@ const InventarioScreen = () => {
       fetchItems();
     });
 
-    // Clean up the socket connection when the component unmounts
     return () => {
       socket.disconnect();
     };
   }, []);
 
   useEffect(() => {
-    handleSearch(searchText); // Filtra os itens conforme o texto da pesquisa
+    handleSearch(searchText);
   }, [searchText, items]);
 
   const fetchItems = async () => {
@@ -75,6 +78,9 @@ const InventarioScreen = () => {
       });
       setScaleValues(initialScaleValues);
     } catch (error) {
+      setModalTitle("Erro");
+      setModalMessage("Erro ao obter itens do inventário: " + error.message);
+      setModalVisible(true);
       console.error("Erro ao buscar itens:", error.message);
     }
   };
@@ -84,10 +90,14 @@ const InventarioScreen = () => {
     try {
       await deletarItemDoInventario(token, itemId);
       fetchItems();
-      alert("Item eliminado com sucesso!");
+      setModalTitle("Sucesso");
+      setModalMessage("Item eliminado com sucesso!");
+      setModalVisible(true);
     } catch (error) {
+      setModalTitle("Erro");
+      setModalMessage("Erro ao eliminar item: " + error.message);
+      setModalVisible(true);
       console.error("Erro ao eliminar item:", error.message);
-      alert("Falha ao eliminar item.");
     }
   };
 
@@ -235,6 +245,12 @@ const InventarioScreen = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
       />
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };
@@ -242,8 +258,8 @@ const InventarioScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: wp('1.6%'),
-    paddingTop: hp('1.32%'),
+    paddingHorizontal: wp("1.6%"),
+    paddingTop: hp("1.32%"),
   },
   header: {
     flexDirection: "row",
@@ -255,8 +271,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    borderRadius: wp('2%'),
-    borderWidth: wp('0.2%'),
+    borderRadius: wp("2%"),
+    borderWidth: wp("0.2%"),
     paddingHorizontal: wp("2%"),
   },
   searchInput: {
@@ -265,11 +281,11 @@ const styles = StyleSheet.create({
     marginLeft: wp("1%"),
   },
   itemContainer: {
-    borderRadius: wp('2%'),
-    borderWidth: wp('0.2%'),
-    padding: wp('2.5%'),
-    marginTop: hp('1%'),
-    marginBottom: hp('1%'),
+    borderRadius: wp("2%"),
+    borderWidth: wp("0.2%"),
+    padding: wp("2.5%"),
+    marginTop: hp("1%"),
+    marginBottom: hp("1%"),
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -283,36 +299,36 @@ const styles = StyleSheet.create({
   },
   button: {
     width: "100%",
-    borderRadius: wp('6%'),
+    borderRadius: wp("6%"),
   },
   card: {
     width: "100%",
-    borderRadius: wp('2%'),
-    padding: wp('3.8%'),
+    borderRadius: wp("2%"),
+    padding: wp("3.8%"),
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: hp('1%'),
+    marginBottom: hp("1%"),
   },
   cardTitle: {
-    fontSize: wp('4%'),
+    fontSize: wp("4%"),
     fontWeight: "bold",
     flex: 1,
   },
   cardDetail: {
-    fontSize: wp('3.5%'),
-    marginBottom: hp('0.5%'),
+    fontSize: wp("3.5%"),
+    marginBottom: hp("0.5%"),
   },
   deleteButton: {
-    padding: wp('2%'),
-    borderRadius: wp('2%'),
-    marginLeft: wp('2%'),
+    padding: wp("2%"),
+    borderRadius: wp("2%"),
+    marginLeft: wp("2%"),
   },
   editButton: {
-    padding: wp('2%'),
-    borderRadius: wp('2%'),
+    padding: wp("2%"),
+    borderRadius: wp("2%"),
   },
   createButton: {
     marginLeft: "auto",

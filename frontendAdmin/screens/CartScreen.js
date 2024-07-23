@@ -1,4 +1,3 @@
-// CartScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -13,7 +12,6 @@ import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  addToCart,
   incrementQuantity,
   decrementQuantity,
   clearCart,
@@ -25,6 +23,7 @@ import {
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import { criarNovoGrupoDePedidos } from "../api/apiOrderGroup";
+import CustomAlertModal from "../components/CustomAlertModal";
 
 const CartScreen = () => {
   const dispatch = useDispatch();
@@ -34,6 +33,10 @@ const CartScreen = () => {
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   const [scaleValues, setScaleValues] = useState({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalAction, setModalAction] = useState(null); // Nova ação do modal
 
   useEffect(() => {
     const initialScaleValues = {};
@@ -54,37 +57,51 @@ const CartScreen = () => {
   const handleClearCart = () => {
     dispatch(clearCart());
   };
+
   const handleConfirm = async () => {
     const token = await AsyncStorage.getItem("token");
 
     if (!Array.isArray(cartItems) || cartItems.length === 0) {
-      alert(
+      setModalTitle("Erro");
+      setModalMessage(
         "O carrinho está vazio. Adicione itens antes de confirmar a compra."
       );
+      setModalAction(null);
+      setModalVisible(true);
       return;
     }
-    console.log("cartItems", cartItems);
-    // Transforme os itens do carrinho no formato esperado pela API
+
     const orderData = cartItems.map((item) => ({
-      nome: item.nome, // Assumindo que 'name' é o nome do item no seu carrinho
+      nome: item.nome,
       quantidade: item.quantity,
     }));
 
     try {
       await criarNovoGrupoDePedidos(token, { items: orderData });
-      navigation.goBack();
-      handleClearCart();
-      alert("Compra confirmada com sucesso!");
+      setModalTitle("Sucesso");
+      setModalMessage("Compra confirmada com sucesso!");
+      setModalAction(() => () => {
+        handleClearCart();
+        navigation.goBack();
+      });
+      setModalVisible(true);
     } catch (error) {
       console.error("Erro ao criar grupo de pedidos:", error.message);
-      alert("Falha ao criar grupo de pedidos.");
+      setModalTitle("Erro");
+      setModalMessage("Erro ao confirmar a compra: " + error.message);
+      setModalAction(null);
+      setModalVisible(true);
     }
   };
 
   const handleCancel = () => {
-    handleClearCart();
-    navigation.goBack();
-    alert("Compra cancelada!");
+    setModalTitle("Cancelado");
+    setModalMessage("Compra cancelada!");
+    setModalAction(() => () => {
+      handleClearCart();
+      navigation.goBack();
+    });
+    setModalVisible(true);
   };
 
   const animateScaleIn = (scaleValue) => {
@@ -215,6 +232,18 @@ const CartScreen = () => {
           </Text>
         </Pressable>
       </View>
+
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => {
+          setModalVisible(false);
+          if (modalAction) {
+            modalAction();
+          }
+        }}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };
@@ -315,6 +344,9 @@ const styles = StyleSheet.create({
   footerButtonText: {
     fontWeight: "bold",
     fontSize: 16,
+  },
+  buttonAnimated: {
+    width: "100%",
   },
 });
 

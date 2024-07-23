@@ -1,6 +1,5 @@
-// src/navigation/AppNavigator.js
 import React, { useEffect, useState } from "react";
-import { StatusBar, Platform } from "react-native";
+import { StatusBar, Platform, Alert, AppState } from "react-native";
 import {
   NavigationContainer,
   DefaultTheme,
@@ -24,6 +23,7 @@ const Stack = createStackNavigator();
 
 const AppNavigator = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [appState, setAppState] = useState(AppState.currentState);
   const { isDarkMode } = useTheme();
   const theme = isDarkMode ? DarkTheme : DefaultTheme;
 
@@ -33,6 +33,10 @@ const AppNavigator = () => {
         const token = await AsyncStorage.getItem("token");
         setIsLoggedIn(!!token);
       } catch (error) {
+        Alert.alert(
+          "Erro",
+          "Erro ao verificar o estado de login: " + error.message
+        );
         console.error("Error checking login status:", error);
         setIsLoggedIn(false);
       }
@@ -41,10 +45,36 @@ const AppNavigator = () => {
   }, []);
 
   useEffect(() => {
+    const handleAppStateChange = async (nextAppState) => {
+      if (appState.match(/inactive|background/) && nextAppState === "active") {
+        // App voltou ao primeiro plano
+      } else if (nextAppState.match(/inactive|background/)) {
+        // App entrou em segundo plano
+        await handleLogout();
+      }
+      setAppState(nextAppState);
+    };
+
+    const subscription = AppState.addEventListener(
+      "change",
+      handleAppStateChange
+    );
+
+    return () => {
+      subscription.remove(); // Remove o listener
+    };
+  }, [appState]);
+
+  useEffect(() => {
     if (Platform.OS === "android") {
       NavigationBar.setBackgroundColorAsync(
-        isDarkMode ? "#000000" : "#FFFFFF"
-      ).catch(console.error);
+        isDarkMode ? colors.dark.primary : colors.light.primary
+      ).catch((error) =>
+        Alert.alert(
+          "Erro",
+          "Erro ao definir a cor da barra de navegação: " + error.message
+        )
+      );
     }
   }, [isDarkMode]);
 
@@ -60,6 +90,8 @@ const AppNavigator = () => {
       await AsyncStorage.setItem("token", token);
       setIsLoggedIn(true);
     } catch (error) {
+      // Alert user that login failed
+      Alert.alert("Erro", "Erro ao salvar o token de login: " + error.message);
       console.error("Error saving login token:", error);
     }
   };
@@ -70,6 +102,7 @@ const AppNavigator = () => {
       await AsyncStorage.removeItem("token");
       setIsLoggedIn(false);
     } catch (error) {
+      Alert.alert("Erro", "Erro ao fazer logout: " + error.message);
       console.error("Error logging out:", error);
     }
   };
