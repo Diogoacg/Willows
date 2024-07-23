@@ -20,8 +20,13 @@ const cartSlice = createSlice({
     },
     decrementQuantity: (state, action) => {
       const item = state.find((item) => item.id === action.payload.id);
-      if (item && item.quantity > 1) {
-        item.quantity -= 1;
+      if (item) {
+        if (item.quantity > 1) {
+          item.quantity -= 1;
+        } else {
+          // Remover o item se a quantidade for 1 e o usuário decrementar
+          return state.filter((item) => item.id !== action.payload.id);
+        }
       }
     },
     clearCart: () => [], // Retorna o estado diretamente vazio ao limpar o carrinho

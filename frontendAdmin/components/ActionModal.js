@@ -67,12 +67,13 @@ const ActionModal = ({ handleClose, handleConfirm, handleBack, cartItems }) => {
           style={[styles.modalContainer, { backgroundColor: COLORS.secondary }]}
         >
           <Text style={[styles.title, { color: COLORS.text }]}>Carrinho</Text>
-          <FlatList
-            data={cartItems}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            style={styles.cartList}
-          />
+          <View style={styles.cartItem}>
+            <FlatList
+              data={cartItems}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id}
+            />
+          </View>
           <Text style={[styles.total, { color: COLORS.text }]}>
             Total: {totalPrice.toFixed(2)}€
           </Text>
@@ -110,6 +111,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContainer: {
+    height: "60%",
     borderRadius: 16,
     padding: 20,
     width: "80%",
@@ -129,7 +131,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cartList: {
-    maxHeight: 300,
+    flex: 0.8,
+
     width: "100%",
   },
   cartItem: {
