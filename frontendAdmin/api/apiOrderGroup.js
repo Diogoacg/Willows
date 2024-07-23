@@ -22,6 +22,7 @@ export const criarNovoGrupoDePedidos = async (token, orderData) => {
     throw new Error(error.message);
   }
 };
+
 // Função para deletar um grupo de pedidos
 export const deletarGrupoDePedidos = async (token, id) => {
   try {

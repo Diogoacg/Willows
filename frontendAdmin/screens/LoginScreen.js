@@ -69,6 +69,8 @@ const LoginScreen = ({ onLogin }) => {
         password,
       });
 
+      console.log("Login response:", response.data);
+
       await AsyncStorage.setItem("token", response.data.token);
 
       onLogin(response.data.token);

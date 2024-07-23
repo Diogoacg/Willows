@@ -7,16 +7,13 @@ import {
   Text,
   TextInput,
   Animated,
-  Modal,
   useWindowDimensions,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { addToCart, clearCart } from "../slices/cartSlice";
-import ActionModal from "../components/ActionModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { obterItensDoInventario } from "../api/apiInventory";
-import { criarNovoGrupoDePedidos } from "../api/apiOrderGroup";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   widthPercentageToDP as wp,
@@ -106,7 +103,6 @@ const Item = ({
 };
 
 const PedidosScreen = () => {
-  const [visibleModal, setVisibleModal] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [inventoryItems, setInventoryItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -181,38 +177,6 @@ const PedidosScreen = () => {
     dispatch(addToCart(item));
   };
 
-  const handleCloseModal = () => {
-    setVisibleModal(false);
-    dispatch(clearCart());
-    setFilteredItems(filteredItems.map((item) => ({ ...item, badgeCount: 0 })));
-  };
-
-  const handleBackModal = () => {
-    setVisibleModal(false);
-  };
-
-  const handleConfirmOrder = async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-
-      const items = cartItems.map((item) => ({
-        nome: item.nome,
-        quantidade: item.quantity,
-      }));
-
-      const orderData = {
-        items: items,
-      };
-
-      await criarNovoGrupoDePedidos(token, orderData);
-
-      dispatch(clearCart());
-      handleCloseModal();
-    } catch (error) {
-      console.error("Erro ao confirmar pedido:", error.message);
-    }
-  };
-
   const itemWidth = screenWidth / numColumns - wp("4%");
 
   const renderItem = ({ item, index }) => {
@@ -270,7 +234,7 @@ const PedidosScreen = () => {
         </View>
         <Pressable
           style={styles.cartButton}
-          onPress={() => setVisibleModal(true)}
+          onPress={() => navigation.navigate("Cart")}
         >
           <Ionicons name="cart-outline" size={24} color={COLORS.accent} />
           {cartItems.length > 0 && (
@@ -287,19 +251,6 @@ const PedidosScreen = () => {
         keyExtractor={(item) => item.id.toString()}
         numColumns={numColumns}
       />
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={visibleModal}
-        onRequestClose={handleCloseModal}
-      >
-        <ActionModal
-          handleClose={handleCloseModal}
-          handleConfirm={handleConfirmOrder}
-          handleBack={handleBackModal}
-          cartItems={cartItems}
-        />
-      </Modal>
     </View>
   );
 };
@@ -314,11 +265,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("4%"),
     paddingVertical: hp("2%"),
   },
+  backButton: {
+    marginRight: wp("2%"),
+  },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    marginLeft: wp("2%"),
     borderRadius: 8,
     borderWidth: 1,
     paddingHorizontal: wp("2%"),
@@ -337,6 +290,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: wp("3%"),
   },
+  badge: {
+    borderRadius: 9,
+    width: 18,
+    height: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 5,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: "bold",
+  },
   itemContainer: {
     marginTop: hp("2%"),
     margin: wp("2%"),
@@ -350,18 +315,6 @@ const styles = StyleSheet.create({
     padding: wp("4%"),
     position: "relative",
     minHeight: 100,
-  },
-  badge: {
-    borderRadius: 9,
-    width: 18,
-    height: 18,
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: 5,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "bold",
   },
   itemBadgeContainer: {
     position: "absolute",
