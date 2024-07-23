@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     marginBottom: hp("1%"),
   },
   headerText: {
-    fontSize: 24,
+    fontSize: wp('5.7%'),
     fontWeight: "bold",
   },
   menuOptions: {
@@ -113,14 +113,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: hp("1%"), // Add some vertical padding
     paddingHorizontal: wp("3%"), // Add some horizontal padding
-    borderRadius: 8,
+    borderRadius: wp('2%'),
   },
   drawerItemText: {
-    fontSize: 16,
-    marginLeft: 10,
+    fontSize: wp('4%'),
+    marginLeft: wp('2.5%'),
   },
   icon: {
-    marginRight: 10,
+    marginRight: wp('2.5%'),
   },
 });
 

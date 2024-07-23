@@ -4,6 +4,10 @@ import { PieChart } from "react-native-svg-charts";
 import { G, Text } from "react-native-svg";
 import { colors } from "../config/theme";
 import { useTheme } from "../ThemeContext";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const DoughnutChart = ({ data }) => {
   const COLORS = [
@@ -130,33 +134,33 @@ const DoughnutChart = ({ data }) => {
 const styles = StyleSheet.create({
   container: {
     alignItems: "center",
-    padding: 20,
-    borderRadius: 10,
+    padding: wp('5%'),
+    borderRadius: wp('2.5%'),
   },
   chart: {
-    height: 300,
-    marginBottom: -50,
+    height: hp('34.5%'),
+    marginBottom: hp('-5.8%'),
   },
   labelsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: hp('1.25%'),
   },
   label: {
     flexDirection: "row",
     alignItems: "center",
-    margin: 5,
+    margin: wp('1.25%'),
   },
   labelColor: {
-    width: 12,
-    height: 12,
-    marginRight: 5,
-    borderRadius: 6,
+    width: wp('3%'),
+    height: hp('1.5%'),
+    marginRight: wp('1.25%'),
+    borderRadius: wp('1.5%'),
   },
   labelText: {
-    fontSize: 8,
+    fontSize: wp('2%'),
   },
 });
 
