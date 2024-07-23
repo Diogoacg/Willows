@@ -23,7 +23,7 @@ import {
 import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
-import CustomAlertModal from "../components/CustomAlertModal"; // Atualize o caminho conforme necessário
+import CustomAlertModal from "../components/CustomAlertModal";
 
 const numColumns = 3;
 
