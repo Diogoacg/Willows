@@ -2,14 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   FlatList,
-  Image,
   StyleSheet,
   Pressable,
-  SafeAreaView,
-  Modal,
   Text,
   TextInput,
   Animated,
+  Modal,
   useWindowDimensions,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
@@ -17,10 +15,7 @@ import { addToCart, clearCart } from "../slices/cartSlice";
 import ActionModal from "../components/ActionModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
-import {
-  obterItensDoInventario,
-  atualizarItemNoInventario,
-} from "../api/apiInventory";
+import { obterItensDoInventario } from "../api/apiInventory";
 import { criarNovoGrupoDePedidos } from "../api/apiOrderGroup";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -33,7 +28,14 @@ import { colors } from "../config/theme";
 
 const numColumns = 3;
 
-const Item = ({ item, itemWidth, handleAddToCart, badgeCount }) => {
+const Item = ({
+  item,
+  itemWidth,
+  handleAddToCart,
+  badgeCount,
+  onLayout,
+  itemHeight,
+}) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -59,7 +61,10 @@ const Item = ({ item, itemWidth, handleAddToCart, badgeCount }) => {
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+    <Animated.View
+      style={{ transform: [{ scale: scaleValue }], height: itemHeight }}
+      onLayout={onLayout}
+    >
       <Pressable
         style={[
           styles.itemContainer,
@@ -73,16 +78,6 @@ const Item = ({ item, itemWidth, handleAddToCart, badgeCount }) => {
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        {item.imageUri ? (
-          <View>
-            <Image source={{ uri: item.imageUri }} style={styles.image} />
-          </View>
-        ) : (
-          <Image
-            source={require("../assets/favicon.png")}
-            style={styles.image}
-          />
-        )}
         {badgeCount > 0 && (
           <View
             style={[
@@ -95,7 +90,11 @@ const Item = ({ item, itemWidth, handleAddToCart, badgeCount }) => {
             </Text>
           </View>
         )}
-        <Text style={[styles.itemName, { color: COLORS.text }]}>
+        <Text
+          style={[styles.itemName, { color: COLORS.text }]}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+        >
           {item.nome}
         </Text>
         <Text style={[styles.itemPreco, { color: COLORS.text }]}>
@@ -105,11 +104,13 @@ const Item = ({ item, itemWidth, handleAddToCart, badgeCount }) => {
     </Animated.View>
   );
 };
+
 const PedidosScreen = () => {
   const [visibleModal, setVisibleModal] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [inventoryItems, setInventoryItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
+  const [itemHeights, setItemHeights] = useState({});
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
@@ -124,7 +125,6 @@ const PedidosScreen = () => {
 
     // Set up Socket.IO client
     const socket = io("https://willows-production.up.railway.app");
-    //const socket = io("http://localhost:5000");
 
     // Listen for relevant events
     socket.on("itemCreated", () => {
@@ -138,6 +138,10 @@ const PedidosScreen = () => {
     socket.on("itemUpdated", () => {
       fetchInventoryItems();
     });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -147,56 +151,9 @@ const PedidosScreen = () => {
   const fetchInventoryItems = async () => {
     try {
       const items = await obterItensDoInventario();
-
-      // Verifica cada item e busca imagem se necessário
-      const itemsWithImages = await Promise.all(
-        items.map(async (item) => {
-          // Se não tiver imageUri, busca no Unsplash
-          if (!item.imageUri) {
-            const uri = await fetchImageUri(item.nome);
-            const token = await AsyncStorage.getItem("token");
-            await atualizarItemNoInventario(
-              token,
-              item.id,
-              item.nome,
-              item.preco,
-              uri
-            );
-            return { ...item, imageUri: uri };
-          }
-          return item;
-        })
-      );
-
-      setInventoryItems(itemsWithImages);
-      setFilteredItems(itemsWithImages);
+      setInventoryItems(items);
     } catch (error) {
       console.error("Erro ao buscar itens do inventário:", error.message);
-    }
-  };
-
-  const fetchImageUri = async (itemName) => {
-    try {
-      const encodedItemName = encodeURIComponent(itemName);
-      const response = await fetch(
-        `https://api.unsplash.com/photos/random?query=${encodedItemName}&lang=pt`,
-        {
-          headers: {
-            Authorization:
-              "Client-ID yoPSP5TFfOvZ1uog-ibC6godTeccW6OLEehYrC4XNqY",
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (data.urls && data.urls.small) {
-        return data.urls.small;
-      } else {
-        throw new Error("Imagem não encontrada no Unsplash");
-      }
-    } catch (error) {
-      console.error("Erro ao buscar imagem do Unsplash:", error.message);
-      return ""; // URI de imagem padrão ou vazia
     }
   };
 
@@ -258,15 +215,30 @@ const PedidosScreen = () => {
 
   const itemWidth = screenWidth / numColumns - wp("4%");
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item, index }) => {
     const badgeCount =
       cartItems.find((cartItem) => cartItem.id === item.id)?.quantity || 0;
+
+    const itemHeight = itemHeights[Math.floor(index / numColumns)] || null;
+
     return (
       <Item
         item={item}
         itemWidth={itemWidth}
         handleAddToCart={handleAddToCart}
         badgeCount={badgeCount}
+        itemHeight={itemHeight}
+        onLayout={(event) => {
+          const { height } = event.nativeEvent.layout;
+          const row = Math.floor(index / numColumns);
+          setItemHeights((prevHeights) => {
+            const newHeights = { ...prevHeights };
+            if (!newHeights[row] || height > newHeights[row]) {
+              newHeights[row] = height;
+            }
+            return newHeights;
+          });
+        }}
       />
     );
   };
@@ -303,28 +275,28 @@ const PedidosScreen = () => {
           <Ionicons name="cart-outline" size={24} color={COLORS.accent} />
           {cartItems.length > 0 && (
             <View style={[styles.badge, { backgroundColor: COLORS.accent }]}>
-              <Text style={[styles.badgeText, { color: COLORS.text }]}>
-                {cartItems.length}
-              </Text>
+              <Text style={styles.badgeText}>{cartItems.length}</Text>
             </View>
           )}
         </Pressable>
       </View>
       <FlatList
+        contentContainerStyle={styles.listContentContainer}
         data={filteredItems}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         numColumns={numColumns}
       />
       <Modal
-        visible={visibleModal}
+        animationType="slide"
         transparent={true}
-        onRequestClose={handleBackModal}
+        visible={visibleModal}
+        onRequestClose={handleCloseModal}
       >
         <ActionModal
           handleClose={handleCloseModal}
-          handleBack={handleBackModal}
           handleConfirm={handleConfirmOrder}
+          handleBack={handleBackModal}
           cartItems={cartItems}
         />
       </Modal>
@@ -376,13 +348,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
     padding: wp("4%"),
-    position: "relative", // Para badges ficarem posicionados corretamente
-  },
-  image: {
-    width: wp("25%"),
-    height: wp("25%"),
-    resizeMode: "cover",
-    marginBottom: hp("1%"),
+    position: "relative",
+    minHeight: 100,
   },
   badge: {
     borderRadius: 9,
@@ -420,6 +387,10 @@ const styles = StyleSheet.create({
   itemPreco: {
     fontSize: wp("3%"),
     textAlign: "center",
+    marginBottom: hp("1%"),
+  },
+  listContentContainer: {
+    flexGrow: 1,
   },
 });
 

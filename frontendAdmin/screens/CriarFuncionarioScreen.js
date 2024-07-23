@@ -69,11 +69,7 @@ const CriarFuncionarioScreen = () => {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons
-            name={"arrow-back-outline"}
-            size={24}
-            color={COLORS.accent}
-          />
+          <Ionicons name={"return-down-back"} size={24} color={COLORS.accent} />
         </Pressable>
       </View>
 

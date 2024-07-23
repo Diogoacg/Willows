@@ -101,9 +101,9 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
       <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
         <Pressable style={styles.button} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back-outline" size={24} color={COLORS.accent} />
+          <Ionicons name="return-down-back" size={24} color={COLORS.accent} />
         </Pressable>
-      <Text style={[styles.headerTitle, { color: COLORS.text }]}>
+        <Text style={[styles.headerTitle, { color: COLORS.text }]}>
           Detalhes do Funcionário
         </Text>
       </View>
