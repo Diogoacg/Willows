@@ -131,14 +131,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: wp("4%"),
   },
   listContainer: {
-    paddingBottom: 20,
+    paddingBottom: hp('2.5%'),
   },
   card: {
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 10,
-    marginTop: 10,
-    marginBottom: 10,
+    borderRadius: wp('2%'),
+    borderWidth: wp('0.2%'),
+    padding: wp('2.5%'),
+    marginTop: hp('1%'),
+    marginBottom: hp('1.5%'),
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -149,16 +149,15 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: wp('4.4%'),
     fontWeight: "bold",
-    marginBottom: 5,
     marginTop: wp("-9%"),
     marginBottom: wp("3%"),
     bottom: wp("-10%"),
   },
   cardDetail: {
-    fontSize: 16,
-    marginBottom: 10,
+    fontSize: wp('4%'),
+    marginBottom: hp('1.5%'),
     bottom: wp("-8%"),
   },
   itemContainer: {
@@ -167,22 +166,22 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   items: {
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: wp('3.7%'),
+    marginBottom: hp('0.65%'),
   },
   button: {
-    padding: 10,
-    borderRadius: 8,
+    padding: wp('3%'),
+    borderRadius: wp('2%'),
     alignItems: "center",
     borderColor: "#000",
-    borderWidth: 1,
+    borderWidth: wp('0.2%'),
     top: wp("0.75%"),
   },
   buttonText: {
     fontWeight: "bold",
     color: "#000",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: wp('4%'),
   },
 });
 

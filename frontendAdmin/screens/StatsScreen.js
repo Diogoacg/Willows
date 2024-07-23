@@ -4,9 +4,7 @@ import {
   Text,
   ActivityIndicator,
   StyleSheet,
-  Dimensions,
   ScrollView,
-  Pressable,
 } from "react-native";
 import {
   obterLucro,
@@ -18,7 +16,6 @@ import DoughnutChart from "../components/DoughnutChart";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { colors } from "../config/theme";
 import { useTheme } from "../ThemeContext";
-import Ionicons from "react-native-vector-icons/Ionicons";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -189,73 +186,58 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    paddingHorizontal: wp("4%"),
-    paddingVertical: hp("2%"),
-    borderBottomWidth: 1,
-    marginTop: hp("3%"),
-  },
-  button: {
-    padding: wp(0),
-  },
-  headerTitle: {
-    fontSize: wp(5),
-    marginLeft: wp(2),
-  },
   scrollContainer: {
     flexGrow: 1,
     alignItems: "center",
-    padding: wp(4),
+    padding: wp('4%'),
   },
   cardsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    marginTop: hp(3),
+    marginTop: hp('3%'),
     flexWrap: "wrap",
   },
   card: {
-    padding: wp(4),
-    borderRadius: wp(2),
-    borderWidth: 1,
+    padding: wp('4%'),
+    borderRadius: wp('2%'),
+    borderWidth: wp('0.2%'),
     elevation: 3,
-    width: wp(28),
-    margin: wp(1),
+    width: wp('28%'),
+    margin: wp('1%'),
     alignItems: "center",
   },
   cardTitle: {
-    fontSize: wp(4),
+    fontSize: wp('4%'),
     fontWeight: "bold",
   },
   cardValue: {
-    fontSize: wp(3.5),
-    marginTop: hp(1),
+    fontSize: wp('3.5%'),
+    marginTop: hp('1%'),
   },
   rankingContainer: {
-    marginTop: hp(4),
+    marginTop: hp('4%'),
     width: "100%",
-    padding: wp(4),
-    borderRadius: wp(2),
-    borderWidth: 1,
+    padding: wp('4%'),
+    borderRadius: wp('2%'),
+    borderWidth: wp('0.2%'),
     elevation: 3,
   },
   rankingTitle: {
-    fontSize: wp(5),
+    fontSize: wp('5%'),
     fontWeight: "bold",
-    marginBottom: hp(2),
+    marginBottom: hp('2%'),
   },
   rankingCard: {
-    paddingVertical: hp(1.5),
-    borderBottomWidth: 1,
+    paddingVertical: hp('1.5%'),
+    borderBottomWidth: wp('0.5%'),
   },
   rankingCardTitle: {
-    fontSize: wp(4),
+    fontSize: wp('4%'),
   },
   rankingCardValue: {
-    fontSize: wp(3.5),
-    marginTop: hp(0.5),
+    fontSize: wp('3.5%'),
+    marginTop: hp('0.5%'),
   },
 });
 

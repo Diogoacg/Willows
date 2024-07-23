@@ -261,9 +261,9 @@ const styles = StyleSheet.create({
   itemContainer: {
     borderRadius: 8,
     borderWidth: 1,
-    padding: 10,
-    marginTop: 10,
-    marginBottom: 10,
+    padding: wp('2.5%'),
+    marginTop: hp('1%'),
+    marginBottom: hp('1%'),
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -277,36 +277,36 @@ const styles = StyleSheet.create({
   },
   button: {
     width: "100%",
-    borderRadius: 25,
+    borderRadius: wp('6%'),
   },
   card: {
     width: "100%",
-    borderRadius: 8,
-    padding: 15,
+    borderRadius: wp('2%'),
+    padding: wp('3.4%'),
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: hp('1%'),
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: wp('4%'),
     fontWeight: "bold",
     flex: 1,
   },
   cardDetail: {
-    fontSize: 14,
-    marginBottom: 5,
+    fontSize: wp('3.5%'),
+    marginBottom: hp('0.5%'),
   },
   deleteButton: {
-    padding: 8,
-    borderRadius: 8,
-    marginLeft: 10,
+    padding: wp('2%'),
+    borderRadius: wp('2%'),
+    marginLeft: wp('2%'),
   },
   editButton: {
-    padding: 8,
-    borderRadius: 8,
+    padding: wp('2%'),
+    borderRadius: wp('2%'),
   },
   createButton: {
     marginLeft: "auto",

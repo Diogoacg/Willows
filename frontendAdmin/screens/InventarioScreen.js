@@ -5,7 +5,6 @@ import {
   View,
   Pressable,
   StyleSheet,
-  Dimensions,
   Animated,
   TextInput,
 } from "react-native";
@@ -243,6 +242,8 @@ const InventarioScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingHorizontal: wp('1.6%'),
+    paddingTop: hp('1.32%'),
   },
   header: {
     flexDirection: "row",
@@ -254,8 +255,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: wp('2%'),
+    borderWidth: wp('0.2%'),
     paddingHorizontal: wp("2%"),
   },
   searchInput: {
@@ -264,11 +265,11 @@ const styles = StyleSheet.create({
     marginLeft: wp("1%"),
   },
   itemContainer: {
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 10,
-    marginTop: 10,
-    marginBottom: 10,
+    borderRadius: wp('2%'),
+    borderWidth: wp('0.2%'),
+    padding: wp('2.5%'),
+    marginTop: hp('1%'),
+    marginBottom: hp('1%'),
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -282,49 +283,42 @@ const styles = StyleSheet.create({
   },
   button: {
     width: "100%",
-    borderRadius: 25,
+    borderRadius: wp('6%'),
   },
   card: {
     width: "100%",
-    borderRadius: 8,
-    padding: 15,
+    borderRadius: wp('2%'),
+    padding: wp('3.8%'),
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: hp('1%'),
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: wp('4%'),
     fontWeight: "bold",
     flex: 1,
   },
   cardDetail: {
-    fontSize: 14,
-    marginBottom: 5,
+    fontSize: wp('3.5%'),
+    marginBottom: hp('0.5%'),
   },
   deleteButton: {
-    padding: 8,
-    borderRadius: 8,
-    marginLeft: 10,
+    padding: wp('2%'),
+    borderRadius: wp('2%'),
+    marginLeft: wp('2%'),
   },
   editButton: {
-    padding: 8,
-    borderRadius: 8,
+    padding: wp('2%'),
+    borderRadius: wp('2%'),
   },
   createButton: {
     marginLeft: "auto",
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("3%"),
-  },
-  backButton: {
-    marginRight: wp("2%"),
-  },
-  containerAdd: {
-    marginLeft: "auto",
-    justifyContent: "flex-end",
   },
   buttonAnimated: {
     width: "100%",

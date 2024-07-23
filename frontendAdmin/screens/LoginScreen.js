@@ -182,14 +182,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
+    marginBottom: hp('1%'),
   },
   input: {
     flex: 1,
     height: hp("7%"),
     marginVertical: hp("1%"),
-    borderWidth: 1,
+    borderWidth: wp('0.2%'),
     padding: wp("2.5%"),
-    borderRadius: 5,
+    borderRadius: wp('1%'),
   },
   phoneIcon: {
     position: "absolute",
@@ -202,13 +203,13 @@ const styles = StyleSheet.create({
     padding: wp("2.5%"),
   },
   button: {
-    borderRadius: 25,
+    borderRadius: wp('6%'),
     paddingVertical: hp("2%"),
     paddingHorizontal: wp("6%"),
     alignItems: "center",
     marginTop: hp("2.5%"),
     width: "100%",
-    borderWidth: 1,
+    borderWidth: wp('0.2%'),
   },
   buttonText: {
     color: "#000",
