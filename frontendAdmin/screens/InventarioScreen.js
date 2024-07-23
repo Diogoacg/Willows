@@ -194,7 +194,7 @@ const InventarioScreen = () => {
               </View>
             </View>
             <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-              Preço: {item.preco}
+              Preço: {item.preco} €
             </Text>
           </View>
         </Pressable>

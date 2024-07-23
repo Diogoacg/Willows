@@ -1,21 +1,22 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   View,
   Text,
   TextInput,
   Pressable,
   StyleSheet,
-  Dimensions,
+  Animated,
 } from "react-native";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 import { useNavigation } from "@react-navigation/native";
 import { registarNovoUtilizador } from "../api/apiAuth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
-
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
 
 const CriarFuncionarioScreen = () => {
   const [username, setUsername] = useState("");
@@ -24,12 +25,30 @@ const CriarFuncionarioScreen = () => {
   const [role, setRole] = useState("");
   const navigation = useNavigation();
   const { isDarkMode, toggleTheme } = useTheme();
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   const styles = useMemo(() => createStyles(COLORS), [COLORS]);
 
+  const animateScaleIn = () => {
+    Animated.timing(scaleValue, {
+      toValue: 0.9,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const animateScaleOut = () => {
+    Animated.timing(scaleValue, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handleCreateUser = async () => {
+    animateScaleIn();
     const token = await AsyncStorage.getItem("token");
     try {
       await registarNovoUtilizador(token, username, email, password, role);
@@ -38,6 +57,8 @@ const CriarFuncionarioScreen = () => {
     } catch (error) {
       console.error("Erro ao criar funcionário:", error.message);
       alert("Falha ao criar funcionário.");
+    } finally {
+      animateScaleOut();
     }
   };
 
@@ -88,9 +109,11 @@ const CriarFuncionarioScreen = () => {
           value={role}
           onChangeText={setRole}
         />
-        <Pressable style={styles.button} onPress={handleCreateUser}>
-          <Text style={styles.buttonText}>Criar Funcionário</Text>
-        </Pressable>
+        <Animated.View style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}>
+          <Pressable style={styles.button} onPress={handleCreateUser}>
+            <Text style={styles.buttonText}>Criar Funcionário</Text>
+          </Pressable>
+        </Animated.View>
       </View>
     </View>
   );
@@ -99,55 +122,59 @@ const CriarFuncionarioScreen = () => {
 const createStyles = (COLORS) =>
   StyleSheet.create({
     container: {
-      paddingTop: (screenHeight * 0.1) / 2,
+      paddingTop: hp("5%"),
       flex: 1,
       backgroundColor: COLORS.primary,
     },
     header: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 20,
-      paddingVertical: 10,
+      paddingHorizontal: hp("2%"),
+      paddingVertical: hp("1%"),
       borderBottomWidth: 1,
       borderBottomColor: COLORS.neutral,
     },
     backButton: {
-      marginRight: 10,
+      marginRight: wp("2%"),
     },
     formContainer: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      padding: 20,
+      padding: hp("2%"),
     },
     title: {
       color: COLORS.text,
-      fontSize: 24,
+      fontSize: wp("6%"),
       fontWeight: "bold",
-      marginBottom: 20,
+      marginBottom: hp("3%"),
     },
     input: {
       color: COLORS.text,
-      width: screenWidth * 0.8,
-      height: 50,
+      width: wp("80%"),
+      height: hp("5.75%"),
       borderColor: COLORS.neutral,
       borderWidth: 1,
       borderRadius: 5,
-      marginBottom: 20,
-      paddingHorizontal: 10,
+      marginBottom: hp("2.65%"),
+      paddingHorizontal: wp("2.5%"),
       backgroundColor: COLORS.secondary,
     },
     button: {
-      width: screenWidth * 0.8,
+      width: wp("80%"),
       backgroundColor: COLORS.accent,
-      padding: 15,
-      borderRadius: 25,
+      padding: hp("2%"),
+      borderRadius: wp("6%"),
       alignItems: "center",
     },
     buttonText: {
       color: "#000",
-      fontSize: 18,
+      fontSize: wp("4.25%"),
       fontWeight: "bold",
+    },
+    buttonAnimated: {
+      width: "100%",
+      alignItems: "center",
     },
   });
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -7,29 +7,49 @@ import {
   StyleSheet,
   Dimensions,
   Alert,
+  Animated,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { criarNovoItem } from "../api/apiInventory";
-
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
 
 const CriarItemScreen = () => {
   const [nome, setNome] = useState("");
   const [preco, setPreco] = useState("");
   const navigation = useNavigation();
   const { isDarkMode } = useTheme();
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   const styles = useMemo(() => createStyles(COLORS), [COLORS]);
 
+  const animateScaleIn = () => {
+    Animated.timing(scaleValue, {
+      toValue: 0.9,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const animateScaleOut = () => {
+    Animated.timing(scaleValue, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handleCreateItem = async () => {
+    animateScaleIn();
     const token = await AsyncStorage.getItem("token");
     try {
       await criarNovoItem(token, nome, preco);
@@ -37,6 +57,8 @@ const CriarItemScreen = () => {
       navigation.goBack();
     } catch (error) {
       Alert.alert("Erro ao adicionar item", error.message);
+    } finally {
+      animateScaleOut();
     }
   };
 
@@ -72,9 +94,11 @@ const CriarItemScreen = () => {
           onChangeText={setPreco}
           keyboardType="numeric"
         />
-        <Pressable style={styles.button} onPress={handleCreateItem}>
-          <Text style={styles.buttonText}>Adicionar Item</Text>
-        </Pressable>
+        <Animated.View style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}>
+          <Pressable style={styles.button} onPress={handleCreateItem}>
+            <Text style={styles.buttonText}>Adicionar Item</Text>
+          </Pressable>
+        </Animated.View>
       </View>
     </View>
   );
@@ -83,55 +107,59 @@ const CriarItemScreen = () => {
 const createStyles = (COLORS) =>
   StyleSheet.create({
     container: {
-      paddingTop: (screenHeight * 0.1) / 2,
+      paddingTop: hp("5%"),
       flex: 1,
       backgroundColor: COLORS.primary,
     },
     header: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 20,
-      paddingVertical: 10,
+      paddingHorizontal: wp("5%"),
+      paddingVertical: hp("1%"),
       borderBottomWidth: 1,
       borderBottomColor: COLORS.neutral,
     },
     backButton: {
-      marginRight: 10,
+      marginRight: wp("2.5%"),
     },
     formContainer: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      padding: 20,
+      padding: wp("5%"),
     },
     title: {
       color: COLORS.text,
-      fontSize: 24,
+      fontSize: wp("5.82%"),
       fontWeight: "bold",
-      marginBottom: 20,
+      marginBottom: hp("2.5%"),
     },
     input: {
       color: COLORS.text,
-      width: screenWidth * 0.8,
-      height: 50,
+      width: wp("80%"),
+      height: hp("6.1%"),
       borderColor: COLORS.neutral,
       borderWidth: 1,
       borderRadius: 5,
-      marginBottom: 20,
-      paddingHorizontal: 10,
+      marginBottom: hp("2.5%"),
+      paddingHorizontal: wp("2.5%"),
       backgroundColor: COLORS.secondary,
     },
     button: {
-      width: screenWidth * 0.8,
+      width: wp("80%"),
       backgroundColor: COLORS.accent,
-      padding: 15,
-      borderRadius: 25,
+      padding: hp("2%"),
+      borderRadius: wp("6%"),
       alignItems: "center",
     },
     buttonText: {
       color: "#000",
-      fontSize: 18,
+      fontSize: wp("4.3%"),
       fontWeight: "bold",
+    },
+    buttonAnimated: {
+      width: "100%",
+      alignItems: "center",
     },
   });
 

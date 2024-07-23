@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,14 @@ import {
   StyleSheet,
   Dimensions,
   Alert,
+  Animated,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 import { atualizarInformacoesDoUsuario } from "../api/apiAuth";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useTheme } from "../ThemeContext";
@@ -25,6 +30,7 @@ const EditaFuncionarioScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { user } = route.params;
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -38,7 +44,24 @@ const EditaFuncionarioScreen = () => {
     }
   }, [user]);
 
+  const animateScaleIn = () => {
+    Animated.timing(scaleValue, {
+      toValue: 0.9,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const animateScaleOut = () => {
+    Animated.timing(scaleValue, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handleSave = async () => {
+    animateScaleIn();
     const token = await AsyncStorage.getItem("token");
     try {
       const userData = {
@@ -54,6 +77,8 @@ const EditaFuncionarioScreen = () => {
     } catch (error) {
       console.error("Erro ao atualizar funcionário:", error.message);
       Alert.alert("Erro", "Falha ao atualizar funcionário.");
+    } finally {
+      animateScaleOut();
     }
   };
 
@@ -115,12 +140,14 @@ const EditaFuncionarioScreen = () => {
           value={role}
           onChangeText={setRole}
         />
+        <Animated.View style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}>
         <Pressable
           style={[styles.saveButton, { backgroundColor: COLORS.accent }]}
           onPress={handleSave}
         >
           <Text style={styles.saveButtonText}>Salvar</Text>
         </Pressable>
+        </Animated.View>
       </View>
     </View>
   );
@@ -129,44 +156,44 @@ const EditaFuncionarioScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: (screenHeight * 0.1) / 2,
-    paddingHorizontal: 10,
+    paddingTop: hp('5%'),
+    paddingHorizontal: wp('2.5%'),
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingHorizontal: wp('2.5%'),
+    paddingVertical: hp('1.25%'),
     borderBottomWidth: 1,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: wp('4.5%'),
     fontWeight: "bold",
-    marginLeft: 10,
+    marginLeft: wp('2.5%'),
   },
   backButton: {
-    marginRight: 10,
+    marginRight: wp('2.5%'),
   },
   form: {
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: wp('5%'),
   },
   input: {
-    height: 50,
+    height: hp('5.95%'),
     borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 20,
-    fontSize: 16,
+    paddingHorizontal: wp('3.75%'),
+    marginBottom: hp('2.5%'),
+    fontSize: wp('3.85%'),
   },
   saveButton: {
-    padding: 15,
+    padding: hp('2%'),
     borderRadius: 8,
     alignItems: "center",
   },
   saveButtonText: {
     color: "#FFF",
-    fontSize: 16,
+    fontSize: wp('4%'),
     fontWeight: "bold",
   },
 });
