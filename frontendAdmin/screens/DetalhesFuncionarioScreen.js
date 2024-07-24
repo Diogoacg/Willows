@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Dimensions,
   Pressable,
-  Animated,
+  ActivityIndicator,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { obterInformacoesDoUtilizador } from "../api/apiAuth";
@@ -34,6 +34,8 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const { isDarkMode } = useTheme();
+  const [loading1, setLoading1] = useState(true);
+  const [loading2, setLoading2] = useState(true);
 
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
@@ -54,6 +56,8 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
       );
       setModalVisible(true);
       console.error("Erro ao buscar informações do utilizador:", error.message);
+    } finally {
+      setLoading1(false);
     }
   };
 
@@ -77,18 +81,10 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
         "Erro ao buscar estatísticas do utilizador:",
         error.message
       );
+    } finally {
+      setLoading2(false);
     }
   };
-
-  if (!userDetails || !userStatistics) {
-    return (
-      <View
-        style={[styles.loadingContainer, { backgroundColor: COLORS.primary }]}
-      >
-        <Text style={{ color: COLORS.text }}>Carregando...</Text>
-      </View>
-    );
-  }
 
   const Card = ({ title, value }) => (
     <View
@@ -112,6 +108,16 @@ const DetalhesFuncionarioScreen = ({ navigation }) => {
       <Text style={[styles.cardTitle, { color: COLORS.text }]}>{value}</Text>
     </View>
   );
+
+  if (loading1 && loading2 || !userDetails || !userStatistics) {
+    return (
+      <View
+        style={styles.loadingContainer}
+      >
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
@@ -210,6 +216,11 @@ const styles = StyleSheet.create({
   cardValue: {
     fontSize: wp(3.5),
     marginTop: hp(0.5),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

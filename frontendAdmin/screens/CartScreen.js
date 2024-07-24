@@ -36,7 +36,7 @@ const CartScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
-  const [modalAction, setModalAction] = useState(null); // Nova ação do modal
+  const [modalAction, setModalAction] = useState(null);
 
   useEffect(() => {
     const initialScaleValues = {};
@@ -266,66 +266,65 @@ const styles = StyleSheet.create({
     marginRight: wp("2%"),
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: wp("5%"),
     fontWeight: "bold",
     marginLeft: wp("2%"),
   },
   itemContainer: {
-    borderRadius: 8,
+    borderRadius: wp("2%"),
     borderWidth: 1,
-    padding: 10,
-    marginTop: 10,
-    marginBottom: 10,
+    padding: wp("2.5%"),
+    marginTop: wp("2.5%"),
+    marginBottom: wp("2.5%"),
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: hp("0.25%"),
     },
     shadowOpacity: 0.23,
-    shadowRadius: 2.62,
+    shadowRadius: wp("1%"),
     elevation: 3,
     marginLeft: wp("4%"),
     marginRight: wp("4%"),
   },
   button: {
     width: "100%",
-    borderRadius: 25,
+    borderRadius: wp("6%"),
   },
   card: {
     width: "100%",
-    borderRadius: 8,
-    padding: 15,
+    borderRadius: wp("2%"),
+    padding: wp("3.75%"),
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: wp("2.5%"),
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: wp("3.85%"),
     fontWeight: "bold",
     flex: 1,
   },
   cardDetail: {
-    fontSize: 14,
-    marginBottom: 5,
+    fontSize: wp("3.38%"),
+    marginBottom: wp("1.25%"),
   },
   incrementButton: {
-    padding: 8,
-    borderRadius: 8,
-    marginLeft: 10,
+    padding: wp("2%"),
+    borderRadius: wp("2%"),
+    marginLeft: wp("2.5%"),
   },
   decrementButton: {
-    padding: 8,
-    borderRadius: 8,
+    padding: wp("2%"),
+    borderRadius: wp("2%"),
   },
-
   itemQuantity: {
     alignSelf: "center",
-    fontSize: 16,
+    fontSize: wp("4%"),
     fontWeight: "bold",
-    marginHorizontal: 10,
+    marginHorizontal: wp("2.5%"),
   },
   cardActions: {
     flexDirection: "row",
@@ -333,17 +332,17 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    padding: 16,
+    padding: wp("4%"),
     borderTopWidth: 1,
   },
   footerButton: {
-    borderRadius: 8,
+    borderRadius: wp("2%"),
     borderWidth: 1,
-    padding: 10,
+    padding: wp("2.5%"),
   },
   footerButtonText: {
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: wp("4%"),
   },
   buttonAnimated: {
     width: "100%",
