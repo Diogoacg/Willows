@@ -8,6 +8,7 @@ import {
   Pressable,
   Switch,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import axios from "axios";
 import { REACT_APP_AUTH_URL } from "@env";
@@ -34,10 +35,12 @@ const LoginScreen = ({ onLogin }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   useEffect(() => {
+    setLoading(false);
     const socket = io(socketUrl);
     setSocket(socket);
 
@@ -93,6 +96,12 @@ const LoginScreen = ({ onLogin }) => {
       animateScaleOut();
     }
   };
+
+  if (loading) {
+    return <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.accent} />
+          </View>;
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
@@ -239,6 +248,11 @@ const styles = StyleSheet.create({
   },
   buttonAnimated: {
     width: "100%",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

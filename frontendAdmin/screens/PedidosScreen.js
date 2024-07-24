@@ -8,6 +8,7 @@ import {
   TextInput,
   Animated,
   useWindowDimensions,
+  ActivityIndicator,
   Alert,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
@@ -115,6 +116,7 @@ const PedidosScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
+  const [loading, setLoading] = useState(true);
 
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -158,6 +160,8 @@ const PedidosScreen = () => {
       setModalMessage("Erro ao obter itens do inventário: " + error.message);
       setModalVisible(true);
       console.error("Erro ao buscar itens do inventário:", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -184,6 +188,12 @@ const PedidosScreen = () => {
   const handleAddToCart = (item) => {
     dispatch(addToCart(item));
   };
+
+  if (loading) {
+    return <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.accent} />
+          </View>;
+  }
 
   const itemWidth = screenWidth / numColumns - wp("4%");
 
@@ -356,6 +366,11 @@ const styles = StyleSheet.create({
   },
   listContentContainer: {
     flexGrow: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

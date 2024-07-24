@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Animated,
   TextInput,
+  ActivityIndicator,
   Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -34,6 +35,7 @@ const InventarioScreen = () => {
   const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
   const [scaleValues, setScaleValues] = useState({});
+  const [loading, setLoading] = useState(true);
 
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -82,6 +84,8 @@ const InventarioScreen = () => {
       setModalMessage("Erro ao obter itens do inventário: " + error.message);
       setModalVisible(true);
       console.error("Erro ao buscar itens:", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -148,6 +152,12 @@ const InventarioScreen = () => {
       setFilteredItems(items);
     }
   };
+
+  if (loading) {
+    return <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.accent} />
+          </View>;
+  }
 
   const renderItem = ({ item }) => (
     <Animated.View
@@ -338,6 +348,11 @@ const styles = StyleSheet.create({
   },
   buttonAnimated: {
     width: "100%",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

@@ -89,7 +89,9 @@ const StatsScreen = ({ navigation }) => {
   }, []);
 
   if (loading) {
-    return <ActivityIndicator size="large" color={COLORS.accent} />;
+    return <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.accent} />
+          </View>;
   }
 
   const doughnutData = (data.ordersPerItem || []).slice(0, 5).concat(
@@ -245,6 +247,11 @@ const styles = StyleSheet.create({
   rankingCardValue: {
     fontSize: wp("3.5%"),
     marginTop: hp("0.5%"),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
