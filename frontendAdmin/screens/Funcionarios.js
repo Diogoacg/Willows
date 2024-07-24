@@ -5,10 +5,9 @@ import {
   View,
   Pressable,
   StyleSheet,
-  Dimensions,
   Animated,
   TextInput,
-  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -31,6 +30,7 @@ const FuncionariosScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const navigation = useNavigation();
 
@@ -83,6 +83,8 @@ const FuncionariosScreen = () => {
       setModalMessage("Erro ao obter utilizadores: " + error.message);
       setModalVisible(true);
       console.error("Erro ao buscar logins:", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -149,6 +151,14 @@ const FuncionariosScreen = () => {
       useNativeDriver: true,
     }).start();
   };
+
+  if(loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  }
 
   const renderLogin = ({ item }) => (
     <Animated.View
@@ -333,18 +343,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: wp("3%"),
   },
-  backButton: {
-    marginRight: wp("2%"),
-  },
-  containerAdd: {
-    marginLeft: "auto",
-    justifyContent: "flex-end",
-  },
   buttonAnimated: {
     width: "100%",
   },
   cardActions: {
     flexDirection: "row",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
   Pressable,
   ActivityIndicator,
 } from "react-native";
@@ -22,8 +21,6 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import { colors } from "../config/theme";
 import { useTheme } from "../ThemeContext";
 import CustomAlertModal from "../components/CustomAlertModal";
-const screenWidth = Dimensions.get("window").width;
-const screenHeight = Dimensions.get("window").height;
 
 const DetalhesFuncionarioScreen = ({ navigation }) => {
   const route = useRoute();

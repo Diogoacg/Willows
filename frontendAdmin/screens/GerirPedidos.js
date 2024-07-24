@@ -5,7 +5,7 @@ import {
   Pressable,
   FlatList,
   StyleSheet,
-  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -30,6 +30,7 @@ const GerirPedidos = () => {
   const navigation = useNavigation();
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchPedidos();
@@ -66,6 +67,8 @@ const GerirPedidos = () => {
       setModalMessage("Erro ao obter pedidos: " + error.message);
       setModalVisible(true);
       console.error("Erro ao buscar pedidos:", error.message);
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -86,6 +89,14 @@ const GerirPedidos = () => {
       console.error("Erro ao mudar estado do pedido:", error.message);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  }
 
   const renderItem = ({ item }) => (
     <View
@@ -196,6 +207,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#000",
     fontSize: wp("4%"),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
