@@ -28,13 +28,12 @@ const ConfirmDeleteModal = ({ visible, onClose, onConfirm }) => {
             color={COLORS.accent}
           />
           <Text style={[styles.modalText, { color: COLORS.text }]}>
-            Tem certeza que deseja apagar este funcionário?
+            Tem a certeza de que pretende continuar?
           </Text>
           <View style={styles.buttonContainer}>
             <Pressable
               style={[
                 styles.button,
-                styles.buttonConfirm,
                 { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
               ]}
               onPress={onConfirm}
@@ -46,7 +45,6 @@ const ConfirmDeleteModal = ({ visible, onClose, onConfirm }) => {
             <Pressable
               style={[
                 styles.button,
-                styles.buttonClose,
                 {
                   backgroundColor: COLORS.neutral,
                   borderColor: COLORS.accent,
@@ -70,7 +68,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalView: {
     margin: 20,
@@ -98,12 +95,6 @@ const styles = StyleSheet.create({
     elevation: 2,
     marginHorizontal: 10,
     borderWidth: 1,
-  },
-  buttonClose: {
-    backgroundColor: "#2196F3",
-  },
-  buttonConfirm: {
-    backgroundColor: "red",
   },
   textStyle: {
     color: "white",
