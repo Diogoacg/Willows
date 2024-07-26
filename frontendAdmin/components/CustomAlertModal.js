@@ -10,7 +10,7 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { useTheme } from "../ThemeContext"; // Certifique-se de que o caminho está correto
+import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import * as NavigationBar from "expo-navigation-bar";
 
@@ -29,7 +29,10 @@ const CustomAlertModal = ({ visible, onClose, title, message }) => {
         style={[styles.modalContainer, { backgroundColor: COLORS.overlay }]}
       >
         <View
-          style={[styles.modalContent, { backgroundColor: COLORS.secondary }]}
+          style={[
+            styles.modalContent,
+            { backgroundColor: COLORS.secondary, borderColor: COLORS.accent },
+          ]}
         >
           <Text style={[styles.title, { color: COLORS.text }]}>{title}</Text>
           <Text style={[styles.message, { color: COLORS.text }]}>
@@ -60,6 +63,7 @@ const styles = StyleSheet.create({
     width: "80%",
     padding: 20,
     borderRadius: 10,
+    borderWidth: 1,
     elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

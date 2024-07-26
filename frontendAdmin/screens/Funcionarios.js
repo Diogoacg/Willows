@@ -21,6 +21,7 @@ import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
+import ConfirmDeleteModal from "../components/ConfirmationModal";
 
 const FuncionariosScreen = () => {
   const [logins, setLogins] = useState([]);
@@ -31,6 +32,8 @@ const FuncionariosScreen = () => {
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
   const navigation = useNavigation();
 
@@ -108,10 +111,15 @@ const FuncionariosScreen = () => {
     }
   };
 
-  const handleDeleteUser = async (userId) => {
+  const handleDeleteUser = (userId) => {
+    setSelectedUserId(userId);
+    setConfirmDeleteVisible(true);
+  };
+
+  const confirmDeleteUser = async () => {
     const token = await AsyncStorage.getItem("token");
     try {
-      await deleteUser(token, userId);
+      await deleteUser(token, selectedUserId);
       fetchLogins();
       setModalTitle("Sucesso");
       setModalMessage("Utilizador eliminado com sucesso!");
@@ -121,6 +129,9 @@ const FuncionariosScreen = () => {
       setModalTitle("Erro");
       setModalMessage("Erro ao eliminar utilizador: " + error.message);
       setModalVisible(true);
+    } finally {
+      setConfirmDeleteVisible(false);
+      setSelectedUserId(null);
     }
   };
 
@@ -152,7 +163,7 @@ const FuncionariosScreen = () => {
     }).start();
   };
 
-  if(loading) {
+  if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.accent} />
@@ -259,6 +270,12 @@ const FuncionariosScreen = () => {
         onClose={() => setModalVisible(false)}
         title={modalTitle}
         message={modalMessage}
+      />
+
+      <ConfirmDeleteModal
+        visible={confirmDeleteVisible}
+        onClose={() => setConfirmDeleteVisible(false)}
+        onConfirm={confirmDeleteUser}
       />
     </View>
   );

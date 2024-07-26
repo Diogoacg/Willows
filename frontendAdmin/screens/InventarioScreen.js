@@ -25,6 +25,7 @@ import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal"; // Atualize o caminho conforme necessário
+import ConfirmDeleteModal from "../components/ConfirmationModal"; // Atualize o caminho conforme necessário
 
 const InventarioScreen = () => {
   const [items, setItems] = useState([]);
@@ -33,10 +34,10 @@ const InventarioScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
-  const navigation = useNavigation();
-  const [scaleValues, setScaleValues] = useState({});
+  const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const navigation = useNavigation();
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
@@ -74,11 +75,6 @@ const InventarioScreen = () => {
       const itemsData = await obterItensDoInventario(token);
       setItems(itemsData);
       setFilteredItems(itemsData);
-      const initialScaleValues = {};
-      itemsData.forEach((item) => {
-        initialScaleValues[item.id] = new Animated.Value(1);
-      });
-      setScaleValues(initialScaleValues);
     } catch (error) {
       setModalTitle("Erro");
       setModalMessage("Erro ao obter itens do inventário: " + error.message);
@@ -89,10 +85,15 @@ const InventarioScreen = () => {
     }
   };
 
-  const handleDeleteItem = async (itemId) => {
+  const handleDeleteItem = (itemId) => {
+    setSelectedItemId(itemId);
+    setConfirmDeleteVisible(true);
+  };
+
+  const confirmDeleteItem = async () => {
     const token = await AsyncStorage.getItem("token");
     try {
-      await deletarItemDoInventario(token, itemId);
+      await deletarItemDoInventario(token, selectedItemId);
       fetchItems();
       setModalTitle("Sucesso");
       setModalMessage("Item eliminado com sucesso!");
@@ -102,6 +103,9 @@ const InventarioScreen = () => {
       setModalMessage("Erro ao eliminar item: " + error.message);
       setModalVisible(true);
       console.error("Erro ao eliminar item:", error.message);
+    } finally {
+      setConfirmDeleteVisible(false);
+      setSelectedItemId(null);
     }
   };
 
@@ -115,22 +119,6 @@ const InventarioScreen = () => {
 
   const handleCreateItem = () => {
     navigation.navigate("CriarItem");
-  };
-
-  const animateScaleIn = (scaleValue) => {
-    Animated.timing(scaleValue, {
-      toValue: 0.9,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const animateScaleOut = (scaleValue) => {
-    Animated.timing(scaleValue, {
-      toValue: 1,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
   };
 
   const handleSearch = (text) => {
@@ -154,71 +142,57 @@ const InventarioScreen = () => {
   };
 
   if (loading) {
-    return <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.accent} />
-          </View>;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
   }
 
   const renderItem = ({ item }) => (
-    <Animated.View
+    <View
       style={[
-        styles.buttonAnimated,
+        styles.itemContainer,
         {
-          transform: [{ scale: scaleValues[item.id] || new Animated.Value(1) }],
+          backgroundColor: COLORS.secondary,
+          borderColor: COLORS.neutral,
+          shadowColor: COLORS.neutral,
         },
       ]}
     >
-      <View
-        style={[
-          styles.itemContainer,
-          {
-            backgroundColor: COLORS.secondary,
-            borderColor: COLORS.neutral,
-            shadowColor: COLORS.neutral,
-          },
-        ]}
-      >
-        <Pressable
-          style={styles.button}
-          onPress={() => handleViewDetails(item.id)}
-          onPressIn={() => animateScaleIn(scaleValues[item.id])}
-          onPressOut={() => animateScaleOut(scaleValues[item.id])}
-        >
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={[styles.cardTitle, { color: COLORS.text }]}>
-                Item: {item.nome}
-              </Text>
-              <View style={{ flexDirection: "row" }}>
-                <Pressable
-                  style={styles.editButton}
-                  onPress={() => handleEditItem(item)}
-                >
-                  <Ionicons
-                    name={"pencil-outline"}
-                    size={22}
-                    color={COLORS.accent}
-                  />
-                </Pressable>
-                <Pressable
-                  style={styles.deleteButton}
-                  onPress={() => handleDeleteItem(item.id)}
-                >
-                  <Ionicons
-                    name={"trash-outline"}
-                    size={22}
-                    color={COLORS.accent}
-                  />
-                </Pressable>
-              </View>
-            </View>
-            <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-              Preço: {item.preco} €
-            </Text>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={[styles.cardTitle, { color: COLORS.text }]}>
+            Item: {item.nome}
+          </Text>
+          <View style={{ flexDirection: "row" }}>
+            <Pressable
+              style={styles.editButton}
+              onPress={() => handleEditItem(item)}
+            >
+              <Ionicons
+                name={"pencil-outline"}
+                size={22}
+                color={COLORS.accent}
+              />
+            </Pressable>
+            <Pressable
+              style={styles.deleteButton}
+              onPress={() => handleDeleteItem(item.id)}
+            >
+              <Ionicons
+                name={"trash-outline"}
+                size={22}
+                color={COLORS.accent}
+              />
+            </Pressable>
           </View>
-        </Pressable>
+        </View>
+        <Text style={[styles.cardDetail, { color: COLORS.text }]}>
+          Preço: {item.preco} €
+        </Text>
       </View>
-    </Animated.View>
+    </View>
   );
 
   return (
@@ -260,6 +234,11 @@ const InventarioScreen = () => {
         onClose={() => setModalVisible(false)}
         title={modalTitle}
         message={modalMessage}
+      />
+      <ConfirmDeleteModal
+        visible={confirmDeleteVisible}
+        onClose={() => setConfirmDeleteVisible(false)}
+        onConfirm={confirmDeleteItem}
       />
     </View>
   );
@@ -307,10 +286,6 @@ const styles = StyleSheet.create({
     marginLeft: wp("4%"),
     marginRight: wp("4%"),
   },
-  button: {
-    width: "100%",
-    borderRadius: wp("6%"),
-  },
   card: {
     width: "100%",
     borderRadius: wp("2%"),
@@ -353,6 +328,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  viewDetails: {
+    marginTop: hp("0.5%"),
+    textDecorationLine: "underline",
   },
 });
 
