@@ -6,6 +6,7 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
+  Animated,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {
@@ -31,6 +32,7 @@ const GerirPedidos = () => {
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
   const [loading, setLoading] = useState(true);
+  const [scaleValues, setScaleValues] = useState({});
 
   useEffect(() => {
     fetchPedidos();
@@ -58,9 +60,14 @@ const GerirPedidos = () => {
     const token = await AsyncStorage.getItem("token");
     try {
       const pedidosData = await obterGruposDePedidos(token);
+      const initialScaleValues = {};
       const pedidosNaoProntos = pedidosData.filter(
         (pedido) => pedido.status !== "pronto"
       );
+      pedidosData.forEach((pedido) => {
+        initialScaleValues[pedido.id] = new Animated.Value(1);
+      });
+      setScaleValues(initialScaleValues);
       setPedidos(pedidosNaoProntos);
     } catch (error) {
       setModalTitle("Erro");
@@ -88,6 +95,22 @@ const GerirPedidos = () => {
       setModalVisible(true);
       console.error("Erro ao mudar estado do pedido:", error.message);
     }
+  };
+
+  const animateScaleIn = (scaleValue) => {
+    Animated.timing(scaleValue, {
+      toValue: 0.9,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const animateScaleOut = (scaleValue) => {
+    Animated.timing(scaleValue, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
   };
 
   if (loading) {
@@ -121,14 +144,25 @@ const GerirPedidos = () => {
           </Text>
         </View>
       ))}
+      <Animated.View
+      style={[
+        styles.buttonAnimated,
+        {
+          transform: [{ scale: scaleValues[item.id] || new Animated.Value(1) }],
+        },
+      ]}
+    >
       <Pressable
         style={[styles.button, { backgroundColor: COLORS.accent }]}
         onPress={() => handleEstadoChange(item.id)}
+        onPressIn={() => animateScaleIn(scaleValues[item.id])}
+        onPressOut={() => animateScaleOut(scaleValues[item.id])}
       >
         <Text style={[styles.buttonText, { color: COLORS.secondary }]}>
           Entregue
         </Text>
       </Pressable>
+    </Animated.View>
     </View>
   );
 
@@ -212,6 +246,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  buttonAnimated: {
+    width: "100%",
   },
 });
 

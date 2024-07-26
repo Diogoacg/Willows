@@ -1,11 +1,14 @@
-import React, { useState } from "react";
+// src/LoginScreen.js
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   View,
   Text,
   TextInput,
   Pressable,
-  Alert,
+  Switch,
+  Animated,
+  ActivityIndicator,
 } from "react-native";
 import axios from "axios";
 import { REACT_APP_AUTH_URL } from "@env";
@@ -15,76 +18,171 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import io from "socket.io-client";
+import { useTheme } from "../ThemeContext";
+import { colors } from "../config/theme";
+import CustomAlertModal from "../components/CustomAlertModal";
+
+const socketUrl = "https://willows-production.up.railway.app";
 
 const LoginScreen = ({ onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [socket, setSocket] = useState(null);
+  const { isDarkMode, toggleTheme } = useTheme();
+  const scaleValue = useRef(new Animated.Value(1)).current;
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const COLORS = isDarkMode ? colors.dark : colors.light;
+
+  useEffect(() => {
+    setLoading(false);
+    const socket = io(socketUrl);
+    setSocket(socket);
+
+    socket.on("userLoggedIn", (user) => {
+      console.log("Usuário Logado:", user);
+    });
+  }, []);
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
 
+  const animateScaleIn = () => {
+    Animated.timing(scaleValue, {
+      toValue: 0.9,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const animateScaleOut = () => {
+    Animated.timing(scaleValue, {
+      toValue: 1,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const handleLogin = async () => {
+    animateScaleIn();
     try {
       const response = await axios.post(`${REACT_APP_AUTH_URL}/login`, {
         username,
         password,
       });
 
+      console.log("Login response:", response.data);
+
       await AsyncStorage.setItem("token", response.data.token);
 
-      // Chame a função onLogin e passe o token recebido
       onLogin(response.data.token);
     } catch (error) {
       console.error(
         "Login error:",
         error.response ? error.response.data : error.message
       );
-      Alert.alert(
-        "Login error",
+      setModalTitle("Erro");
+      setModalMessage(
         error.response ? error.response.data.message : error.message
       );
+      setModalVisible(true);
+    } finally {
+      animateScaleOut();
     }
   };
 
+  if (loading) {
+    return <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.accent} />
+          </View>;
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Willow's Bar</Text>
+    <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
+      <Text style={[styles.title, { color: COLORS.text }]}>Willow's Bar</Text>
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: COLORS.secondary,
+              color: COLORS.text,
+              borderColor: COLORS.neutral,
+            },
+          ]}
           onChangeText={setUsername}
           value={username}
           placeholder="Username"
+          placeholderTextColor={COLORS.text}
           inputMode="name-phone-pad"
         />
         <Ionicons
           name="person-outline"
           size={24}
-          color="grey"
+          color={COLORS.text}
           style={styles.phoneIcon}
         />
       </View>
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: COLORS.secondary,
+              color: COLORS.text,
+              borderColor: COLORS.neutral,
+            },
+          ]}
           onChangeText={setPassword}
           value={password}
           placeholder="Password"
+          placeholderTextColor={COLORS.text}
           secureTextEntry={!passwordVisible}
         />
         <Pressable onPress={togglePasswordVisibility} style={styles.eyeIcon}>
           <Ionicons
             name={passwordVisible ? "eye-outline" : "eye-off-outline"}
             size={24}
-            color="grey"
+            color={COLORS.text}
           />
         </Pressable>
       </View>
-      <Pressable style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </Pressable>
+      <Animated.View
+        style={[styles.buttonAnimated, { transform: [{ scale: scaleValue }] }]}
+      >
+        <Pressable
+          style={[
+            styles.button,
+            { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
+          ]}
+          onPress={handleLogin}
+        >
+          <Text style={[styles.buttonText, { color: COLORS.text }]}>Login</Text>
+        </Pressable>
+      </Animated.View>
+      <View style={styles.themeSwitchContainer}>
+        <Text style={[styles.themeSwitchText, { color: COLORS.text }]}>
+          Dark Mode
+        </Text>
+        <Switch
+          value={isDarkMode}
+          onValueChange={toggleTheme}
+          trackColor={{ false: colors.dark.accent, true: colors.dark.accent }}
+          thumbColor={isDarkMode ? colors.light.text : colors.dark.text}
+        />
+      </View>
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };
@@ -95,32 +193,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: wp("4%"),
-    backgroundColor: "#fff",
   },
   title: {
     fontSize: wp("6%"),
     marginBottom: hp("3%"),
     fontWeight: "bold",
   },
-  logoIcon: {
-    width: wp("30%"),
-    height: wp("30%"),
-    marginTop: hp("1%"),
-    marginBottom: hp("4%"),
-  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
+    marginBottom: hp("1%"),
   },
   input: {
     flex: 1,
     height: hp("7%"),
     marginVertical: hp("1%"),
-    borderWidth: 1,
+    borderWidth: wp("0.2%"),
     padding: wp("2.5%"),
-    borderRadius: 5,
-    borderColor: "#ddd",
+    borderRadius: wp("1%"),
   },
   phoneIcon: {
     position: "absolute",
@@ -133,33 +224,35 @@ const styles = StyleSheet.create({
     padding: wp("2.5%"),
   },
   button: {
-    backgroundColor: "#fff",
-    borderRadius: 25,
+    borderRadius: wp("6%"),
     paddingVertical: hp("2%"),
     paddingHorizontal: wp("6%"),
     alignItems: "center",
     marginTop: hp("2.5%"),
     width: "100%",
-    borderWidth: 1,
+    borderWidth: wp("0.2%"),
   },
   buttonText: {
     color: "#000",
     fontWeight: "bold",
     fontSize: wp("4%"),
   },
-  forgotPassword: {
-    color: "#0ed1c0",
-    marginTop: hp("2.5%"),
-    fontSize: wp("3.5%"),
-  },
-  signupContainer: {
+  themeSwitchContainer: {
     flexDirection: "row",
-    marginTop: hp("2.5%"),
+    alignItems: "center",
+    marginTop: hp("2%"),
   },
-  signupText: {
-    color: "#0ed1c0",
-    marginLeft: wp("1%"),
-    fontSize: wp("3.5%"),
+  themeSwitchText: {
+    marginRight: wp("2%"),
+    fontSize: wp("4%"),
+  },
+  buttonAnimated: {
+    width: "100%",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

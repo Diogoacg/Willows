@@ -8,14 +8,14 @@ import {
   TextInput,
   Animated,
   useWindowDimensions,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { addToCart, clearCart } from "../slices/cartSlice";
-import ActionModal from "../components/ActionModal";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { obterItensDoInventario } from "../api/apiInventory";
-import { criarNovoGrupoDePedidos } from "../api/apiOrderGroup";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   widthPercentageToDP as wp,
@@ -24,11 +24,18 @@ import {
 import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
-import { Alert } from "react-native";
+import CustomAlertModal from "../components/CustomAlertModal";
 
 const numColumns = 3;
 
-const Item = ({ item, itemWidth, handleAddToCart, badgeCount, onLayout }) => {
+const Item = ({
+  item,
+  itemWidth,
+  handleAddToCart,
+  badgeCount,
+  onLayout,
+  itemHeight,
+}) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -55,7 +62,7 @@ const Item = ({ item, itemWidth, handleAddToCart, badgeCount, onLayout }) => {
 
   return (
     <Animated.View
-      style={{ transform: [{ scale: scaleValue }] }}
+      style={{ transform: [{ scale: scaleValue }], height: itemHeight }}
       onLayout={onLayout}
     >
       <Pressable
@@ -63,7 +70,6 @@ const Item = ({ item, itemWidth, handleAddToCart, badgeCount, onLayout }) => {
           styles.itemContainer,
           {
             width: itemWidth,
-            height: itemWidth,
             borderColor: COLORS.neutral,
             backgroundColor: COLORS.secondary,
           },
@@ -100,16 +106,17 @@ const Item = ({ item, itemWidth, handleAddToCart, badgeCount, onLayout }) => {
 };
 
 const PedidosScreen = () => {
-  const [visibleModal, setVisibleModal] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [inventoryItems, setInventoryItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
-  const [itemHeights, setItemHeights] = useState([]);
-  const [maxHeight, setMaxHeight] = useState(0);
-  const heightsRef = useRef({});
+  const [itemHeights, setItemHeights] = useState({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
+  const [loading, setLoading] = useState(true);
 
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -149,8 +156,12 @@ const PedidosScreen = () => {
       const items = await obterItensDoInventario();
       setInventoryItems(items);
     } catch (error) {
-      Alert.alert("Erro", "Erro ao buscar itens do inventário:", error.message);
+      setModalTitle("Erro");
+      setModalMessage("Erro ao obter itens do inventário: " + error.message);
+      setModalVisible(true);
       console.error("Erro ao buscar itens do inventário:", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -178,56 +189,37 @@ const PedidosScreen = () => {
     dispatch(addToCart(item));
   };
 
-  const handleCloseModal = () => {
-    setVisibleModal(false);
-    dispatch(clearCart());
-    setFilteredItems(filteredItems.map((item) => ({ ...item, badgeCount: 0 })));
-  };
-
-  const handleBackModal = () => {
-    setVisibleModal(false);
-  };
-
-  const handleConfirmOrder = async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-
-      const items = cartItems.map((item) => ({
-        nome: item.nome,
-        quantidade: item.quantity,
-      }));
-
-      const orderData = {
-        items: items,
-      };
-
-      await criarNovoGrupoDePedidos(token, orderData);
-
-      dispatch(clearCart());
-      handleCloseModal();
-    } catch (error) {
-      Alert.alert("Erro", "Erro ao confirmar pedido:", error.message);
-      console.error("Erro ao confirmar pedido:", error.message);
-    }
-  };
+  if (loading) {
+    return <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.accent} />
+          </View>;
+  }
 
   const itemWidth = screenWidth / numColumns - wp("4%");
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item, index }) => {
     const badgeCount =
       cartItems.find((cartItem) => cartItem.id === item.id)?.quantity || 0;
+
+    const itemHeight = itemHeights[Math.floor(index / numColumns)] || null;
+
     return (
       <Item
         item={item}
         itemWidth={itemWidth}
         handleAddToCart={handleAddToCart}
         badgeCount={badgeCount}
+        itemHeight={itemHeight}
         onLayout={(event) => {
           const { height } = event.nativeEvent.layout;
-          heightsRef.current[item.id] = height;
-          const heights = Object.values(heightsRef.current);
-          setItemHeights(heights);
-          setMaxHeight(Math.max(...heights));
+          const row = Math.floor(index / numColumns);
+          setItemHeights((prevHeights) => {
+            const newHeights = { ...prevHeights };
+            if (!newHeights[row] || height > newHeights[row]) {
+              newHeights[row] = height;
+            }
+            return newHeights;
+          });
         }}
       />
     );
@@ -260,38 +252,29 @@ const PedidosScreen = () => {
         </View>
         <Pressable
           style={styles.cartButton}
-          onPress={() => setVisibleModal(true)}
+          onPress={() => navigation.navigate("Cart")}
         >
           <Ionicons name="cart-outline" size={24} color={COLORS.accent} />
           {cartItems.length > 0 && (
             <View style={[styles.badge, { backgroundColor: COLORS.accent }]}>
-              <Text style={[styles.badgeText, { color: COLORS.text }]}>
-                {cartItems.length}
-              </Text>
+              <Text style={styles.badgeText}>{cartItems.length}</Text>
             </View>
           )}
         </Pressable>
       </View>
       <FlatList
+        contentContainerStyle={styles.listContentContainer}
         data={filteredItems}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         numColumns={numColumns}
-        contentContainerStyle={styles.listContentContainer}
-        extraData={maxHeight}
       />
-      <Modal
-        visible={visibleModal}
-        transparent={true}
-        onRequestClose={handleBackModal}
-      >
-        <ActionModal
-          handleClose={handleCloseModal}
-          handleBack={handleBackModal}
-          handleConfirm={handleConfirmOrder}
-          cartItems={cartItems}
-        />
-      </Modal>
+      <CustomAlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+      />
     </View>
   );
 };
@@ -311,8 +294,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     marginLeft: wp("2%"),
-    borderRadius: 8,
-    borderWidth: 1,
+    borderRadius: wp("2%"),
+    borderWidth: wp("0.2%"),
     paddingHorizontal: wp("2%"),
   },
   input: {
@@ -329,19 +312,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: wp("3%"),
   },
-  itemContainer: {
-    marginTop: hp("2%"),
-    margin: wp("2%"),
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderRadius: 40,
-    borderWidth: 5,
-    elevation: 3,
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    padding: wp("2%"),
-    position: "relative",
-  },
   badge: {
     borderRadius: 9,
     width: 18,
@@ -354,26 +324,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "bold",
   },
+  itemContainer: {
+    marginTop: hp("2%"),
+    marginHorizontal: wp("2%"),
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderRadius: wp("2%"),
+    borderWidth: wp("0.2%"),
+    elevation: 3,
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    padding: wp("4%"),
+    position: "relative",
+    minHeight: hp("10.75%"),
+  },
   itemBadgeContainer: {
     position: "absolute",
     top: hp("-1%"),
     right: wp("-1.5%"),
-    borderRadius: 90,
+    borderRadius: wp("10%"),
     width: hp("3.5%"),
     height: hp("3.5%"),
     justifyContent: "center",
     alignItems: "center",
   },
   itemBadgeText: {
-    fontSize: 12,
+    fontSize: wp("3%"),
     fontWeight: "bold",
   },
-  itemContent: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
   itemName: {
-    fontSize: wp("3.5%"),
+    fontSize: wp("3.6%"),
     fontWeight: "bold",
     textAlign: "center",
     marginTop: hp("1%"),
@@ -386,6 +366,11 @@ const styles = StyleSheet.create({
   },
   listContentContainer: {
     flexGrow: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
