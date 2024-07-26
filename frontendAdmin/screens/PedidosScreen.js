@@ -12,7 +12,7 @@ import {
   Alert,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { addToCart, clearCart } from "../slices/cartSlice";
+import { addToCart, decrementQuantity } from "../slices/cartSlice";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { obterItensDoInventario } from "../api/apiInventory";
@@ -32,6 +32,7 @@ const Item = ({
   item,
   itemWidth,
   handleAddToCart,
+  handleDecrementQuantity,
   badgeCount,
   onLayout,
   itemHeight,
@@ -60,6 +61,10 @@ const Item = ({
     handleAddToCart(item);
   };
 
+  const handleLongPress = () => {
+    handleDecrementQuantity(item);
+  };
+
   return (
     <Animated.View
       style={{ transform: [{ scale: scaleValue }], height: itemHeight }}
@@ -77,6 +82,7 @@ const Item = ({
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        onLongPress={handleLongPress}
       >
         {badgeCount > 0 && (
           <View
@@ -189,10 +195,16 @@ const PedidosScreen = () => {
     dispatch(addToCart(item));
   };
 
+  const handleDecrementQuantity = (item) => {
+    dispatch(decrementQuantity(item));
+  };
+
   if (loading) {
-    return <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.accent} />
-          </View>;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
   }
 
   const itemWidth = screenWidth / numColumns - wp("4%");
@@ -208,6 +220,7 @@ const PedidosScreen = () => {
         item={item}
         itemWidth={itemWidth}
         handleAddToCart={handleAddToCart}
+        handleDecrementQuantity={handleDecrementQuantity}
         badgeCount={badgeCount}
         itemHeight={itemHeight}
         onLayout={(event) => {
@@ -278,7 +291,6 @@ const PedidosScreen = () => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
