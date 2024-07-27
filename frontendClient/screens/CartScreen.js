@@ -1,3 +1,4 @@
+// screens/CartScreen.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -171,7 +172,7 @@ const CartScreen = () => {
                   />
                 </Pressable>
               </View>
-            </View>
+          </View>
             <Text style={[styles.cardDetail, { color: COLORS.text }]}>
               Preço: {item.preco}€
             </Text>

@@ -1,4 +1,4 @@
-// src/LoginScreen.js
+// screens/LoginScreen.js
 import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
@@ -167,14 +167,23 @@ const LoginScreen = ({ onLogin }) => {
         </Pressable>
       </Animated.View>
       <View style={styles.themeSwitchContainer}>
-        <Text style={[styles.themeSwitchText, { color: COLORS.text }]}>
-          Dark Mode
-        </Text>
+      <Ionicons
+          name="sunny-outline"
+          size={24}
+          color={COLORS.text}
+          style={styles.lightIcon}
+        />
         <Switch
           value={isDarkMode}
           onValueChange={toggleTheme}
           trackColor={{ false: colors.dark.accent, true: colors.dark.accent }}
           thumbColor={isDarkMode ? colors.light.text : colors.dark.text}
+        />
+        <Ionicons
+          name="moon-outline"
+          size={24}
+          color={COLORS.text}
+          style={styles.moonIcon}
         />
       </View>
       <CustomAlertModal
@@ -253,6 +262,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  lightIcon: {
+    position: "absolute",
+    right: wp("9.75%"),
+    padding: wp("2.5%"),
+  },
+  moonIcon: {
+    position: "absolute",
+    left: wp("9.75%"),
+    padding: wp("2.5%"),
   },
 });
 

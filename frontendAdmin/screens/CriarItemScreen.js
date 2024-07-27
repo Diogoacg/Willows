@@ -82,21 +82,52 @@ const CriarItemScreen = () => {
 
       <View style={styles.formContainer}>
         <Text style={styles.title}>Adicionar Novo Item</Text>
+        <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: COLORS.secondary,
+              color: COLORS.text,
+              borderColor: COLORS.neutral,
+            },
+          ]}
+          onChangeText={setNome}
+          value={nome}
           placeholder="Nome do Item"
           placeholderTextColor={COLORS.text}
-          value={nome}
-          onChangeText={setNome}
+          inputMode="name-phone-pad"
         />
+        <Ionicons
+          name="add-outline"
+          size={24}
+          color={COLORS.text}
+          style={styles.sideIcon}
+        />
+      </View>
+      <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: COLORS.secondary,
+              color: COLORS.text,
+              borderColor: COLORS.neutral,
+            },
+          ]}
+          onChangeText={setPreco}
+          value={preco}
           placeholder="Preço"
           placeholderTextColor={COLORS.text}
-          value={preco}
-          onChangeText={setPreco}
-          keyboardType="numeric"
+          inputMode="name-phone-pad"
         />
+        <Ionicons
+          name="pricetag-outline"
+          size={24}
+          color={COLORS.text}
+          style={styles.sideIcon}
+        />
+      </View>
         <Animated.View
           style={[
             styles.buttonAnimated,
@@ -176,6 +207,17 @@ const createStyles = (COLORS) =>
     buttonAnimated: {
       width: "100%",
       alignItems: "center",
+    },
+    inputContainer: {
+      flexDirection: "column",
+      alignItems: "center",
+      width: "100%",
+    },
+    sideIcon: {
+      position: "absolute",
+      right: wp("5.5%"),
+      top: hp("0.5%"),
+      padding: wp("2.5%"),
     },
   });
 

@@ -81,36 +81,98 @@ const CriarFuncionarioScreen = () => {
 
       <View style={styles.formContainer}>
         <Text style={styles.title}>Criar Novo Funcionário</Text>
+        <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: COLORS.secondary,
+              color: COLORS.text,
+              borderColor: COLORS.neutral,
+            },
+          ]}
+          onChangeText={setUsername}
+          value={username}
           placeholder="Nome de Utilizador"
           placeholderTextColor={COLORS.text}
-          value={username}
-          onChangeText={setUsername}
+          inputMode="name-phone-pad"
         />
+        <Ionicons
+          name="person-outline"
+          size={24}
+          color={COLORS.text}
+          style={styles.sideIcon}
+        />
+      </View>
+      <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: COLORS.secondary,
+              color: COLORS.text,
+              borderColor: COLORS.neutral,
+            },
+          ]}
+          onChangeText={setEmail}
+          value={email}
           placeholder="Email"
           placeholderTextColor={COLORS.text}
-          value={email}
-          onChangeText={setEmail}
-          inputMode="email-address"
+          inputMode="name-phone-pad"
         />
+        <Ionicons
+          name="mail-outline"
+          size={24}
+          color={COLORS.text}
+          style={styles.sideIcon}
+        />
+      </View>
+      <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: COLORS.secondary,
+              color: COLORS.text,
+              borderColor: COLORS.neutral,
+            },
+          ]}
+          onChangeText={setPassword}
+          value={password}
           placeholder="Password"
           placeholderTextColor={COLORS.text}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
+          inputMode="name-phone-pad"
         />
+        <Ionicons
+          name="key-outline"
+          size={24}
+          color={COLORS.text}
+          style={styles.sideIcon}
+        />
+      </View>
+      <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            {
+              backgroundColor: COLORS.secondary,
+              color: COLORS.text,
+              borderColor: COLORS.neutral,
+            },
+          ]}
+          onChangeText={setRole}
+          value={role}
           placeholder="Função"
           placeholderTextColor={COLORS.text}
-          value={role}
-          onChangeText={setRole}
+          inputMode="name-phone-pad"
         />
+        <Ionicons
+          name="construct-outline"
+          size={24}
+          color={COLORS.text}
+          style={styles.sideIcon}
+        />
+      </View>
         <Animated.View
           style={[
             styles.buttonAnimated,
@@ -190,6 +252,17 @@ const createStyles = (COLORS) =>
     buttonAnimated: {
       width: "100%",
       alignItems: "center",
+    },
+    inputContainer: {
+      flexDirection: "column",
+      alignItems: "center",
+      width: "100%",
+    },
+    sideIcon: {
+      position: "absolute",
+      right: wp("5.5%"),
+      top: hp("0.5%"),
+      padding: wp("2.5%"),
     },
   });
 
