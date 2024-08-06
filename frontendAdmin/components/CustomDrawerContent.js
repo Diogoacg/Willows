@@ -1,4 +1,3 @@
-// src/components/CustomDrawerContent.js
 import React from "react";
 import { View, Pressable, Text, StyleSheet, Alert } from "react-native";
 import { useTheme } from "../ThemeContext";
@@ -28,6 +27,7 @@ const CustomDrawerContent = ({ navigation, state, onLogout }) => {
     Funcionarios: "people-outline",
     Inventario: "cube-outline",
     Estatisticas: "stats-chart-outline",
+    "Pedidos Entregues": "checkmark-done-circle-outline",
   };
 
   const themeIcon = isDarkMode ? "moon-outline" : "sunny-outline";
@@ -39,7 +39,8 @@ const CustomDrawerContent = ({ navigation, state, onLogout }) => {
       </View>
       <View style={styles.menuOptions}>
         {state.routeNames.map((name, index) => {
-          // Check if the current route is the selected one
+          const displayName =
+            name === "PedidosEntregues" ? "Pedidos Entregues" : name;
           const isSelected = state.index === index;
           return (
             <Pressable
@@ -53,13 +54,13 @@ const CustomDrawerContent = ({ navigation, state, onLogout }) => {
               ]}
             >
               <Ionicons
-                name={iconMapping[name]}
+                name={iconMapping[displayName]}
                 size={20}
                 color={theme.text}
                 style={styles.icon}
               />
               <Text style={[styles.drawerItemText, { color: theme.text }]}>
-                {name}
+                {displayName}
               </Text>
             </Pressable>
           );
@@ -98,7 +99,7 @@ const styles = StyleSheet.create({
     marginBottom: hp("1%"),
   },
   headerText: {
-    fontSize: wp('5.7%'),
+    fontSize: wp("5.7%"),
     fontWeight: "bold",
   },
   menuOptions: {
@@ -111,16 +112,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "center",
-    paddingVertical: hp("1%"), // Add some vertical padding
-    paddingHorizontal: wp("3%"), // Add some horizontal padding
-    borderRadius: wp('2%'),
+    paddingVertical: hp("1%"),
+    paddingHorizontal: wp("3%"),
+    borderRadius: wp("2%"),
   },
   drawerItemText: {
-    fontSize: wp('4%'),
-    marginLeft: wp('2.5%'),
+    fontSize: wp("4%"),
+    marginLeft: wp("2.5%"),
   },
   icon: {
-    marginRight: wp('2.5%'),
+    marginRight: wp("2.5%"),
   },
 });
 

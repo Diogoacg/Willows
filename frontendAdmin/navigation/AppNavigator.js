@@ -18,6 +18,7 @@ import CartScreen from "../screens/CartScreen";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import * as NavigationBar from "expo-navigation-bar";
+import PedidosEntregues from "../screens/PedidosEntregues";
 
 const Stack = createStackNavigator();
 
@@ -136,6 +137,10 @@ const AppNavigator = () => {
             <Stack.Screen name="CriarItem" component={CriarItemScreen} />
             <Stack.Screen name="EditaItem" component={EditaItemScreen} />
             <Stack.Screen name="Cart" component={CartScreen} />
+            <Stack.Screen
+              name="Pedidos Entregues"
+              component={PedidosEntregues}
+            />
           </>
         )}
       </Stack.Navigator>
