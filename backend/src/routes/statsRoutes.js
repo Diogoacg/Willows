@@ -2,8 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const { Op } = require("sequelize");
-const moment = require("moment");
-const sequelize = require("../config/database"); // Caminho para sua configuração do banco de dados
+const sequelize = require("../config/database");
 
 const OrderGroup = require("../models/OrderGroup");
 const User = require("../models/User");
@@ -20,7 +19,7 @@ const authenticateToken = require("../middleWare/authMiddleware");
  *   description: Endpoints para estatísticas do sistema
  */
 
-// Rota para obter os usuários com mais lucro nos pedidos que fizeram dando uma resposta com  nr de pedidos, lucro total e nome do usuário, ordenado por lucro total
+// Rota para obter os usuários com mais lucro nos pedidos que fizeram dando uma resposta com nr de pedidos, lucro total e nome do usuário, ordenado por lucro total
 /**
  * @swagger
  * /api/stats/profit-per-user:
@@ -48,7 +47,7 @@ const authenticateToken = require("../middleWare/authMiddleware");
  *                   totalOrders:
  *                     type: integer
  *                     description: Número total de pedidos do usuário
- *                   name:
+ *                   username:
  *                     type: string
  *                     description: Nome do usuário
  *       500:
@@ -60,7 +59,7 @@ router.get("/profit-per-user", authenticateToken, async (req, res) => {
       attributes: [
         "userId",
         [sequelize.fn("sum", sequelize.col("totalPrice")), "totalProfit"],
-        [sequelize.fn("count", sequelize.col("OrderGroup.id")), "totalOrders"],
+        [sequelize.fn("count", sequelize.col("id")), "totalOrders"],
       ],
       include: [
         {
@@ -70,7 +69,7 @@ router.get("/profit-per-user", authenticateToken, async (req, res) => {
       ],
       where: {
         userId: {
-          [sequelize.Op.not]: null, // Exclui registros com userId null
+          [Op.not]: null, // Exclui registros com userId null
         },
       },
       group: ["userId", "User.username"],
@@ -90,7 +89,6 @@ router.get("/profit-per-user", authenticateToken, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
 // obter lucro total por usuario recebendo o user
 
 /**
