@@ -54,7 +54,6 @@ const authenticateToken = require("../middleWare/authMiddleware");
  *       500:
  *         description: Erro no servidor
  */
-
 router.get("/profit-per-user", authenticateToken, async (req, res) => {
   try {
     const profitPerUser = await OrderGroup.findAll({
@@ -69,6 +68,11 @@ router.get("/profit-per-user", authenticateToken, async (req, res) => {
           attributes: ["username"], // Atributo do nome do usuário
         },
       ],
+      where: {
+        userId: {
+          [sequelize.Op.not]: null, // Exclui registros com userId null
+        },
+      },
       group: ["userId", "User.username"],
       order: [[sequelize.literal("totalProfit"), "DESC"]],
     });
