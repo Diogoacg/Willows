@@ -54,7 +54,6 @@ async function createInitialUser() {
       username,
       email,
       password,
-      role,
     });
 
     console.log("Initial user created successfully");
