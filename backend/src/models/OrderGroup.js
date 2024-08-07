@@ -17,12 +17,14 @@ const OrderGroup = sequelize.define(
     },
     userId: {
       type: DataTypes.INTEGER,
-      allowNull: true,
+      allowNull: false,
+      defaultValue: 0,
       references: {
         model: "Users",
         key: "id",
       },
     },
+
     totalPrice: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
