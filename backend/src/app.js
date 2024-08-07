@@ -84,7 +84,7 @@ OrderGroup.belongsTo(User, { foreignKey: "userId" });
 
 // Sincronização do banco de dados (alter: true para alterar automaticamente o esquema)
 sequelize
-  .sync({ alter: true, force: true }) //remove force: true para não recriar as tabelas
+  .sync({ alter: true }) //remove force: true para não recriar as tabelas
   .then(async () => {
     console.log("Database & tables created!");
 
