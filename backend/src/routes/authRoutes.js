@@ -243,8 +243,8 @@ module.exports = (io) => {
         return res.status(404).json({ error: "Utilizador não encontrado" });
       }
 
-      // Set userId to NULL or a default value for associated order groups
-      await OrderGroup.update({ userId: null }, { where: { userId: id } });
+      // Set userId to 0 for all order groups with this user
+      await OrderGroup.update({ userId: 0 }, { where: { userId: id } });
 
       await user.destroy();
 
