@@ -38,6 +38,7 @@ async function createInitialUser() {
   const username = "admin"; // Nome de usuário inicial
   const email = "admin@example.com"; // Email inicial
   const password = "admin123"; // Senha inicial
+  const role = "admin"; // Função do usuário
 
   try {
     // Verifique se já existe um usuário com o nome de usuário
@@ -53,6 +54,7 @@ async function createInitialUser() {
       username,
       email,
       password,
+      role,
     });
 
     console.log("Initial user created successfully");
@@ -83,7 +85,7 @@ OrderGroup.belongsTo(User, { foreignKey: "userId" });
 
 // Sincronização do banco de dados (alter: true para alterar automaticamente o esquema)
 sequelize
-  .sync({ alter: true }) //remove force: true para não recriar as tabelas
+  .sync({ alter: true, force: true }) //remove force: true para não recriar as tabelas
   .then(async () => {
     console.log("Database & tables created!");
 
