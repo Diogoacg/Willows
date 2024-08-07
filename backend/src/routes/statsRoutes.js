@@ -8,10 +8,7 @@ const OrderGroup = require("../models/OrderGroup");
 const User = require("../models/User");
 const Item = require("../models/Item");
 const OrderItem = require("../models/OrderItem");
-
-// Middleware de autenticação
-const authenticateToken = require("../middleWare/authMiddleware");
-
+const moment = require("moment");
 /**
  * @swagger
  * tags:
@@ -58,8 +55,11 @@ router.get("/profit-per-user", authenticateToken, async (req, res) => {
     const profitPerUser = await OrderGroup.findAll({
       attributes: [
         "userId",
-        [sequelize.fn("sum", sequelize.col("totalPrice")), "totalProfit"],
-        [sequelize.fn("count", sequelize.col("id")), "totalOrders"],
+        [
+          sequelize.fn("sum", sequelize.col("OrderGroup.totalPrice")),
+          "totalProfit",
+        ],
+        [sequelize.fn("count", sequelize.col("OrderGroup.id")), "totalOrders"],
       ],
       include: [
         {
