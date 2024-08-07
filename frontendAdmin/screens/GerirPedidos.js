@@ -52,6 +52,10 @@ const GerirPedidos = () => {
       fetchPedidos();
     });
 
+    socket.on("userDeleted", () => {
+      fetchPedidos();
+    });
+
     return () => {
       socket.disconnect();
     };

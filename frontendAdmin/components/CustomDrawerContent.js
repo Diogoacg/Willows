@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     marginBottom: hp("1%"),
   },
   headerText: {
-    fontSize: wp("5.7%"),
+    fontSize: hp("5%"),
     fontWeight: "bold",
   },
   menuOptions: {
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     borderRadius: wp("2%"),
   },
   drawerItemText: {
-    fontSize: wp("4%"),
+    fontSize: hp("2.5%"),
     marginLeft: wp("2.5%"),
   },
   icon: {

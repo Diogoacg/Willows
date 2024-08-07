@@ -82,6 +82,7 @@ const StatsScreen = ({ navigation }) => {
     socket.on("orderGroupCreated", fetchData);
     socket.on("orderGroupDeleted", fetchData);
     socket.on("orderGroupUpdated", fetchData);
+    socket.on("userDeleted", fetchData);
 
     return () => {
       socket.disconnect();
@@ -89,9 +90,11 @@ const StatsScreen = ({ navigation }) => {
   }, []);
 
   if (loading) {
-    return <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.accent} />
-          </View>;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
   }
 
   const doughnutData = (data.ordersPerItem || []).slice(0, 5).concat(

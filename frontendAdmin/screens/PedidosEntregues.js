@@ -23,6 +23,7 @@ import CustomAlertModal from "../components/CustomAlertModal";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import moment from "moment";
+import { obterInformacoesDoUtilizador } from "../api/apiAuth";
 
 const PedidosEntregues = () => {
   const [pedidosDia, setPedidosDia] = useState([]);
@@ -31,10 +32,12 @@ const PedidosEntregues = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [usernames, setUsernames] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [loadingUsernames, setLoadingUsernames] = useState(true); // Novo estado para carregamento dos usernames
   const navigation = useNavigation();
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
-  const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
   const [routes] = useState([
     { key: "dia", title: "Dia" },
@@ -87,6 +90,26 @@ const PedidosEntregues = () => {
         moment(pedido.createdAt).isAfter(startMonth)
       );
 
+      const userIds = pedidosEntregues.map((pedido) => pedido.userId);
+
+      // Carregar os usernames
+      setLoadingUsernames(true);
+      const usernamesData = await Promise.all(
+        userIds.map(async (userId) => {
+          try {
+            const user = await obterInformacoesDoUtilizador(token, userId);
+            return { userId, username: user.username };
+          } catch (error) {
+            return { userId, username: "Funcionário Indisponível" };
+          }
+        })
+      );
+      const usernamesMap = {};
+      usernamesData.forEach(({ userId, username }) => {
+        usernamesMap[userId] = username;
+      });
+
+      setUsernames(usernamesMap);
       setPedidosDia(pedidosDia);
       setPedidosSemana(pedidosSemana);
       setPedidosMes(pedidosMes);
@@ -97,6 +120,7 @@ const PedidosEntregues = () => {
       console.error("Erro ao buscar pedidos:", error.message);
     } finally {
       setLoading(false);
+      setLoadingUsernames(false); // Atualize o estado de carregamento dos usernames
     }
   };
 
@@ -111,7 +135,10 @@ const PedidosEntregues = () => {
         Pedido #{item.id}
       </Text>
       <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-        Estado: {item.status}
+        Funcionário:{" "}
+        {loadingUsernames
+          ? "Carregando..."
+          : usernames[item.userId] || "Funcionário Indisponível"}
       </Text>
       <Text style={[styles.cardDetail, { color: COLORS.text }]}>
         Total: {item.totalPrice}€
