@@ -125,7 +125,7 @@ const FuncionariosScreen = () => {
       setModalMessage("Utilizador eliminado com sucesso!");
       setModalVisible(true);
     } catch (error) {
-      console.error("Erro ao eliminar utilizador:", error.message);
+      console.error("Erro ao eliminar utilizador:", error);
       setModalTitle("Erro");
       setModalMessage("Erro ao eliminar utilizador: " + error.message);
       setModalVisible(true);

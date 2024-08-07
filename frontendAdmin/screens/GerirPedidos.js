@@ -22,22 +22,23 @@ import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
+import { obterInformacoesDoUtilizador } from "../api/apiAuth";
 
 const GerirPedidos = () => {
   const [pedidos, setPedidos] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const navigation = useNavigation();
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
-  const [loading, setLoading] = useState(true);
   const [scaleValues, setScaleValues] = useState({});
+  const [usernames, setUsernames] = useState({});
 
   useEffect(() => {
     fetchPedidos();
     const socket = io("https://willows-production.up.railway.app");
-    // const socket = io("http://localhost:5000");
 
     socket.on("orderGroupCreated", () => {
       fetchPedidos();
@@ -64,17 +65,35 @@ const GerirPedidos = () => {
       const pedidosNaoProntos = pedidosData.filter(
         (pedido) => pedido.status !== "pronto"
       );
-      pedidosData.forEach((pedido) => {
+      pedidosNaoProntos.forEach((pedido) => {
         initialScaleValues[pedido.id] = new Animated.Value(1);
       });
+
+      const userIds = pedidosNaoProntos.map((pedido) => pedido.userId);
+      const usernamesData = await Promise.all(
+        userIds.map(async (userId) => {
+          try {
+            const user = await obterInformacoesDoUtilizador(token, userId);
+            return { userId, username: user.username };
+          } catch (error) {
+            return { userId, username: "Funcionário Indisponível" };
+          }
+        })
+      );
+      const usernamesMap = {};
+      usernamesData.forEach(({ userId, username }) => {
+        usernamesMap[userId] = username;
+      });
+
       setScaleValues(initialScaleValues);
       setPedidos(pedidosNaoProntos);
+      setUsernames(usernamesMap);
     } catch (error) {
       setModalTitle("Erro");
       setModalMessage("Erro ao obter pedidos: " + error.message);
       setModalVisible(true);
       console.error("Erro ao buscar pedidos:", error.message);
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -132,7 +151,7 @@ const GerirPedidos = () => {
         Pedido #{item.id}
       </Text>
       <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-        Estado: {item.status}
+        Funcionário: {usernames[item.userId] || "Carregando..."}
       </Text>
       <Text style={[styles.cardDetail, { color: COLORS.text }]}>
         Total: {item.totalPrice}€
@@ -145,24 +164,26 @@ const GerirPedidos = () => {
         </View>
       ))}
       <Animated.View
-      style={[
-        styles.buttonAnimated,
-        {
-          transform: [{ scale: scaleValues[item.id] || new Animated.Value(1) }],
-        },
-      ]}
-    >
-      <Pressable
-        style={[styles.button, { backgroundColor: COLORS.accent }]}
-        onPress={() => handleEstadoChange(item.id)}
-        onPressIn={() => animateScaleIn(scaleValues[item.id])}
-        onPressOut={() => animateScaleOut(scaleValues[item.id])}
+        style={[
+          styles.buttonAnimated,
+          {
+            transform: [
+              { scale: scaleValues[item.id] || new Animated.Value(1) },
+            ],
+          },
+        ]}
       >
-        <Text style={[styles.buttonText, { color: COLORS.secondary }]}>
-          Entregue
-        </Text>
-      </Pressable>
-    </Animated.View>
+        <Pressable
+          style={[styles.button, { backgroundColor: COLORS.accent }]}
+          onPress={() => handleEstadoChange(item.id)}
+          onPressIn={() => animateScaleIn(scaleValues[item.id])}
+          onPressOut={() => animateScaleOut(scaleValues[item.id])}
+        >
+          <Text style={[styles.buttonText, { color: COLORS.secondary }]}>
+            Entregue
+          </Text>
+        </Pressable>
+      </Animated.View>
     </View>
   );
 
@@ -183,7 +204,6 @@ const GerirPedidos = () => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

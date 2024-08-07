@@ -17,9 +17,9 @@ const OrderGroup = sequelize.define(
     },
     userId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
-        model: "Users", // Nome da tabela referenciada
+        model: "Users",
         key: "id",
       },
     },
