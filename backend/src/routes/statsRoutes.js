@@ -9,6 +9,9 @@ const User = require("../models/User");
 const Item = require("../models/Item");
 const OrderItem = require("../models/OrderItem");
 const moment = require("moment");
+
+// Middleware de autenticação
+const authenticateToken = require("../middleWare/authMiddleware");
 /**
  * @swagger
  * tags:
