@@ -1,19 +1,20 @@
 import { REACT_APP_API_URL } from "@env";
 
-// Função para criar um novo item no inventário
-export const criarNovoItem = async (token, nome, preco, ingredientes) => {
+// Função para criar um novo ingrediente no inventário
+export const criarNovoIngrediente = async (token, nome, quantidade, unidade) => {
   console.log(REACT_APP_API_URL);
   console.log(token);
   console.log(nome);
-  console.log(preco);
+  console.log(quantidade);
+  console.log(unidade);
   try {
-    const response = await fetch(`${REACT_APP_API_URL}/inventory`, {
+    const response = await fetch(`${REACT_APP_API_URL}/ingredientes`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ nome, preco, ingredientes }),
+      body: JSON.stringify({ nome, quantidade, unidade }),
     });
 
     if (!response.ok) {
@@ -27,11 +28,11 @@ export const criarNovoItem = async (token, nome, preco, ingredientes) => {
   }
 };
 
-// Função para obter todos os itens do inventário
-export const obterItensDoInventario = async () => {
+// Função para obter todos os ingredientes do inventário
+export const obterIngredientesDoInventario = async () => {
   console.log(REACT_APP_API_URL);
   try {
-    const response = await fetch(`${REACT_APP_API_URL}/inventory`);
+    const response = await fetch(`${REACT_APP_API_URL}/ingredientes`);
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -44,21 +45,18 @@ export const obterItensDoInventario = async () => {
   }
 };
 
-// Função para atualizar um item no inventário
-export const atualizarItemNoInventario = async (
+// Função para atualizar um ingrediente no inventário
+export const atualizarIngredienteNoInventario = async (
   token,
   id,
   nome,
-  preco,
-  imageUri = null
+  quantidade,
+  unidade
 ) => {
   try {
-    const bodyData = { nome, preco };
-    if (imageUri) {
-      bodyData.imageUri = imageUri;
-    }
+    const bodyData = { nome, quantidade, unidade };
 
-    const response = await fetch(`${REACT_APP_API_URL}/inventory/${id}`, {
+    const response = await fetch(`${REACT_APP_API_URL}/ingredientes/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -78,10 +76,10 @@ export const atualizarItemNoInventario = async (
   }
 };
 
-// Função para deletar um item do inventário
-export const deletarItemDoInventario = async (token, id) => {
+// Função para deletar um ingrediente do inventário
+export const deletarIngredienteDoInventario = async (token, id) => {
   try {
-    const response = await fetch(`${REACT_APP_API_URL}/inventory/${id}`, {
+    const response = await fetch(`${REACT_APP_API_URL}/ingredientes/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -93,7 +91,7 @@ export const deletarItemDoInventario = async (token, id) => {
       throw new Error(errorData.message);
     }
 
-    return { message: "Item deletado com sucesso" };
+    return { message: "Ingrediente deletado com sucesso" };
   } catch (error) {
     throw new Error(error.message);
   }

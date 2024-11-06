@@ -1,21 +1,18 @@
-
 import React, { useState, useRef, useMemo } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet, Animated } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
-import { criarNovoItem } from "../api/apiInventory";
+import { criarNovoIngrediente } from "../api/apiIngredientes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
 
-
-
-const CriarItemScreen = () => {
+const CriarIngredienteScreen = () => {
   const [nome, setNome] = useState("");
-  const [preco, setPreco] = useState("");
-  const [ingredientes, setIngredientes] = useState([{ nome: "", quantidade: "" }]);
+  const [quantidade, setQuantidade] = useState("");
+  const [unidade, setUnidade] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
@@ -43,31 +40,21 @@ const CriarItemScreen = () => {
     }).start();
   };
 
-  const handleCreateItem = async () => {
+  const handleCreateIngrediente = async () => {
     animateScaleIn();
     const token = await AsyncStorage.getItem("token");
     try {
-      await criarNovoItem(token, nome, preco, ingredientes);
+      await criarNovoIngrediente(token, nome, quantidade, unidade);
       setModalTitle("Sucesso");
-      setModalMessage("Item adicionado com sucesso!");
+      setModalMessage("Ingrediente adicionado com sucesso!");
       setModalVisible(true);
     } catch (error) {
       setModalTitle("Erro");
-      setModalMessage("Erro ao adicionar item: " + error.message);
+      setModalMessage("Erro ao adicionar ingrediente: " + error.message);
       setModalVisible(true);
     } finally {
       animateScaleOut();
     }
-  };
-
-  const handleAddIngrediente = () => {
-    setIngredientes([...ingredientes, { nome: "", quantidade: "" }]);
-  };
-
-  const handleIngredienteChange = (index, field, value) => {
-    const newIngredientes = [...ingredientes];
-    newIngredientes[index][field] = value;
-    setIngredientes(newIngredientes);
   };
 
   return (
@@ -82,7 +69,7 @@ const CriarItemScreen = () => {
       </View>
 
       <View style={styles.formContainer}>
-        <Text style={styles.title}>Adicionar Novo Item</Text>
+        <Text style={styles.title}>Adicionar Novo Ingrediente</Text>
         <View style={styles.inputContainer}>
           <TextInput
             style={[
@@ -95,7 +82,7 @@ const CriarItemScreen = () => {
             ]}
             onChangeText={setNome}
             value={nome}
-            placeholder="Nome do Item"
+            placeholder="Nome do Ingrediente"
             placeholderTextColor={COLORS.text}
             inputMode="name-phone-pad"
           />
@@ -116,9 +103,32 @@ const CriarItemScreen = () => {
                 borderColor: COLORS.neutral,
               },
             ]}
-            onChangeText={setPreco}
-            value={preco}
-            placeholder="Preço"
+            onChangeText={setQuantidade}
+            value={quantidade}
+            placeholder="Quantidade"
+            placeholderTextColor={COLORS.text}
+            inputMode="numeric"
+          />
+          <Ionicons
+            name="pricetag-outline"
+            size={24}
+            color={COLORS.text}
+            style={styles.sideIcon}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: COLORS.secondary,
+                color: COLORS.text,
+                borderColor: COLORS.neutral,
+              },
+            ]}
+            onChangeText={setUnidade}
+            value={unidade}
+            placeholder="Unidade (e.g., kg, g, l)"
             placeholderTextColor={COLORS.text}
             inputMode="name-phone-pad"
           />
@@ -130,53 +140,14 @@ const CriarItemScreen = () => {
           />
         </View>
 
-        {ingredientes.map((ingrediente, index) => (
-          <View key={index} style={styles.ingredienteContainer}>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: COLORS.secondary,
-                  color: COLORS.text,
-                  borderColor: COLORS.neutral,
-                },
-              ]}
-              onChangeText={(value) => handleIngredienteChange(index, "nome", value)}
-              value={ingrediente.nome}
-              placeholder="Nome do Ingrediente"
-              placeholderTextColor={COLORS.text}
-              inputMode="name-phone-pad"
-            />
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: COLORS.secondary,
-                  color: COLORS.text,
-                  borderColor: COLORS.neutral,
-                },
-              ]}
-              onChangeText={(value) => handleIngredienteChange(index, "quantidade", value)}
-              value={ingrediente.quantidade}
-              placeholder="Quantidade"
-              placeholderTextColor={COLORS.text}
-              inputMode="numeric"
-            />
-          </View>
-        ))}
-
-        <Pressable style={styles.addButton} onPress={handleAddIngrediente}>
-          <Text style={styles.addButtonText}>Adicionar Ingrediente</Text>
-        </Pressable>
-
         <Animated.View
           style={[
             styles.buttonAnimated,
             { transform: [{ scale: scaleValue }] },
           ]}
         >
-          <Pressable style={styles.button} onPress={handleCreateItem}>
-            <Text style={styles.buttonText}>Adicionar Item</Text>
+          <Pressable style={styles.button} onPress={handleCreateIngrediente}>
+            <Text style={styles.buttonText}>Adicionar Ingrediente</Text>
           </Pressable>
         </Animated.View>
       </View>
@@ -191,6 +162,7 @@ const CriarItemScreen = () => {
     </View>
   );
 };
+
 
 const createStyles = (COLORS) =>
   StyleSheet.create({
@@ -281,4 +253,4 @@ const createStyles = (COLORS) =>
     },
   });
 
-export default CriarItemScreen;
+export default CriarIngredienteScreen;
