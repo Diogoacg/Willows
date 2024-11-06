@@ -1,7 +1,8 @@
-// routes/inventoryRoutes.js
 const express = require("express");
 const router = express.Router();
 const Item = require("../models/Item");
+const Ingredientes = require("../models/Ingredientes");
+const ItemIngredient = require("../models/ItemIngredientes");
 const authenticateToken = require("../middleWare/authMiddleware");
 
 module.exports = (io) => {
@@ -25,6 +26,18 @@ module.exports = (io) => {
    *           type: number
    *           format: float
    *           description: Preço do Item
+   *         ingredientes:
+   *           type: array
+   *           items:
+   *             type: object
+   *             properties:
+   *               id:
+   *                 type: string
+   *                 description: nome do ingrediente
+   *               quantidade:
+   *                 type: number
+   *                 format: float
+   *                 description: Quantidade do Ingrediente
    */
 
   /**
@@ -49,6 +62,15 @@ module.exports = (io) => {
    *                 type: string
    *               preco:
    *                 type: number
+   *               ingredientes:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *                   properties:
+   *                     nome:
+   *                       type: string
+   *                     quantidade:
+   *                       type: number
    *     responses:
    *       201:
    *         description: Item criado com sucesso
@@ -56,15 +78,37 @@ module.exports = (io) => {
    *         description: Erro na criação do item
    */
   router.post("/", authenticateToken, async (req, res) => {
+    const { nome, preco, ingredientes } = req.body;
+  
     try {
-      const novoItem = await Item.create(req.body);
-      // Emitir um evento com o Socket.IO
+      const novoItem = await Item.create({ nome, preco });
+  
+      if (ingredientes && ingredientes.length > 0) {
+        for (const ingrediente of ingredientes) {
+          const { nome, quantidade } = ingrediente;
+          const ingredienteEncontrado = await Ingredientes.findOne({ where: { nome } });
+  
+          if (ingredienteEncontrado) {
+            await ItemIngredient.create({
+              itemId: novoItem.id,
+              ingredienteId: ingredienteEncontrado.id,
+              quantidade,
+            });
+          } else {
+            //delete item if ingredient not found
+            await novoItem.destroy();
+            return res.status(400).json({ message: `Ingrediente ${nome} não encontrado` });
+          }
+        }
+      }
+  
       io.emit("itemCreated", novoItem);
       res.status(201).json(novoItem);
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ message: error});
     }
   });
+  
 
   /**
    * @swagger
@@ -75,13 +119,24 @@ module.exports = (io) => {
    *     responses:
    *       200:
    *         description: Lista de itens
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: array
+   *               items:
+   *                 $ref: '#/components/schemas/Item'
    *       500:
    *         description: Erro no servidor
    */
   router.get("/", async (req, res) => {
     try {
-      const itens = await Item.findAll();
-      // Emitir um evento com o Socket.IO
+      const itens = await Item.findAll({
+        include: {
+          model: Ingredientes,
+          through: { attributes: ["quantidade"] },
+        },
+      });
+
       io.emit("getItems", itens);
       res.json(itens);
     } catch (error) {
@@ -115,6 +170,15 @@ module.exports = (io) => {
    *                 type: string
    *               preco:
    *                 type: number
+   *               ingredientes:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *                   properties:
+   *                     id:
+   *                       type: integer
+   *                     quantidade:
+   *                       type: number
    *     responses:
    *       200:
    *         description: Item atualizado com sucesso
@@ -122,11 +186,26 @@ module.exports = (io) => {
    *         description: Item não encontrado
    */
   router.put("/:id", authenticateToken, async (req, res) => {
+    const { nome, preco, ingredientes } = req.body;
+
     try {
       const item = await Item.findByPk(req.params.id);
       if (item) {
-        await item.update(req.body);
-        // Emitir um evento com o Socket.IO
+        await item.update({ nome, preco });
+
+        if (ingredientes && ingredientes.length > 0) {
+          await ItemIngredient.destroy({ where: { itemId: item.id } });
+
+          for (const ingrediente of ingredientes) {
+            const { id, quantidade } = ingrediente;
+            await ItemIngredient.create({
+              itemId: item.id,
+              ingredienteId: id,
+              quantidade,
+            });
+          }
+        }
+
         io.emit("itemUpdated", item);
         res.json(item);
       } else {
@@ -162,8 +241,9 @@ module.exports = (io) => {
     try {
       const item = await Item.findByPk(req.params.id);
       if (item) {
+        await ItemIngredient.destroy({ where: { itemId: item.id } });
         await item.destroy();
-        // Emitir um evento com o Socket.IO
+
         io.emit("itemDeleted", item);
         res.json({ message: "Item deletado com sucesso" });
       } else {

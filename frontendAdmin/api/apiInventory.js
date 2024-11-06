@@ -29,6 +29,7 @@ export const criarNovoItem = async (token, nome, preco, imageUri) => {
 
 // Função para obter todos os itens do inventário
 export const obterItensDoInventario = async () => {
+  console.log(REACT_APP_API_URL);
   try {
     const response = await fetch(`${REACT_APP_API_URL}/inventory`);
 

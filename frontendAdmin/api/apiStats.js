@@ -1,6 +1,7 @@
 import { REACT_APP_API_URL } from "@env";
 
 export const obterLucro = async (token) => {
+  console.log(REACT_APP_API_URL);
   try {
     const response = await fetch(`${REACT_APP_API_URL}/stats/profit`, {
       method: "GET",

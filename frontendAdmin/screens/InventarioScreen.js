@@ -45,8 +45,8 @@ const InventarioScreen = () => {
     fetchItems();
 
     // Set up Socket.IO client
-    const socket = io("https://willows-production.up.railway.app");
-    // const socket = io("http://localhost:5000");
+    //const socket = io("https://willows-production.up.railway.app");
+     const socket = io("http://localhost:5000");
 
     socket.on("itemUpdated", () => {
       fetchItems();

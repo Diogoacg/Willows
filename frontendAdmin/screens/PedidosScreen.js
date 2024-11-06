@@ -133,7 +133,8 @@ const PedidosScreen = () => {
     fetchInventoryItems();
 
     // Set up Socket.IO client
-    const socket = io("https://willows-production.up.railway.app");
+    //const socket = io("https://willows-production.up.railway.app");
+    const socket = io("http://localhost:5000");
 
     // Listen for relevant events
     socket.on("itemCreated", () => {

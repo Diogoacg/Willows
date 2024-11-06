@@ -4,9 +4,9 @@ const socketIo = require("socket.io");
 const cors = require("cors");
 const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-const statsRoutes = require("./routes/statsRoutes");
 const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
+const statsRoutes = require("./routes/statsRoutes");
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -68,6 +68,8 @@ const User = require("./models/User");
 const Item = require("./models/Item");
 const OrderGroup = require("./models/OrderGroup");
 const OrderItem = require("./models/OrderItem");
+const Ingredientes = require("./models/Ingredientes");
+const ItemIngredient = require("./models/ItemIngredientes");
 
 // Definição de associações entre modelos Sequelize
 OrderGroup.hasMany(OrderItem, { as: "items", foreignKey: "orderGroupId" });
@@ -81,6 +83,9 @@ OrderItem.belongsTo(Item, { foreignKey: "itemId" });
 OrderGroup.hasMany(OrderItem, { foreignKey: "orderGroupId" });
 User.hasMany(OrderGroup, { foreignKey: "userId" });
 OrderGroup.belongsTo(User, { foreignKey: "userId" });
+Item.belongsToMany(Ingredientes, { through: ItemIngredient, foreignKey: "itemId" });
+Ingredientes.belongsToMany(Item, { through: ItemIngredient, foreignKey: "ingredienteId" });
+
 
 // Sincronização do banco de dados (alter: true para alterar automaticamente o esquema)
 sequelize
@@ -134,13 +139,15 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 const OrderGroupRoutes = require("./routes/orderGroupRoutes")(io);
 const authRoutes = require("./routes/authRoutes")(io);
 const inventoryRoutes = require("./routes/inventoryRoutes")(io);
-// const statsRoutes = require("./routes/statsRoutes")(io);
+const ingredientesRoutes = require("./routes/ingredientesRoutes")(io);
+
 
 // Rotas da API
 app.use("/api/order-groups", OrderGroupRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/stats", statsRoutes);
+app.use("/api/ingredientes", ingredientesRoutes);
 
 // Exemplo básico de conexão Socket.IO
 io.on("connection", (socket) => {

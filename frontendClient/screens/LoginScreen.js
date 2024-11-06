@@ -23,7 +23,8 @@ import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
 
-const socketUrl = "https://willows-production.up.railway.app";
+// const socketUrl = "https://willows-production.up.railway.app";
+const socketUrl = "http://localhost:5000";
 
 const LoginScreen = ({ onLogin }) => {
   const [username, setUsername] = useState("");

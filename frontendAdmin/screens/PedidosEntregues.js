@@ -47,7 +47,8 @@ const PedidosEntregues = () => {
 
   useEffect(() => {
     fetchPedidos();
-    const socket = io("https://willows-production.up.railway.app");
+    // const socket = io("https://willows-production.up.railway.app");
+    const socket = io("http://localhost:5000");
 
     socket.on("orderGroupCreated", () => {
       fetchPedidos();

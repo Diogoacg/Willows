@@ -77,7 +77,8 @@ const StatsScreen = ({ navigation }) => {
   useEffect(() => {
     fetchData();
 
-    const socket = io("https://willows-production.up.railway.app");
+    // const socket = io("https://willows-production.up.railway.app");
+    const socket = io("http://localhost:5000");
 
     socket.on("orderGroupCreated", fetchData);
     socket.on("orderGroupDeleted", fetchData);

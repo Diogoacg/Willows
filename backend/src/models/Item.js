@@ -1,4 +1,5 @@
 // models/Item.js
+// itens individuais que nao contam para o inventario
 const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
@@ -19,14 +20,18 @@ const Item = sequelize.define(
       type: DataTypes.FLOAT,
       allowNull: false,
     },
-    imageUri: {
+    ingredientes: {
       type: DataTypes.STRING,
       allowNull: true,
     },
+
+
+    
   },
   {
     timestamps: false,
   }
 );
+
 
 module.exports = Item;

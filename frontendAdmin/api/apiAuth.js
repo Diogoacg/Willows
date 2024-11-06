@@ -24,6 +24,7 @@ import { REACT_APP_AUTH_URL } from "@env";
 
 // Função para login utizador com role de admin
 export const realizarLoginAdmin = async (loginData) => {
+  console.log(loginData);
   try {
     const response = await fetch(`${REACT_APP_AUTH_URL}/login-admin`, {
       method: "POST",

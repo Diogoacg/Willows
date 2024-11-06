@@ -4,6 +4,7 @@ const router = express.Router();
 const OrderGroup = require("../models/OrderGroup");
 const OrderItem = require("../models/OrderItem");
 const Item = require("../models/Item");
+const Ingredientes = require("../models/Ingredientes");
 const authenticateToken = require("../middleWare/authMiddleware");
 
 module.exports = (io) => {
@@ -224,59 +225,84 @@ module.exports = (io) => {
     }
   });
 
-  //update status of order group
-  /**
-   * @swagger
-   * /api/order-groups/{id}:
-   *   patch:
-   *     summary: Atualiza o status de um grupo de pedidos
-   *     tags: [OrderGroups]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: integer
-   *         description: ID do grupo de pedidos
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - status
-   *             properties:
-   *               status:
-   *                 type: string
-   *                 enum: [pendente, pronto]
-   *                 description: Novo status do grupo de pedidos
-   *     responses:
-   *       200:
-   *         description: Status do grupo de pedidos atualizado com sucesso
-   *       400:
-   *         description: Erro ao atualizar o status do grupo de pedidos
-   *       404:
-   *         description: Grupo de pedidos não encontrado
-   */
+/**
+ * @swagger
+ * /api/order-groups/{id}:
+ *   patch:
+ *     summary: Atualiza o status de um grupo de pedidos e atualiza o inventário
+ *     tags: [OrderGroups]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do grupo de pedidos
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [pendente, pronto]
+ *                 description: Novo status do grupo de pedidos
+ *     responses:
+ *       200:
+ *         description: Status do grupo de pedidos atualizado com sucesso
+ *       400:
+ *         description: Erro ao atualizar o status do grupo de pedidos
+ *       404:
+ *         description: Grupo de pedidos não encontrado
+ */
 
   router.patch("/:id", authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
-
+  
     try {
-      const orderGroup = await OrderGroup.findByPk(id);
-
+      const orderGroup = await OrderGroup.findByPk(id, {
+        include: {
+          model: OrderItem,
+          include: {
+            model: Item,
+            include: {
+              model: Ingredientes,
+              through: { attributes: ["quantidade"] },
+            },
+          },
+        },
+      });
+  
       if (!orderGroup) {
-        return res
-          .status(404)
-          .json({ message: "Grupo de pedidos não encontrado" });
+        return res.status(404).json({ message: "Grupo de pedidos não encontrado" });
       }
-
+  
+      // Atualizar o status do grupo de pedidos
       orderGroup.status = status;
       await orderGroup.save();
+  
+      // Se o status for "pronto", atualizar o inventário
+      if (status === "pronto") {
+        for (const orderItem of orderGroup.OrderItems) {
+          for (const ingrediente of orderItem.Item.Ingredientes) {
+            const quantidadeNecessaria = ingrediente.ItemIngredient.quantidade * orderItem.quantidade;
+            const ingredienteAtualizado = await Ingredientes.findByPk(ingrediente.id);
+  
+            if (ingredienteAtualizado) {
+              ingredienteAtualizado.quantidade -= quantidadeNecessaria;
+              await ingredienteAtualizado.save();
+            }
+          }
+        }
+      }
+  
       // Emitir um evento com o Socket.IO
       io.emit("orderGroupUpdated", orderGroup);
       res.sendStatus(200);
@@ -284,6 +310,7 @@ module.exports = (io) => {
       res.status(400).json({ message: error.message });
     }
   });
+  
 
   // ordersbyuser route recebe um id de usuário e retorna todos os pedidos feitos por esse usuário
   /**
