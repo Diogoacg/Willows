@@ -1,5 +1,3 @@
-import { REACT_APP_AUTH_URL } from "@env";
-
 // // Função para realizar login para um utilizador
 // export const realizarLogin = async (loginData) => {
 //   try {
@@ -22,8 +20,12 @@ import { REACT_APP_AUTH_URL } from "@env";
 //   }
 // };
 
+// Use process.env em vez disso
+const REACT_APP_AUTH_URL = process.env.REACT_APP_AUTH_URL;
+
 // Função para login utizador com role de admin
 export const realizarLoginAdmin = async (loginData) => {
+  console.log("Auth URL:", REACT_APP_AUTH_URL); // Debug
   console.log(loginData);
   try {
     const response = await fetch(`${REACT_APP_AUTH_URL}/login-admin`, {
