@@ -9,30 +9,30 @@ const cartSlice = createSlice({
       if (existingItem) {
         existingItem.quantity += 1;
       } else {
-        state.push({ ...action.payload, quantity: 1 });
+        state.push({ ...action.payload, quantity: 1, cartKey: `${action.payload.id}_${Date.now()}` });
       }
+    },
+    addToCartWithDetails: (state, action) => {
+      // Always appends a new entry (supports multiple entries for same item with different observacoes)
+      state.push(action.payload);
     },
     incrementQuantity: (state, action) => {
-      const item = state.find((item) => item.id === action.payload.id);
-      if (item) {
-        item.quantity += 1;
-      }
+      const item = state.find((i) => i.cartKey === action.payload.cartKey);
+      if (item) item.quantity += 1;
     },
     decrementQuantity: (state, action) => {
-      const item = state.find((item) => item.id === action.payload.id);
-      if (item) {
-        if (item.quantity > 1) {
-          item.quantity -= 1;
-        } else {
-          // Remover o item se a quantidade for 1 e o usuário decrementar
-          return state.filter((item) => item.id !== action.payload.id);
-        }
+      const index = state.findIndex((i) => i.cartKey === action.payload.cartKey);
+      if (index === -1) return;
+      if (state[index].quantity <= 1) {
+        state.splice(index, 1);
+      } else {
+        state[index].quantity -= 1;
       }
     },
-    clearCart: () => [], // Retorna o estado diretamente vazio ao limpar o carrinho
+    clearCart: () => [],
   },
 });
 
-export const { addToCart, incrementQuantity, decrementQuantity, clearCart } =
+export const { addToCart, addToCartWithDetails, incrementQuantity, decrementQuantity, clearCart } =
   cartSlice.actions;
 export default cartSlice.reducer;

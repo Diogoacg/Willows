@@ -19,6 +19,8 @@ import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import * as NavigationBar from "expo-navigation-bar";
 import PedidosEntregues from "../screens/PedidosEntregues";
+import RegistarMovimentoAdminScreen from "../screens/RegistarMovimentoAdminScreen";
+import VarianciaAdminScreen from "../screens/VarianciaAdminScreen";
 
 const Stack = createStackNavigator();
 
@@ -141,6 +143,8 @@ const AppNavigator = () => {
               name="Pedidos Entregues"
               component={PedidosEntregues}
             />
+            <Stack.Screen name="RegistarMovimentoAdmin" component={RegistarMovimentoAdminScreen} />
+            <Stack.Screen name="VarianciaAdmin" component={VarianciaAdminScreen} />
           </>
         )}
       </Stack.Navigator>

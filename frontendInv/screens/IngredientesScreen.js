@@ -155,13 +155,22 @@ const IngredientesScreen = () => {
         </Pressable>
       </View>
 
-      <Pressable
-        style={[styles.varianciaBanner, { backgroundColor: COLORS.secondary, borderColor: COLORS.neutral }]}
-        onPress={() => navigation.navigate("Variancia")}
-      >
-        <Ionicons name="analytics-outline" size={20} color={COLORS.accent} />
-        <Text style={[styles.varianciaBannerText, { color: COLORS.text }]}>Ver relatório de variância →</Text>
-      </Pressable>
+      <View style={styles.bannersRow}>
+        <Pressable
+          style={[styles.varianciaBanner, { flex: 1, backgroundColor: COLORS.secondary, borderColor: COLORS.neutral }]}
+          onPress={() => navigation.navigate("Variancia")}
+        >
+          <Ionicons name="analytics-outline" size={18} color={COLORS.accent} />
+          <Text style={[styles.varianciaBannerText, { color: COLORS.text }]}>Variância →</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.varianciaBanner, { flex: 1, backgroundColor: COLORS.secondary, borderColor: COLORS.neutral }]}
+          onPress={() => navigation.navigate("MovimentosHistory")}
+        >
+          <Ionicons name="time-outline" size={18} color={COLORS.accent} />
+          <Text style={[styles.varianciaBannerText, { color: COLORS.text }]}>Histórico →</Text>
+        </Pressable>
+      </View>
 
       <FlatList
         data={filteredIngredientes}
@@ -212,6 +221,12 @@ const styles = StyleSheet.create({
   },
   searchInput: { flex: 1, fontSize: wp("3.8%") },
   createButton: { marginLeft: wp("3%") },
+  bannersRow: {
+    flexDirection: "row",
+    gap: wp("2%"),
+    marginHorizontal: wp("4%"),
+    marginBottom: hp("1%"),
+  },
   varianciaBanner: {
     flexDirection: "row",
     alignItems: "center",

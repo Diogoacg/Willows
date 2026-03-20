@@ -11,6 +11,7 @@ import InventarioScreen from "../screens/InventarioScreen";
 import StatsScreen from "../screens/StatsScreen";
 import CustomDrawerContent from "../components/CustomDrawerContent";
 import PedidosEntregues from "../screens/PedidosEntregues";
+import IngredientesAdminScreen from "../screens/IngredientesAdminScreen";
 
 const Drawer = createDrawerNavigator();
 
@@ -41,6 +42,7 @@ const DrawerNavigator = ({ onLogout }) => {
       <Drawer.Screen name="Inventario" component={InventarioScreen} />
       <Drawer.Screen name="Estatisticas" component={StatsScreen} />
       <Drawer.Screen name="Pedidos Entregues" component={PedidosEntregues} />
+      <Drawer.Screen name="Ingredientes" component={IngredientesAdminScreen} />
     </Drawer.Navigator>
   );
 };
