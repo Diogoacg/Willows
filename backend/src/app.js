@@ -37,6 +37,7 @@ const OrderGroup = require("./models/OrderGroup");
 const OrderItem = require("./models/OrderItem");
 const Ingredientes = require("./models/Ingredientes");
 const ItemIngredient = require("./models/ItemIngredientes");
+const MovimentoStock = require("./models/MovimentoStock");
 
 // Associações
 OrderGroup.hasMany(OrderItem, { as: "items", foreignKey: "orderGroupId" });
@@ -47,6 +48,9 @@ Item.hasMany(OrderItem, { foreignKey: "itemId" });
 OrderItem.belongsTo(Item, { foreignKey: "itemId" });
 Item.belongsToMany(Ingredientes, { through: ItemIngredient, foreignKey: "itemId" });
 Ingredientes.belongsToMany(Item, { through: ItemIngredient, foreignKey: "ingredienteId" });
+MovimentoStock.belongsTo(Ingredientes, { foreignKey: "ingredienteId" });
+Ingredientes.hasMany(MovimentoStock, { foreignKey: "ingredienteId" });
+MovimentoStock.belongsTo(User, { foreignKey: "userId" });
 
 async function createInitialUser() {
   try {
@@ -94,12 +98,14 @@ const authRoutes = require("./routes/authRoutes")(io);
 const inventoryRoutes = require("./routes/inventoryRoutes")(io);
 const ingredientesRoutes = require("./routes/ingredientesRoutes")(io);
 const statsRoutes = require("./routes/statsRoutes");
+const movimentosStockRoutes = require("./routes/movimentosStockRoutes")(io);
 
 app.use("/api/order-groups", OrderGroupRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/ingredientes", ingredientesRoutes);
+app.use("/api/movimentos-stock", movimentosStockRoutes);
 
 io.on("connection", (socket) => {
   console.log(`Cliente conectado: ${socket.id}`);

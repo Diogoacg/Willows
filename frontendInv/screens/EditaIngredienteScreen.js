@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
   Pressable,
   StyleSheet,
-  Dimensions,
-  Animated,
+  ScrollView,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -20,180 +19,190 @@ import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
 
-const screenHeight = Dimensions.get("window").height;
-
 const EditaIngredienteScreen = () => {
   const [nome, setNome] = useState("");
-  const [quantidade, setQuantidade] = useState("");
   const [unidade, setUnidade] = useState("");
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalTitle, setModalTitle] = useState("");
-  const [modalMessage, setModalMessage] = useState("");
+  const [quantidadeMinima, setQuantidadeMinima] = useState("");
+  const [tolerancia, setTolerancia] = useState("15");
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+
   const navigation = useNavigation();
   const route = useRoute();
   const { ingrediente } = route.params;
-  const scaleValue = useRef(new Animated.Value(1)).current;
-
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   useEffect(() => {
     if (ingrediente) {
-      setNome(ingrediente.nome);
-      setQuantidade(ingrediente.quantidade.toString());
-      setUnidade(ingrediente.unidade);
+      setNome(ingrediente.nome || "");
+      setUnidade(ingrediente.unidade || "");
+      setQuantidadeMinima(ingrediente.quantidadeMinima != null ? ingrediente.quantidadeMinima.toString() : "0");
+      setTolerancia(ingrediente.toleranciaVariancia != null
+        ? Math.round(ingrediente.toleranciaVariancia * 100).toString()
+        : "15");
     }
   }, [ingrediente]);
 
-  const animateScaleIn = () => {
-    Animated.timing(scaleValue, {
-      toValue: 0.9,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const animateScaleOut = () => {
-    Animated.timing(scaleValue, {
-      toValue: 1,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
-  };
-
   const handleSave = async () => {
-    animateScaleIn();
+    if (!nome.trim() || !unidade.trim()) {
+      setAlertTitle("Erro");
+      setAlertMessage("Nome e unidade são obrigatórios.");
+      setAlertVisible(true);
+      return;
+    }
+
     const token = await AsyncStorage.getItem("token");
     try {
-      await atualizarIngredienteNoInventario(token, ingrediente.id, nome, quantidade, unidade);
-      setModalTitle("Sucesso");
-      setModalMessage("Ingrediente atualizado com sucesso!");
-      setModalVisible(true);
-      // Wait for the modal to be closed before navigating back
-      setTimeout(() => {
-        navigation.goBack();
-      }, 2000);
+      await atualizarIngredienteNoInventario(token, ingrediente.id, {
+        nome: nome.trim(),
+        quantidade: ingrediente.quantidade, // not editable here — use RegistarMovimento
+        unidade: unidade.trim(),
+        quantidadeMinima: parseFloat(quantidadeMinima) || 0,
+        toleranciaVariancia: parseFloat(tolerancia) / 100 || 0.15,
+      });
+      setAlertTitle("Sucesso");
+      setAlertMessage("Ingrediente atualizado com sucesso!");
+      setAlertVisible(true);
     } catch (error) {
-      console.error("Erro ao atualizar ingrediente:", error.message);
-      setModalTitle("Erro");
-      setModalMessage("Falha ao atualizar ingrediente: " + error.message);
-      setModalVisible(true);
-    } finally {
-      animateScaleOut();
+      setAlertTitle("Erro");
+      setAlertMessage("Erro ao atualizar: " + error.message);
+      setAlertVisible(true);
     }
   };
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
       <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
-        <Pressable
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name={"return-down-back"} size={24} color={COLORS.accent} />
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="return-down-back" size={24} color={COLORS.accent} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: COLORS.text }]}>
-          Editar Ingrediente
-        </Text>
+        <Text style={[styles.headerTitle, { color: COLORS.text }]}>Editar Ingrediente</Text>
       </View>
-      <View style={styles.form}>
+
+      <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
+        {/* Current stock is read-only — changes go through Registar Movimento */}
+        <View style={[styles.stockCard, { backgroundColor: COLORS.secondary, borderColor: COLORS.neutral }]}>
+          <Text style={[styles.stockLabel, { color: COLORS.text }]}>Stock atual</Text>
+          <Text style={[styles.stockValue, { color: COLORS.accent }]}>
+            {ingrediente?.quantidade} {ingrediente?.unidade}
+          </Text>
+          <Pressable
+            style={[styles.movimentoBtn, { borderColor: COLORS.accent }]}
+            onPress={() => navigation.navigate("RegistarMovimento", { ingrediente })}
+          >
+            <Text style={[styles.movimentoBtnText, { color: COLORS.accent }]}>Registar movimento de stock →</Text>
+          </Pressable>
+        </View>
+
+        <Text style={[styles.label, { color: COLORS.text }]}>Nome *</Text>
         <TextInput
-          style={[
-            styles.input,
-            { backgroundColor: COLORS.secondary, color: COLORS.text },
-          ]}
+          style={[styles.input, { backgroundColor: COLORS.secondary, color: COLORS.text, borderColor: COLORS.neutral }]}
           placeholder="Nome do ingrediente"
-          placeholderTextColor={COLORS.text}
+          placeholderTextColor={COLORS.text + "88"}
           value={nome}
           onChangeText={setNome}
         />
+
+        <Text style={[styles.label, { color: COLORS.text }]}>Unidade *</Text>
         <TextInput
-          style={[
-            styles.input,
-            { backgroundColor: COLORS.secondary, color: COLORS.text },
-          ]}
-          placeholder="Quantidade"
-          placeholderTextColor={COLORS.text}
-          value={quantidade}
-          keyboardType="numeric"
-          onChangeText={setQuantidade}
-        />
-        <TextInput
-          style={[
-            styles.input,
-            { backgroundColor: COLORS.secondary, color: COLORS.text },
-          ]}
-          placeholder="Unidade (e.g., kg, g, l)"
-          placeholderTextColor={COLORS.text}
+          style={[styles.input, { backgroundColor: COLORS.secondary, color: COLORS.text, borderColor: COLORS.neutral }]}
+          placeholder="Ex: L, ml, kg, g, un"
+          placeholderTextColor={COLORS.text + "88"}
           value={unidade}
           onChangeText={setUnidade}
         />
-        <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-          <Pressable
-            style={[styles.saveButton, { backgroundColor: COLORS.accent }]}
-            onPress={handleSave}
-          >
-            <Text style={[styles.saveButtonText, { color: COLORS.text }]}>
-              Salvar
-            </Text>
-          </Pressable>
-        </Animated.View>
-      </View>
 
-      {/* Custom Alert Modal */}
+        <Text style={[styles.label, { color: COLORS.text }]}>Stock mínimo</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: COLORS.secondary, color: COLORS.text, borderColor: COLORS.neutral }]}
+          placeholder="0"
+          placeholderTextColor={COLORS.text + "88"}
+          value={quantidadeMinima}
+          onChangeText={setQuantidadeMinima}
+          keyboardType="numeric"
+        />
+
+        <Text style={[styles.label, { color: COLORS.text }]}>Tolerância de variância (%)</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: COLORS.secondary, color: COLORS.text, borderColor: COLORS.neutral }]}
+          placeholder="15"
+          placeholderTextColor={COLORS.text + "88"}
+          value={tolerancia}
+          onChangeText={setTolerancia}
+          keyboardType="numeric"
+        />
+        <Text style={[styles.hint, { color: COLORS.text }]}>
+          Diferença aceitável entre consumo teórico e real. Padrão: 15%.
+        </Text>
+
+        <Pressable style={[styles.saveButton, { backgroundColor: COLORS.accent }]} onPress={handleSave}>
+          <Text style={[styles.saveButtonText, { color: COLORS.primary }]}>Guardar</Text>
+        </Pressable>
+      </ScrollView>
+
       <CustomAlertModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        title={modalTitle}
-        message={modalMessage}
+        visible={alertVisible}
+        onClose={() => {
+          setAlertVisible(false);
+          if (alertTitle === "Sucesso") navigation.goBack();
+        }}
+        title={alertTitle}
+        message={alertMessage}
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      paddingTop: hp("5%"),
-      paddingHorizontal: wp("2.5%"),
-    },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: wp("2.5%"),
-      paddingVertical: hp("1.5%"),
-      borderBottomWidth: 1,
-    },
-    headerTitle: {
-      fontSize: wp("4.5%"),
-      fontWeight: "bold",
-      marginLeft: wp("2%"),
-    },
-    backButton: {
-      marginRight: wp("2%"),
-    },
-    form: {
-      flex: 1,
-      justifyContent: "center",
-      paddingHorizontal: wp("5%"),
-    },
-    input: {
-      height: hp("6%"),
-      borderRadius: 8,
-      paddingHorizontal: wp("4.5%"),
-      marginBottom: hp("2.2%"),
-      fontSize: wp("4%"),
-    },
-    saveButton: {
-      padding: hp("2%"),
-      borderRadius: 8,
-      alignItems: "center",
-    },
-    saveButtonText: {
-      fontSize: wp("4%"),
-      fontWeight: "bold",
-    },
-  });
-  
-  export default EditaIngredienteScreen;
-  
+  container: { flex: 1 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: wp("4%"),
+    paddingTop: hp("5%"),
+    paddingBottom: hp("1.5%"),
+    borderBottomWidth: 1,
+  },
+  backButton: { marginRight: wp("3%") },
+  headerTitle: { fontSize: wp("4.5%"), fontWeight: "bold" },
+  form: { padding: wp("5%"), paddingBottom: hp("5%") },
+  stockCard: {
+    borderWidth: 1,
+    borderRadius: wp("2%"),
+    padding: wp("4%"),
+    marginBottom: hp("2.5%"),
+    gap: hp("0.5%"),
+  },
+  stockLabel: { fontSize: wp("3.5%"), opacity: 0.7 },
+  stockValue: { fontSize: wp("6%"), fontWeight: "bold" },
+  movimentoBtn: {
+    marginTop: hp("1%"),
+    borderWidth: 1,
+    borderRadius: wp("2%"),
+    paddingVertical: hp("0.75%"),
+    paddingHorizontal: wp("3%"),
+    alignSelf: "flex-start",
+  },
+  movimentoBtnText: { fontSize: wp("3.5%"), fontWeight: "600" },
+  label: { fontSize: wp("3.8%"), fontWeight: "600", marginBottom: hp("0.8%") },
+  input: {
+    height: hp("6%"),
+    borderRadius: wp("2%"),
+    borderWidth: 1,
+    paddingHorizontal: wp("3%"),
+    fontSize: wp("4%"),
+    marginBottom: hp("2%"),
+  },
+  hint: { fontSize: wp("3.2%"), opacity: 0.6, marginTop: -hp("1.5%"), marginBottom: hp("2%"), fontStyle: "italic" },
+  saveButton: {
+    padding: hp("2%"),
+    borderRadius: wp("2%"),
+    alignItems: "center",
+    marginTop: hp("2%"),
+  },
+  saveButtonText: { fontSize: wp("4.5%"), fontWeight: "bold" },
+});
+
+export default EditaIngredienteScreen;

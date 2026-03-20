@@ -6,6 +6,8 @@ const OrderGroup = require("../models/OrderGroup");
 const User = require("../models/User");
 const Item = require("../models/Item");
 const OrderItem = require("../models/OrderItem");
+const ItemIngredient = require("../models/ItemIngredientes");
+const MovimentoStock = require("../models/MovimentoStock");
 const authenticateToken = require("../middleWare/authMiddleware");
 
 function startOf(period) {
@@ -202,6 +204,151 @@ router.get("/resumo", authenticateToken, async (req, res) => {
       lucroHoje: parseFloat(lucroHoje || 0).toFixed(2),
       alertasStock: stockBaixo,
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/stats/variancia-ingredientes:
+ *   get:
+ *     summary: Relatório de variância de consumo de ingredientes
+ *     tags: [Statistics]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: periodo
+ *         schema:
+ *           type: string
+ *           enum: [dia, semana, mes]
+ *         description: Período de análise (padrão semana)
+ *     responses:
+ *       200:
+ *         description: Variância por ingrediente
+ */
+router.get("/variancia-ingredientes", authenticateToken, async (req, res) => {
+  try {
+    const Ingredientes = require("../models/Ingredientes");
+    const periodo = req.query.periodo || "semana";
+    const desde = startOf(periodo === "dia" ? "day" : periodo === "mes" ? "month" : "week");
+
+    // Todos os ingredientes que têm pelo menos uma receita associada
+    const ingredientesComReceita = await Ingredientes.findAll({
+      include: [{ model: Item, through: { attributes: ["quantidade"] }, required: true }],
+    });
+
+    if (ingredientesComReceita.length === 0) {
+      return res.json([]);
+    }
+
+    const ingIds = ingredientesComReceita.map((i) => i.id);
+
+    // Pedidos prontos no período com items e receitas
+    const pedidosProntos = await OrderGroup.findAll({
+      where: { status: "pronto", updatedAt: { [Op.gte]: desde } },
+      include: [
+        {
+          model: OrderItem,
+          as: "items",
+          include: [
+            {
+              model: Item,
+              include: [
+                {
+                  model: Ingredientes,
+                  through: { attributes: ["quantidade"] },
+                  where: { id: ingIds },
+                  required: false,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    // Calcular consumo teórico por ingrediente
+    const consumoTeorico = {}; // ingredienteId -> quantidade consumida
+    for (const pedido of pedidosProntos) {
+      for (const orderItem of pedido.items) {
+        if (!orderItem.Item || !orderItem.Item.Ingredientes) continue;
+        for (const ing of orderItem.Item.Ingredientes) {
+          const recipeQty = ing.ItemIngredient.quantidade;
+          const consumed = recipeQty * orderItem.quantidade;
+          consumoTeorico[ing.id] = (consumoTeorico[ing.id] || 0) + consumed;
+        }
+      }
+    }
+
+    // Movimentos manuais no período por ingrediente
+    const movimentos = await MovimentoStock.findAll({
+      where: {
+        ingredienteId: ingIds,
+        createdAt: { [Op.gte]: desde },
+        tipo: { [Op.in]: ["oferta", "quebra", "ajuste"] },
+      },
+    });
+
+    // Agrupar movimentos por ingrediente e tipo
+    const movimentosPorIng = {};
+    for (const mov of movimentos) {
+      if (!movimentosPorIng[mov.ingredienteId]) {
+        movimentosPorIng[mov.ingredienteId] = { oferta: 0, quebra: 0, ajuste: 0 };
+      }
+      // quantidade já está com sinal correcto no modelo (negativo para consumos, positivo para compras)
+      movimentosPorIng[mov.ingredienteId][mov.tipo] += Math.abs(mov.quantidade);
+      if (mov.tipo === "ajuste") {
+        // ajuste guarda a diferença; negativo = sistema tem mais do que o real (falta stock)
+        movimentosPorIng[mov.ingredienteId]["ajusteRaw"] =
+          (movimentosPorIng[mov.ingredienteId]["ajusteRaw"] || 0) + mov.quantidade;
+      }
+    }
+
+    const resultado = ingredientesComReceita.map((ing) => {
+      const teorico = consumoTeorico[ing.id] || 0;
+      const movIng = movimentosPorIng[ing.id] || { oferta: 0, quebra: 0, ajuste: 0, ajusteRaw: 0 };
+      const ofertas = movIng.oferta;
+      const quebras = movIng.quebra;
+      const ajusteRaw = movIng.ajusteRaw || 0; // negativo = falta não explicada
+
+      // Consumo explicado = vendas + ofertas + quebras
+      const consumoExplicado = teorico + ofertas + quebras;
+
+      // Variância em unidades: ajusteRaw negativo significa que havia menos stock do que esperado
+      // abs(ajusteRaw) / consumoExplicado se > 0
+      const varianciaPct = consumoExplicado > 0 ? Math.abs(ajusteRaw) / consumoExplicado : 0;
+      const tolerancia = ing.toleranciaVariancia;
+
+      let status;
+      if (ajusteRaw === 0 && teorico === 0) {
+        status = "sem_dados";
+      } else if (varianciaPct <= tolerancia) {
+        status = "verde";
+      } else if (varianciaPct <= tolerancia * 2) {
+        status = "amarelo";
+      } else {
+        status = "vermelho";
+      }
+
+      return {
+        id: ing.id,
+        nome: ing.nome,
+        unidade: ing.unidade,
+        quantidade_atual: parseFloat(ing.quantidade.toFixed(3)),
+        quantidadeMinima: ing.quantidadeMinima,
+        toleranciaVariancia: ing.toleranciaVariancia,
+        consumo_teorico: parseFloat(teorico.toFixed(3)),
+        ofertas: parseFloat(ofertas.toFixed(3)),
+        quebras: parseFloat(quebras.toFixed(3)),
+        variancia_unidades: parseFloat(ajusteRaw.toFixed(3)),
+        variancia_percentagem: parseFloat((varianciaPct * 100).toFixed(1)),
+        status,
+      };
+    });
+
+    res.json(resultado);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

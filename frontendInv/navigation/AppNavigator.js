@@ -13,6 +13,8 @@ import CriarItemScreen from "../screens/CriarItemScreen";
 import EditaItemScreen from "../screens/EditaItemScreen";
 import CriarIngredienteScreen from "../screens/CriarIngredienteScreen";
 import EditaIngredienteScreen from "../screens/EditaIngredienteScreen";
+import RegistarMovimentoScreen from "../screens/RegistarMovimentoScreen";
+import VarianciaScreen from "../screens/VarianciaScreen";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import * as NavigationBar from "expo-navigation-bar";
@@ -130,6 +132,11 @@ const AppNavigator = () => {
               name="EditaIngrediente"
               component={EditaIngredienteScreen}
             />
+            <Stack.Screen
+              name="RegistarMovimento"
+              component={RegistarMovimentoScreen}
+            />
+            <Stack.Screen name="Variancia" component={VarianciaScreen} />
           </>
         )}
       </Stack.Navigator>

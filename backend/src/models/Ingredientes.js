@@ -27,6 +27,11 @@ const Ingredientes = sequelize.define(
       allowNull: false,
       defaultValue: 0,
     },
+    toleranciaVariancia: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      defaultValue: 0.15, // 15% de tolerância por defeito
+    },
   },
   {
     timestamps: false,
