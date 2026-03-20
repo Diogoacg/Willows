@@ -112,6 +112,7 @@ module.exports = (io) => {
         await OrderItem.create({
           nome: item.nome,
           quantidade: item.quantidade,
+          observacoes: item.observacoes || null,
           orderGroupId: orderGroup.id,
           itemId: found.id,
         });

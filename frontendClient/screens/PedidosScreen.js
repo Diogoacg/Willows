@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   FlatList,
@@ -6,13 +6,12 @@ import {
   Pressable,
   Text,
   TextInput,
-  Animated,
   useWindowDimensions,
   ActivityIndicator,
   ScrollView,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { addToCart } from "../slices/cartSlice";
+import { addToCartWithDetails } from "../slices/cartSlice";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { obterItensDoInventario } from "../api/apiInventory";
@@ -25,6 +24,7 @@ import { REACT_APP_SOCKET_URL } from "@env";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
+import QuantityModal from "../components/QuantityModal";
 
 const NUM_COLUMNS = 3;
 
@@ -38,24 +38,17 @@ const CATEGORIAS = [
 ];
 
 const MenuItem = ({ item, itemWidth, onPress, badgeCount }) => {
-  const scaleValue = useRef(new Animated.Value(1)).current;
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+    <View style={{ width: itemWidth }}>
       <Pressable
         style={[
           styles.itemContainer,
-          { width: itemWidth, borderColor: COLORS.neutral, backgroundColor: COLORS.secondary },
+          { borderColor: COLORS.neutral, backgroundColor: COLORS.secondary },
         ]}
         onPress={onPress}
-        onPressIn={() =>
-          Animated.timing(scaleValue, { toValue: 0.9, duration: 150, useNativeDriver: true }).start()
-        }
-        onPressOut={() =>
-          Animated.timing(scaleValue, { toValue: 1, duration: 100, useNativeDriver: true }).start()
-        }
       >
         {badgeCount > 0 && (
           <View style={[styles.badge, { backgroundColor: COLORS.accent }]}>
@@ -69,7 +62,7 @@ const MenuItem = ({ item, itemWidth, onPress, badgeCount }) => {
           {parseFloat(item.preco).toFixed(2)}€
         </Text>
       </Pressable>
-    </Animated.View>
+    </View>
   );
 };
 
@@ -79,9 +72,11 @@ const PedidosScreen = () => {
   const [filteredItems, setFilteredItems] = useState([]);
   const [categoriaAtiva, setCategoriaAtiva] = useState("todas");
   const [loading, setLoading] = useState(true);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalTitle, setModalTitle] = useState("");
-  const [modalMessage, setModalMessage] = useState("");
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [qtyModalVisible, setQtyModalVisible] = useState(false);
 
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -114,9 +109,9 @@ const PedidosScreen = () => {
       const disponiveis = items.filter((i) => i.disponivel !== false);
       setInventoryItems(disponiveis);
     } catch (error) {
-      setModalTitle("Erro");
-      setModalMessage("Erro ao carregar o menu: " + error.message);
-      setModalVisible(true);
+      setAlertTitle("Erro");
+      setAlertMessage("Erro ao carregar o menu: " + error.message);
+      setAlertVisible(true);
     } finally {
       setLoading(false);
     }
@@ -139,6 +134,22 @@ const PedidosScreen = () => {
     setFilteredItems(result);
   };
 
+  const handleItemPress = (item) => {
+    setSelectedItem(item);
+    setQtyModalVisible(true);
+  };
+
+  const handleModalAdd = (quantity, observacoes) => {
+    dispatch(addToCartWithDetails({
+      ...selectedItem,
+      quantity,
+      observacoes,
+      cartKey: `${selectedItem.id}_${Date.now()}`,
+    }));
+    setQtyModalVisible(false);
+    setSelectedItem(null);
+  };
+
   if (loading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: COLORS.primary }]}>
@@ -148,12 +159,14 @@ const PedidosScreen = () => {
   }
 
   const renderItem = ({ item }) => {
-    const badgeCount = cartItems.find((c) => c.id === item.id)?.quantity || 0;
+    const badgeCount = cartItems
+      .filter((c) => c.id === item.id)
+      .reduce((acc, c) => acc + c.quantity, 0);
     return (
       <MenuItem
         item={item}
         itemWidth={itemWidth}
-        onPress={() => dispatch(addToCart(item))}
+        onPress={() => handleItemPress(item)}
         badgeCount={badgeCount}
       />
     );
@@ -227,11 +240,18 @@ const PedidosScreen = () => {
         }
       />
 
+      <QuantityModal
+        visible={qtyModalVisible}
+        onClose={() => { setQtyModalVisible(false); setSelectedItem(null); }}
+        onAdd={handleModalAdd}
+        item={selectedItem}
+      />
+
       <CustomAlertModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        title={modalTitle}
-        message={modalMessage}
+        visible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        title={alertTitle}
+        message={alertMessage}
       />
     </View>
   );

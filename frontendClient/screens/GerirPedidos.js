@@ -143,9 +143,14 @@ const GerirPedidos = () => {
 
       <View style={styles.itemsList}>
         {item.items && item.items.map((it, idx) => (
-          <Text key={idx} style={[styles.itemLine, { color: COLORS.text }]}>
-            • {it.quantidade}× {it.nome}
-          </Text>
+          <View key={idx}>
+            <Text style={[styles.itemLine, { color: COLORS.text }]}>
+              • {it.quantidade}× {it.nome}
+            </Text>
+            {it.observacoes ? (
+              <Text style={[styles.itemObs, { color: COLORS.text }]}>  ↳ {it.observacoes}</Text>
+            ) : null}
+          </View>
         ))}
       </View>
 
@@ -238,6 +243,12 @@ const styles = StyleSheet.create({
   },
   itemLine: {
     fontSize: wp("3.8%"),
+  },
+  itemObs: {
+    fontSize: wp("3.2%"),
+    opacity: 0.65,
+    marginLeft: wp("3%"),
+    fontStyle: "italic",
   },
   actionBtn: {
     borderRadius: wp("2%"),

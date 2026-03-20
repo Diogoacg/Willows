@@ -44,8 +44,8 @@ const CartScreen = () => {
     .reduce((acc, item) => acc + parseFloat(item.preco) * item.quantity, 0)
     .toFixed(2);
 
-  const handleIncrement = (id) => dispatch(incrementQuantity({ id }));
-  const handleDecrement = (id) => dispatch(decrementQuantity({ id }));
+  const handleIncrement = (cartKey) => dispatch(incrementQuantity({ cartKey }));
+  const handleDecrement = (cartKey) => dispatch(decrementQuantity({ cartKey }));
 
   const animatePress = () => {
     Animated.sequence([
@@ -66,7 +66,7 @@ const CartScreen = () => {
 
     const token = await AsyncStorage.getItem("token");
     const orderData = {
-      items: cartItems.map((item) => ({ nome: item.nome, quantidade: item.quantity })),
+      items: cartItems.map((item) => ({ nome: item.nome, quantidade: item.quantity, observacoes: item.observacoes || undefined })),
       mesa: mesa ? parseInt(mesa) : null,
     };
 
@@ -103,15 +103,18 @@ const CartScreen = () => {
             {item.nome}
           </Text>
           <View style={styles.cardActions}>
-            <Pressable onPress={() => handleDecrement(item.id)} style={styles.actionBtn}>
+            <Pressable onPress={() => handleDecrement(item.cartKey)} style={styles.actionBtn}>
               <Ionicons name="remove-circle-outline" size={28} color={COLORS.accent} />
             </Pressable>
             <Text style={[styles.itemQuantity, { color: COLORS.text }]}>{item.quantity}</Text>
-            <Pressable onPress={() => handleIncrement(item.id)} style={styles.actionBtn}>
+            <Pressable onPress={() => handleIncrement(item.cartKey)} style={styles.actionBtn}>
               <Ionicons name="add-circle-outline" size={28} color={COLORS.accent} />
             </Pressable>
           </View>
         </View>
+        {item.observacoes ? (
+          <Text style={[styles.obsText, { color: COLORS.text }]}>{item.observacoes}</Text>
+        ) : null}
         <Text style={[styles.cardDetail, { color: COLORS.text }]}>
           {(parseFloat(item.preco) * item.quantity).toFixed(2)}€
           <Text style={styles.unitPrice}> ({parseFloat(item.preco).toFixed(2)}€ cada)</Text>
@@ -137,7 +140,7 @@ const CartScreen = () => {
       <FlatList
         data={cartItems}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.cartKey}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons name="cart-outline" size={64} color={COLORS.neutral} />
@@ -247,6 +250,12 @@ const styles = StyleSheet.create({
   unitPrice: {
     fontSize: wp("3%"),
     opacity: 0.6,
+  },
+  obsText: {
+    fontSize: wp("3.2%"),
+    opacity: 0.65,
+    fontStyle: "italic",
+    marginTop: hp("0.3%"),
   },
   cardActions: {
     flexDirection: "row",

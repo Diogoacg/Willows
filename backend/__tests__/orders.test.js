@@ -110,6 +110,22 @@ describe("POST /api/order-groups", () => {
     );
   });
 
+  test("stores observacoes per item", async () => {
+    mockItem.findAll.mockResolvedValue([itemFixture]);
+    mockOrderGroup.create.mockResolvedValue({ id: 5 });
+    mockOrderItem.create.mockResolvedValue({});
+    mockOrderGroup.findByPk.mockResolvedValue({ ...orderFixture, id: 5 });
+
+    await request(app)
+      .post("/api/order-groups")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ items: [{ nome: "Café Expresso", quantidade: 1, observacoes: "sem açúcar" }] });
+
+    expect(mockOrderItem.create).toHaveBeenCalledWith(
+      expect.objectContaining({ observacoes: "sem açúcar" })
+    );
+  });
+
   test("creates order with null mesa when not provided", async () => {
     mockItem.findAll.mockResolvedValue([itemFixture]);
     mockOrderGroup.create.mockResolvedValue({ id: 2 });
