@@ -1,14 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   Text,
   View,
   Pressable,
   StyleSheet,
-  Animated,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
@@ -22,18 +20,19 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
+import { REACT_APP_SOCKET_URL } from "@env";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
-import CustomAlertModal from "../components/CustomAlertModal"; // Atualize o caminho conforme necessário
-import ConfirmDeleteModal from "../components/ConfirmationModal"; // Atualize o caminho conforme necessário
+import CustomAlertModal from "../components/CustomAlertModal";
+import ConfirmDeleteModal from "../components/ConfirmationModal";
 
 const IngredientesScreen = () => {
   const [ingredientes, setIngredientes] = useState([]);
   const [filteredIngredientes, setFilteredIngredientes] = useState([]);
   const [searchText, setSearchText] = useState("");
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalTitle, setModalTitle] = useState("");
-  const [modalMessage, setModalMessage] = useState("");
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
   const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
   const [selectedIngredienteId, setSelectedIngredienteId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -44,152 +43,96 @@ const IngredientesScreen = () => {
   useEffect(() => {
     fetchIngredientes();
 
-    // Set up Socket.IO client
-    const socket = io("http://localhost:5000");
-
-    socket.on("ingredienteUpdated", () => {
-      fetchIngredientes();
-    });
-
-    socket.on("ingredienteDeleted", () => {
-      fetchIngredientes();
-    });
-
-    socket.on("ingredienteCreated", () => {
-      fetchIngredientes();
-    });
-
-    return () => {
-      socket.disconnect();
-    };
+    const socketUrl = REACT_APP_SOCKET_URL || "http://localhost:5000";
+    const socket = io(socketUrl);
+    socket.on("ingredienteUpdated", fetchIngredientes);
+    socket.on("ingredienteDeleted", fetchIngredientes);
+    socket.on("ingredienteCreated", fetchIngredientes);
+    socket.on("movimentoStockCreated", fetchIngredientes);
+    return () => socket.disconnect();
   }, []);
 
   useEffect(() => {
-    handleSearch(searchText);
+    const normalized = searchText.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    if (!searchText) {
+      setFilteredIngredientes(ingredientes);
+    } else {
+      setFilteredIngredientes(
+        ingredientes.filter((i) =>
+          i.nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(normalized)
+        )
+      );
+    }
   }, [searchText, ingredientes]);
 
   const fetchIngredientes = async () => {
     const token = await AsyncStorage.getItem("token");
     try {
-      const ingredientesData = await obterIngredientesDoInventario(token);
-      setIngredientes(ingredientesData);
-      setFilteredIngredientes(ingredientesData);
+      const data = await obterIngredientesDoInventario(token);
+      setIngredientes(data);
     } catch (error) {
-      setModalTitle("Erro");
-      setModalMessage("Erro ao obter ingredientes do inventário: " + error.message);
-      setModalVisible(true);
-      console.error("Erro ao buscar ingredientes:", error.message);
+      setAlertTitle("Erro");
+      setAlertMessage("Erro ao obter ingredientes: " + error.message);
+      setAlertVisible(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteIngrediente = (ingredienteId) => {
-    setSelectedIngredienteId(ingredienteId);
+  const handleDelete = (id) => {
+    setSelectedIngredienteId(id);
     setConfirmDeleteVisible(true);
   };
 
-  const confirmDeleteIngrediente = async () => {
+  const confirmDelete = async () => {
     const token = await AsyncStorage.getItem("token");
     try {
       await deletarIngredienteDoInventario(token, selectedIngredienteId);
       fetchIngredientes();
-      setModalTitle("Sucesso");
-      setModalMessage("Ingrediente eliminado com sucesso!");
-      setModalVisible(true);
     } catch (error) {
-      setModalTitle("Erro");
-      setModalMessage("Erro ao eliminar ingrediente: " + error.message);
-      setModalVisible(true);
-      console.error("Erro ao eliminar ingrediente:", error.message);
+      setAlertTitle("Erro");
+      setAlertMessage("Erro ao eliminar: " + error.message);
+      setAlertVisible(true);
     } finally {
       setConfirmDeleteVisible(false);
       setSelectedIngredienteId(null);
     }
   };
 
-  const handleViewDetails = (ingredienteId) => {
-    navigation.navigate("DetalhesIngrediente", { ingredienteId });
-  };
-
-  const handleEditIngrediente = (ingrediente) => {
-    navigation.navigate("EditaIngrediente", { ingrediente });
-  };
-
-  const handleCreateIngrediente = () => {
-    navigation.navigate("CriarIngrediente");
-  };
-
-  const handleSearch = (text) => {
-    setSearchText(text);
-    const normalizedText = text
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
-    if (text) {
-      const filtered = ingredientes.filter((ingrediente) =>
-        ingrediente.nome
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .includes(normalizedText)
-      );
-      setFilteredIngredientes(filtered);
-    } else {
-      setFilteredIngredientes(ingredientes);
-    }
-  };
+  const stockBaixo = (ing) => ing.quantidadeMinima > 0 && ing.quantidade <= ing.quantidadeMinima;
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { backgroundColor: COLORS.primary }]}>
         <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
   }
 
   const renderItem = ({ item }) => (
-    <View
-      style={[
-        styles.itemContainer,
-        {
-          backgroundColor: COLORS.secondary,
-          borderColor: COLORS.neutral,
-          shadowColor: COLORS.neutral,
-        },
-      ]}
-    >
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Text style={[styles.cardTitle, { color: COLORS.text }]}>
-            Ingrediente: {item.nome}
+    <View style={[styles.card, { backgroundColor: COLORS.secondary, borderColor: stockBaixo(item) ? "#e74c3c" : COLORS.neutral }]}>
+      <View style={styles.cardHeader}>
+        <View style={styles.cardInfo}>
+          <Text style={[styles.cardNome, { color: COLORS.text }]}>{item.nome}</Text>
+          <Text style={[styles.cardQty, { color: stockBaixo(item) ? "#e74c3c" : COLORS.accent }]}>
+            {item.quantidade} {item.unidade}
+            {stockBaixo(item) ? "  ⚠ stock baixo" : ""}
           </Text>
-          <View style={{ flexDirection: "row" }}>
-            <Pressable
-              style={styles.editButton}
-              onPress={() => handleEditIngrediente(item)}
-            >
-              <Ionicons
-                name={"pencil-outline"}
-                size={22}
-                color={COLORS.accent}
-              />
-            </Pressable>
-            <Pressable
-              style={styles.deleteButton}
-              onPress={() => handleDeleteIngrediente(item.id)}
-            >
-              <Ionicons
-                name={"trash-outline"}
-                size={22}
-                color={COLORS.accent}
-              />
-            </Pressable>
-          </View>
+          <Text style={[styles.cardMeta, { color: COLORS.text }]}>
+            Mín: {item.quantidadeMinima} {item.unidade}  •  Tolerância: {Math.round((item.toleranciaVariancia || 0.15) * 100)}%
+          </Text>
         </View>
-        <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-          Quantidade: {item.quantidade} {item.unidade}
-        </Text>
+        <View style={styles.cardActions}>
+          <Pressable onPress={() => navigation.navigate("RegistarMovimento", { ingrediente: item })} style={styles.actionBtn}>
+            <Ionicons name="add-circle-outline" size={22} color="#2ecc71" />
+          </Pressable>
+          <Pressable onPress={() => navigation.navigate("EditaIngrediente", { ingrediente: item })} style={styles.actionBtn}>
+            <Ionicons name="pencil-outline" size={22} color={COLORS.accent} />
+          </Pressable>
+          <Pressable onPress={() => handleDelete(item.id)} style={styles.actionBtn}>
+            <Ionicons name="trash-outline" size={22} color="#e74c3c" />
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -197,141 +140,120 @@ const IngredientesScreen = () => {
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
       <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
-        <View
-          style={[
-            styles.searchContainer,
-            {
-              borderColor: COLORS.neutral,
-              backgroundColor: COLORS.secondary,
-            },
-          ]}
-        >
-          <Ionicons
-            name="search-outline"
-            size={24}
-            style={[styles.searchIcon, { color: COLORS.text }]}
-          />
+        <View style={[styles.searchContainer, { borderColor: COLORS.neutral, backgroundColor: COLORS.secondary }]}>
+          <Ionicons name="search-outline" size={20} color={COLORS.text} />
           <TextInput
             style={[styles.searchInput, { color: COLORS.text }]}
-            placeholder="Digite aqui para pesquisar"
-            placeholderTextColor={COLORS.text}
-            onChangeText={handleSearch}
+            placeholder="Pesquisar ingredientes..."
+            placeholderTextColor={COLORS.text + "88"}
+            onChangeText={setSearchText}
             value={searchText}
           />
         </View>
-        <Pressable style={styles.createButton} onPress={handleCreateIngrediente}>
-          <Ionicons name="add-circle-outline" size={24} color={COLORS.accent} />
+        <Pressable style={styles.createButton} onPress={() => navigation.navigate("CriarIngrediente")}>
+          <Ionicons name="add-circle-outline" size={26} color={COLORS.accent} />
         </Pressable>
       </View>
+
+      <View style={styles.bannersRow}>
+        <Pressable
+          style={[styles.varianciaBanner, { flex: 1, backgroundColor: COLORS.secondary, borderColor: COLORS.neutral }]}
+          onPress={() => navigation.navigate("Variancia")}
+        >
+          <Ionicons name="analytics-outline" size={18} color={COLORS.accent} />
+          <Text style={[styles.varianciaBannerText, { color: COLORS.text }]}>Variância →</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.varianciaBanner, { flex: 1, backgroundColor: COLORS.secondary, borderColor: COLORS.neutral }]}
+          onPress={() => navigation.navigate("MovimentosHistory")}
+        >
+          <Ionicons name="time-outline" size={18} color={COLORS.accent} />
+          <Text style={[styles.varianciaBannerText, { color: COLORS.text }]}>Histórico →</Text>
+        </Pressable>
+      </View>
+
       <FlatList
         data={filteredIngredientes}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={styles.list}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: COLORS.text }]}>Nenhum ingrediente encontrado</Text>
+          </View>
+        }
       />
+
       <CustomAlertModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        title={modalTitle}
-        message={modalMessage}
+        visible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        title={alertTitle}
+        message={alertMessage}
       />
       <ConfirmDeleteModal
         visible={confirmDeleteVisible}
         onClose={() => setConfirmDeleteVisible(false)}
-        onConfirm={confirmDeleteIngrediente}
+        onConfirm={confirmDelete}
       />
     </View>
   );
 };
+
 const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      paddingHorizontal: wp("1.6%"),
-      paddingTop: hp("1.32%"),
-    },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: wp("4%"),
-      paddingVertical: hp("2%"),
-    },
-    searchContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      flex: 1,
-      borderRadius: wp("2%"),
-      borderWidth: wp("0.2%"),
-      paddingHorizontal: wp("2%"),
-    },
-    searchInput: {
-      flex: 1,
-      height: hp("5%"),
-      marginLeft: wp("1%"),
-    },
-    itemContainer: {
-      borderRadius: wp("2%"),
-      borderWidth: wp("0.2%"),
-      padding: wp("2.5%"),
-      marginTop: hp("1%"),
-      marginBottom: hp("1%"),
-      shadowColor: "#000",
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.23,
-      shadowRadius: 2.62,
-      elevation: 3,
-      marginLeft: wp("4%"),
-      marginRight: wp("4%"),
-    },
-    card: {
-      width: "100%",
-      borderRadius: wp("2%"),
-      padding: wp("3.8%"),
-    },
-    cardHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: hp("1%"),
-    },
-    cardTitle: {
-      fontSize: wp("4%"),
-      fontWeight: "bold",
-      flex: 1,
-    },
-    cardDetail: {
-      fontSize: wp("3.5%"),
-      marginBottom: hp("0.5%"),
-    },
-    deleteButton: {
-      padding: wp("2%"),
-      borderRadius: wp("2%"),
-      marginLeft: wp("2%"),
-    },
-    editButton: {
-      padding: wp("2%"),
-      borderRadius: wp("2%"),
-    },
-    createButton: {
-      marginLeft: "auto",
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: wp("3%"),
-    },
-    buttonAnimated: {
-      width: "100%",
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    viewDetails: {
-      marginTop: hp("0.5%"),
-      textDecorationLine: "underline",
-    },
-  });
-  
-  export default IngredientesScreen;
-  
+  container: { flex: 1 },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: wp("4%"),
+    paddingVertical: hp("1.5%"),
+    borderBottomWidth: 1,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    borderRadius: wp("2%"),
+    borderWidth: 1,
+    paddingHorizontal: wp("2%"),
+    height: hp("5%"),
+    gap: wp("1.5%"),
+  },
+  searchInput: { flex: 1, fontSize: wp("3.8%") },
+  createButton: { marginLeft: wp("3%") },
+  bannersRow: {
+    flexDirection: "row",
+    gap: wp("2%"),
+    marginHorizontal: wp("4%"),
+    marginBottom: hp("1%"),
+  },
+  varianciaBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: wp("2%"),
+    margin: wp("4%"),
+    marginBottom: 0,
+    padding: wp("3%"),
+    borderRadius: wp("2%"),
+    borderWidth: 1,
+  },
+  varianciaBannerText: { fontSize: wp("3.8%"), fontWeight: "600" },
+  list: { padding: wp("4%"), gap: hp("1%") },
+  card: {
+    borderRadius: wp("2%"),
+    borderWidth: 1,
+    padding: wp("4%"),
+    elevation: 2,
+  },
+  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  cardInfo: { flex: 1, gap: hp("0.3%") },
+  cardNome: { fontSize: wp("4%"), fontWeight: "bold" },
+  cardQty: { fontSize: wp("3.8%"), fontWeight: "600" },
+  cardMeta: { fontSize: wp("3.2%"), opacity: 0.65 },
+  cardActions: { flexDirection: "row", gap: wp("1%") },
+  actionBtn: { padding: wp("1.5%") },
+  emptyContainer: { paddingTop: hp("10%"), alignItems: "center" },
+  emptyText: { fontSize: wp("4%"), opacity: 0.5 },
+});
+
+export default IngredientesScreen;

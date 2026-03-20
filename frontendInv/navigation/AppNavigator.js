@@ -13,6 +13,9 @@ import CriarItemScreen from "../screens/CriarItemScreen";
 import EditaItemScreen from "../screens/EditaItemScreen";
 import CriarIngredienteScreen from "../screens/CriarIngredienteScreen";
 import EditaIngredienteScreen from "../screens/EditaIngredienteScreen";
+import RegistarMovimentoScreen from "../screens/RegistarMovimentoScreen";
+import VarianciaScreen from "../screens/VarianciaScreen";
+import MovimentosHistoryScreen from "../screens/MovimentosHistoryScreen";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import * as NavigationBar from "expo-navigation-bar";
@@ -35,7 +38,6 @@ const AppNavigator = () => {
           "Erro",
           "Erro ao verificar o estado de login: " + error.message
         );
-        console.error("Error checking login status:", error);
         setIsLoggedIn(false);
       }
     };
@@ -90,18 +92,15 @@ const AppNavigator = () => {
     } catch (error) {
       // Alert user that login failed
       Alert.alert("Erro", "Erro ao salvar o token de login: " + error.message);
-      console.error("Error saving login token:", error);
     }
   };
 
   const handleLogout = async () => {
     try {
-      console.log("Logging out...");
       await AsyncStorage.removeItem("token");
       setIsLoggedIn(false);
     } catch (error) {
       Alert.alert("Erro", "Erro ao fazer logout: " + error.message);
-      console.error("Error logging out:", error);
     }
   };
 
@@ -130,6 +129,12 @@ const AppNavigator = () => {
               name="EditaIngrediente"
               component={EditaIngredienteScreen}
             />
+            <Stack.Screen
+              name="RegistarMovimento"
+              component={RegistarMovimentoScreen}
+            />
+            <Stack.Screen name="Variancia" component={VarianciaScreen} />
+            <Stack.Screen name="MovimentosHistory" component={MovimentosHistoryScreen} />
           </>
         )}
       </Stack.Navigator>

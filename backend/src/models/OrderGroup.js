@@ -1,4 +1,3 @@
-// models/OrderGroup.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
@@ -11,9 +10,13 @@ const OrderGroup = sequelize.define(
       primaryKey: true,
     },
     status: {
-      type: DataTypes.ENUM("pendente", "pronto"),
+      type: DataTypes.ENUM("pendente", "em_preparo", "pronto"),
       allowNull: false,
       defaultValue: "pendente",
+    },
+    mesa: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
     userId: {
       type: DataTypes.INTEGER,
@@ -23,7 +26,6 @@ const OrderGroup = sequelize.define(
         key: "id",
       },
     },
-
     totalPrice: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,

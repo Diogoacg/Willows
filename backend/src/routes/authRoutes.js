@@ -2,10 +2,18 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const e = require("express");
 const OrderGroup = require("../models/OrderGroup");
+const authenticateToken = require("../middleWare/authMiddleware");
+const { requireAdmin } = require("../middleWare/authMiddleware");
 
 const router = express.Router();
+
+const safeUser = (user) => ({
+  id: user.id,
+  username: user.username,
+  email: user.email,
+  role: user.role,
+});
 
 module.exports = (io) => {
   /**
@@ -21,24 +29,23 @@ module.exports = (io) => {
    *       properties:
    *         username:
    *           type: string
-   *           description: Nome de Utilizador
    *         email:
    *           type: string
-   *           description: Endereço de email
    *         password:
    *           type: string
-   *           description: Senha do Utilizador
    *         role:
    *           type: string
-   *           description: Papel do Utilizador
+   *           enum: [user, admin]
    */
 
   /**
    * @swagger
    * /auth/signup:
    *   post:
-   *     summary: Registra um novo Utilizador
+   *     summary: Cria um novo funcionário (requer admin)
    *     tags: [Auth]
+   *     security:
+   *       - bearerAuth: []
    *     requestBody:
    *       required: true
    *       content:
@@ -47,35 +54,26 @@ module.exports = (io) => {
    *             $ref: '#/components/schemas/User'
    *     responses:
    *       201:
-   *         description: Utilizador registrado com sucesso
+   *         description: Utilizador criado com sucesso
    *       400:
-   *         description: Erro ao registrar o Utilizador
+   *         description: Erro ao criar utilizador
    */
-  router.post("/signup", async (req, res) => {
+  router.post("/signup", authenticateToken, requireAdmin, async (req, res) => {
     const { username, email, password, role } = req.body;
     try {
-      const newUser = await User.create({
-        username,
-        email,
-        password,
-        role,
-      });
-      // Emitir um evento com o Socket.IO
-      io.emit("userCreated", newUser);
-      res
-        .status(201)
-        .json({ message: "Utilizador registrado com sucesso", user: newUser });
+      const newUser = await User.create({ username, email, password, role });
+      io.emit("userCreated", safeUser(newUser));
+      res.status(201).json({ message: "Utilizador criado com sucesso", user: safeUser(newUser) });
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
   });
 
-  // login para todos os utilizadores na app cliente
   /**
    * @swagger
    * /auth/login:
    *   post:
-   *     summary: Faz login de um Utilizador
+   *     summary: Login de funcionário
    *     tags: [Auth]
    *     requestBody:
    *       required: true
@@ -83,9 +81,7 @@ module.exports = (io) => {
    *         application/json:
    *           schema:
    *             type: object
-   *             required:
-   *               - username
-   *               - password
+   *             required: [username, password]
    *             properties:
    *               username:
    *                 type: string
@@ -96,48 +92,34 @@ module.exports = (io) => {
    *         description: Login bem sucedido
    *       401:
    *         description: Credenciais inválidas
-   *       404:
-   *         description: Utilizador não encontrado
-   *       400:
-   *         description: Erro ao fazer login
    */
-  // Rota de login
   router.post("/login", async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res
-        .status(400)
-        .json({ message: "Username e senha são obrigatórios" });
+      return res.status(400).json({ message: "Username e senha são obrigatórios" });
     }
 
     try {
       const user = await User.findOne({ where: { username } });
-
       if (!user) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
+        return res.status(404).json({ message: "Utilizador não encontrado" });
       }
-      const passwordHashed = await bcrypt.hash(password, 10);
-      console.log(password);
-      console.log(passwordHashed);
-      console.log(user.password);
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(400).json({ message: "Senha incorreta" });
+        return res.status(401).json({ message: "Senha incorreta" });
       }
 
       const token = jwt.sign(
         { id: user.id, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: "999y" }
+        { expiresIn: "12h" }
       );
-      // Emitir um evento com o Socket.IO
-      io.emit("userLoggedIn", user);
-      console.log(token);
-      res.json({ token });
+
+      io.emit("userLoggedIn", { username: user.username });
+      res.json({ token, user: safeUser(user) });
     } catch (error) {
-      console.error("Erro ao tentar fazer login:", error); // Log do erro para depuração
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
@@ -146,7 +128,7 @@ module.exports = (io) => {
    * @swagger
    * /auth/login-admin:
    *   post:
-   *     summary: Faz login de um Utilizador com papel de Admin
+   *     summary: Login de administrador
    *     tags: [Auth]
    *     requestBody:
    *       required: true
@@ -154,9 +136,7 @@ module.exports = (io) => {
    *         application/json:
    *           schema:
    *             type: object
-   *             required:
-   *               - username
-   *               - password
+   *             required: [username, password]
    *             properties:
    *               username:
    *                 type: string
@@ -165,92 +145,95 @@ module.exports = (io) => {
    *     responses:
    *       200:
    *         description: Login bem sucedido
-   *       401:
-   *         description: Credenciais inválidas
-   *       404:
-   *         description: Utilizador não encontrado
-   *       400:
-   *         description: Erro ao fazer login
    *       403:
    *         description: Acesso negado
    */
-
-  // Rota de login para administradores
-
   router.post("/login-admin", async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res
-        .status(400)
-        .json({ message: "Username e senha são obrigatórios" });
+      return res.status(400).json({ message: "Username e senha são obrigatórios" });
     }
 
     try {
       const user = await User.findOne({ where: { username } });
-
       if (!user) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
+        return res.status(404).json({ message: "Utilizador não encontrado" });
       }
-
       if (user.role !== "admin") {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(400).json({ message: "Senha incorreta" });
+        return res.status(401).json({ message: "Senha incorreta" });
       }
 
       const token = jwt.sign(
         { id: user.id, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: "1h" }
+        { expiresIn: "8h" }
       );
-      // Emitir um evento com o Socket.IO
-      io.emit("adminLoggedIn", user);
-      res.json({ token });
+
+      io.emit("adminLoggedIn", { username: user.username });
+      res.json({ token, user: safeUser(user) });
     } catch (error) {
-      console.error("Erro ao tentar fazer login:", error); // Log do erro para depuração
       res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 
   /**
    * @swagger
-   * /auth/delete/{id}:
-   *   delete:
-   *     summary: Deleta um Utilizador
+   * /auth/all:
+   *   get:
+   *     summary: Lista todos os utilizadores (requer admin)
    *     tags: [Auth]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Lista de utilizadores
+   */
+  router.get("/all", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const users = await User.findAll({
+        attributes: ["id", "username", "email", "role"],
+      });
+      res.json(users);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  /**
+   * @swagger
+   * /auth/{id}:
+   *   get:
+   *     summary: Retorna um utilizador específico
+   *     tags: [Auth]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - in: path
    *         name: id
    *         required: true
    *         schema:
    *           type: integer
-   *         description: ID do Utilizador
    *     responses:
    *       200:
-   *         description: Utilizador deletado com sucesso
+   *         description: Utilizador encontrado
    *       404:
    *         description: Utilizador não encontrado
    */
-  router.delete("/delete/:id", async (req, res) => {
-    const { id } = req.params;
+  router.get("/:id", authenticateToken, async (req, res) => {
     try {
-      const user = await User.findByPk(id);
+      const user = await User.findByPk(req.params.id, {
+        attributes: ["id", "username", "email", "role"],
+      });
       if (!user) {
         return res.status(404).json({ error: "Utilizador não encontrado" });
       }
-
-      // Set userId to NULL or a default value for associated order groups
-      await OrderGroup.update({ userId: null }, { where: { userId: id } });
-
-      await user.destroy();
-
-      // Emitir um evento com o Socket.IO
-      io.emit("userDeleted", user);
-      res.status(200).json({ message: "Utilizador deletado com sucesso" });
+      res.json(user);
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
@@ -260,119 +243,75 @@ module.exports = (io) => {
    * @swagger
    * /auth/update-role/{id}:
    *   patch:
-   *     summary: Atualiza o papel de um Utilizador
+   *     summary: Atualiza o papel de um utilizador (requer admin)
    *     tags: [Auth]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - in: path
    *         name: id
    *         required: true
    *         schema:
    *           type: integer
-   *         description: ID do Utilizador
    *     requestBody:
    *       required: true
    *       content:
    *         application/json:
    *           schema:
    *             type: object
-   *             required:
-   *               - role
+   *             required: [role]
    *             properties:
    *               role:
    *                 type: string
-   *                 description: Novo papel do Utilizador
+   *                 enum: [user, admin]
    *     responses:
    *       200:
    *         description: Papel atualizado com sucesso
-   *       404:
-   *         description: Utilizador não encontrado
-   *       400:
-   *         description: Erro ao atualizar papel
    */
-  router.patch("/update-role/:id", async (req, res) => {
-    const { id } = req.params;
+  router.patch("/update-role/:id", authenticateToken, requireAdmin, async (req, res) => {
     const { role } = req.body;
     try {
-      const user = await User.findByPk(id);
+      const user = await User.findByPk(req.params.id);
       if (!user) {
         return res.status(404).json({ error: "Utilizador não encontrado" });
       }
-
       user.role = role;
       await user.save();
-      // Emitir um evento com o Socket.IO
-      io.emit("userRoleUpdated", user);
-      res.status(200).json({ message: "Papel atualizado com sucesso", user });
+      io.emit("userRoleUpdated", safeUser(user));
+      res.json({ message: "Papel atualizado com sucesso", user: safeUser(user) });
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
   });
 
-  // Rota para obter todos os utilizadores
   /**
    * @swagger
-   * /auth/all:
-   *   get:
-   *     summary: Retorna todos os Utilizadores
+   * /auth/delete/{id}:
+   *   delete:
+   *     summary: Elimina um utilizador (requer admin)
    *     tags: [Auth]
-   *     responses:
-   *       200:
-   *         description: Lista de Utilizadores
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: array
-   *               items:
-   *                 $ref: '#/components/schemas/User'
-   *       400:
-   *         description: Erro ao buscar Utilizadores
-   */
-  router.get("/all", async (req, res) => {
-    try {
-      const users = await User.findAll();
-      res.json(users);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  });
-
-  // Rota para obter um utilizador específico
-  /**
-   * @swagger
-   * /auth/{id}:
-   *   get:
-   *     summary: Retorna um Utilizador específico
-   *     tags: [Auth]
+   *     security:
+   *       - bearerAuth: []
    *     parameters:
    *       - in: path
    *         name: id
    *         required: true
    *         schema:
    *           type: integer
-   *         description: ID do Utilizador
    *     responses:
    *       200:
-   *         description: Utilizador encontrado
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/User'
-   *       404:
-   *         description: Utilizador não encontrado
-   *       400:
-   *         description: Erro ao buscar Utilizador
+   *         description: Utilizador eliminado com sucesso
    */
-  router.get("/:id", async (req, res) => {
-    const { id } = req.params;
+  router.delete("/delete/:id", authenticateToken, requireAdmin, async (req, res) => {
     try {
-      const user = await User.findByPk(id);
+      const user = await User.findByPk(req.params.id);
       if (!user) {
         return res.status(404).json({ error: "Utilizador não encontrado" });
       }
-
-      // Emitir um evento com o Socket.IO
-      io.emit("userFound", user);
-      res.json(user);
+      await OrderGroup.update({ userId: null }, { where: { userId: req.params.id } });
+      await user.destroy();
+      io.emit("userDeleted", { id: req.params.id });
+      res.json({ message: "Utilizador eliminado com sucesso" });
     } catch (error) {
       res.status(400).json({ error: error.message });
     }

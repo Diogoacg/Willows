@@ -1,5 +1,5 @@
 // screens/LoginScreen.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -8,7 +8,6 @@ import {
   Pressable,
   Switch,
   Animated,
-  ActivityIndicator,
 } from "react-native";
 import axios from "axios";
 import { REACT_APP_AUTH_URL } from "@env";
@@ -18,37 +17,21 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import io from "socket.io-client";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
-
-//const socketUrl = "https://willows-production.up.railway.app";
-const socketUrl = "http://localhost:5000";
 
 const LoginScreen = ({ onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [socket, setSocket] = useState(null);
   const { isDarkMode, toggleTheme } = useTheme();
   const scaleValue = useRef(new Animated.Value(1)).current;
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
-  const [loading, setLoading] = useState(true);
 
   const COLORS = isDarkMode ? colors.dark : colors.light;
-
-  useEffect(() => {
-    setLoading(false);
-    const socket = io(socketUrl);
-    setSocket(socket);
-
-    socket.on("userLoggedIn", (user) => {
-      console.log("Usuário Logado:", user);
-    });
-  }, []);
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -78,16 +61,10 @@ const LoginScreen = ({ onLogin }) => {
         password,
       });
 
-      console.log("Login response:", response.data);
-
       await AsyncStorage.setItem("token", response.data.token);
 
       onLogin(response.data.token);
     } catch (error) {
-      console.error(
-        "Login error:",
-        error.response ? error.response.data : error.message
-      );
       setModalTitle("Erro");
       setModalMessage(
         error.response ? error.response.data.message : error.message
@@ -97,12 +74,6 @@ const LoginScreen = ({ onLogin }) => {
       animateScaleOut();
     }
   };
-
-  if (loading) {
-    return <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={COLORS.accent} />
-          </View>;
-  }
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
@@ -121,7 +92,7 @@ const LoginScreen = ({ onLogin }) => {
           value={username}
           placeholder="Username"
           placeholderTextColor={COLORS.text}
-          inputMode="name-phone-pad"
+          autoCapitalize="none"
         />
         <Ionicons
           name="person-outline"
@@ -243,7 +214,6 @@ const styles = StyleSheet.create({
     borderWidth: wp("0.2%"),
   },
   buttonText: {
-    color: "#000",
     fontWeight: "bold",
     fontSize: wp("4%"),
   },
@@ -258,11 +228,6 @@ const styles = StyleSheet.create({
   },
   buttonAnimated: {
     width: "100%",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
   },
   lightIcon: {
     position: "absolute",

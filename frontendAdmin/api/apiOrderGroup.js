@@ -2,7 +2,6 @@ import { REACT_APP_API_URL } from "@env";
 
 // Função para criar um novo grupo de pedidos
 export const criarNovoGrupoDePedidos = async (token, orderData) => {
-  console.log(REACT_APP_API_URL);
   try {
     const response = await fetch(`${REACT_APP_API_URL}/order-groups`, {
       method: "POST",
@@ -61,7 +60,6 @@ export const obterGruposDePedidos = async (token) => {
 
     return await response.json();
   } catch (error) {
-    console.error("Erro ao buscar grupos de pedidos:", error);
     throw new Error(error.message);
   }
 };

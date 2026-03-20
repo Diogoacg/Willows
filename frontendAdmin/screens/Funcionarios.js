@@ -18,6 +18,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
+import { REACT_APP_SOCKET_URL } from "@env";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
@@ -44,8 +45,7 @@ const FuncionariosScreen = () => {
     fetchLogins();
 
     // Set up Socket.IO client
-    // const socket = io("https://willows-production.up.railway.app");
-    const socket = io("http://localhost:5000");
+    const socket = io(REACT_APP_SOCKET_URL || "http://localhost:5000");
 
     // Listen for relevant events
     socket.on("userCreated", () => {
@@ -85,7 +85,6 @@ const FuncionariosScreen = () => {
       setModalTitle("Erro");
       setModalMessage("Erro ao obter utilizadores: " + error.message);
       setModalVisible(true);
-      console.error("Erro ao buscar logins:", error.message);
     } finally {
       setLoading(false);
     }
@@ -125,7 +124,6 @@ const FuncionariosScreen = () => {
       setModalMessage("Utilizador eliminado com sucesso!");
       setModalVisible(true);
     } catch (error) {
-      console.error("Erro ao eliminar utilizador:", error);
       setModalTitle("Erro");
       setModalMessage("Erro ao eliminar utilizador: " + error.message);
       setModalVisible(true);

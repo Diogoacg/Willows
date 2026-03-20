@@ -22,6 +22,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
+import { REACT_APP_SOCKET_URL } from "@env";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal"; // Atualize o caminho conforme necessário
@@ -45,8 +46,7 @@ const InventarioScreen = () => {
     fetchItems();
 
     // Set up Socket.IO client
-    //const socket = io("https://willows-production.up.railway.app");
-     const socket = io("http://localhost:5000");
+    const socket = io(REACT_APP_SOCKET_URL || "http://localhost:5000");
 
     socket.on("itemUpdated", () => {
       fetchItems();
@@ -79,7 +79,6 @@ const InventarioScreen = () => {
       setModalTitle("Erro");
       setModalMessage("Erro ao obter itens do inventário: " + error.message);
       setModalVisible(true);
-      console.error("Erro ao buscar itens:", error.message);
     } finally {
       setLoading(false);
     }
@@ -102,7 +101,6 @@ const InventarioScreen = () => {
       setModalTitle("Erro");
       setModalMessage("Erro ao eliminar item: " + error.message);
       setModalVisible(true);
-      console.error("Erro ao eliminar item:", error.message);
     } finally {
       setConfirmDeleteVisible(false);
       setSelectedItemId(null);

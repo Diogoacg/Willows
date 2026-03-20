@@ -6,63 +6,30 @@ const swaggerJsDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
-const statsRoutes = require("./routes/statsRoutes");
 
-// Carregar variáveis de ambiente
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:8081", // Troque pelo endereço do seu frontend local
+    origin: "*",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   },
 });
 
-const corsOptions = {
-  origin: "http://localhost:8081", // Troque pelo endereço do seu frontend local
+app.use(cors({
+  origin: "*",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   preflightContinue: false,
   optionsSuccessStatus: 204,
   allowedHeaders: ["Content-Type", "Authorization"],
-};
-
-app.use(cors(corsOptions));
+}));
 app.use(express.json());
 
-// Criar um usuário automaticamente ao iniciar a aplicação
-async function createInitialUser() {
-  const username = "admin"; // Nome de usuário inicial
-  const email = "admin@example.com"; // Email inicial
-  const password = "admin123"; // Senha inicial
-  const role = "admin"; // Função do usuário
-
-  try {
-    // Verifique se já existe um usuário com o nome de usuário
-    const existingUser = await User.findOne({ where: { username } });
-
-    if (existingUser) {
-      console.log("Initial user already exists");
-      return;
-    }
-
-    // Crie o usuário no banco de dados
-    await User.create({
-      username,
-      email,
-      password,
-    });
-
-    console.log("Initial user created successfully");
-  } catch (error) {
-    console.error("Error creating initial user:", error);
-  }
-}
-
-// Conexão com o banco de dados Sequelize
+// Modelos
 const sequelize = require("./config/database");
 const User = require("./models/User");
 const Item = require("./models/Item");
@@ -70,93 +37,95 @@ const OrderGroup = require("./models/OrderGroup");
 const OrderItem = require("./models/OrderItem");
 const Ingredientes = require("./models/Ingredientes");
 const ItemIngredient = require("./models/ItemIngredientes");
+const MovimentoStock = require("./models/MovimentoStock");
 
-// Definição de associações entre modelos Sequelize
+// Associações
 OrderGroup.hasMany(OrderItem, { as: "items", foreignKey: "orderGroupId" });
-OrderItem.belongsTo(OrderGroup, {
-  foreignKey: "orderGroupId",
-  as: "orderGroup",
-});
+OrderItem.belongsTo(OrderGroup, { foreignKey: "orderGroupId", as: "orderGroup" });
 OrderGroup.belongsTo(User, { foreignKey: "userId", as: "user" });
+User.hasMany(OrderGroup, { foreignKey: "userId" });
 Item.hasMany(OrderItem, { foreignKey: "itemId" });
 OrderItem.belongsTo(Item, { foreignKey: "itemId" });
-OrderGroup.hasMany(OrderItem, { foreignKey: "orderGroupId" });
-User.hasMany(OrderGroup, { foreignKey: "userId" });
-OrderGroup.belongsTo(User, { foreignKey: "userId" });
 Item.belongsToMany(Ingredientes, { through: ItemIngredient, foreignKey: "itemId" });
 Ingredientes.belongsToMany(Item, { through: ItemIngredient, foreignKey: "ingredienteId" });
+MovimentoStock.belongsTo(Ingredientes, { foreignKey: "ingredienteId" });
+Ingredientes.hasMany(MovimentoStock, { foreignKey: "ingredienteId" });
+MovimentoStock.belongsTo(User, { foreignKey: "userId" });
 
+async function createInitialUser() {
+  try {
+    const existing = await User.findOne({ where: { username: "admin" } });
+    if (existing) return;
 
-// Sincronização do banco de dados (alter: true para alterar automaticamente o esquema)
-sequelize
-  .sync({ alter: true }) //remove force: true para não recriar as tabelas
-  .then(async () => {
-    console.log("Database & tables created!");
+    await User.create({
+      username: "admin",
+      email: "admin@willows.cafe",
+      password: "admin123",
+      role: "admin",
+    });
+    console.log("Utilizador admin inicial criado. Altere a senha em produção!");
+  } catch (error) {
+    console.error("Erro ao criar utilizador inicial:", error);
+  }
+}
 
-    // Chame a função para criar o usuário inicial
-    await createInitialUser();
-  })
-  .catch((error) => {
-    console.error("Error creating database tables:", error);
-  });
-
-// Configuração do Swagger
+// Swagger
 const swaggerOptions = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "API do Café",
-      version: "1.0.0",
-      description: "API para gerenciamento de pedidos de café",
+      title: "Willows Café API",
+      version: "2.0.0",
+      description: "API para gestão do Willows Café",
     },
-    servers: [
-      {
-        url: `http://localhost:${process.env.PORT || 5000}`,
-      },
-    ],
+    servers: [{ url: `http://localhost:${process.env.PORT || 5000}` }],
     components: {
       securitySchemes: {
-        bearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT",
-        },
+        bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
       },
     },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
+    security: [{ bearerAuth: [] }],
   },
-  apis: ["./src/routes/*.js"], // Caminho para os arquivos de definição das rotas
+  apis: ["./src/routes/*.js"],
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-// Rotas da API (modificadas para passar `io`)
+// Rotas
 const OrderGroupRoutes = require("./routes/orderGroupRoutes")(io);
 const authRoutes = require("./routes/authRoutes")(io);
 const inventoryRoutes = require("./routes/inventoryRoutes")(io);
 const ingredientesRoutes = require("./routes/ingredientesRoutes")(io);
+const statsRoutes = require("./routes/statsRoutes");
+const movimentosStockRoutes = require("./routes/movimentosStockRoutes")(io);
 
-
-// Rotas da API
 app.use("/api/order-groups", OrderGroupRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/ingredientes", ingredientesRoutes);
+app.use("/api/movimentos-stock", movimentosStockRoutes);
 
-// Exemplo básico de conexão Socket.IO
 io.on("connection", (socket) => {
-  console.log("Novo cliente conectado");
+  console.log(`Cliente conectado: ${socket.id}`);
+  socket.on("disconnect", () => {
+    console.log(`Cliente desconectado: ${socket.id}`);
+  });
 });
 
-// Porta do servidor
-const PORT = process.env.PORT || 8080;
+sequelize
+  .sync({ alter: true })
+  .then(async () => {
+    console.log("Base de dados sincronizada.");
+    await createInitialUser();
+  })
+  .catch((error) => {
+    console.error("Erro ao sincronizar base de dados:", error);
+  });
+
+const PORT = process.env.PORT || 5000;
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor a correr na porta ${PORT}`);
   console.log(`Swagger disponível em: http://localhost:${PORT}/api-docs`);
 });

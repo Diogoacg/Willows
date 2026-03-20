@@ -1,36 +1,41 @@
-//models/ingredientes.js
-// itens que podem ser quantificados e contam para o inventario
-
-const { Sequelize, DataTypes } = require("sequelize");
+const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 const Ingredientes = sequelize.define(
-    "Ingredientes",
-    {
-        id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-        },
-        nome: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: "nome",
-        },
-        quantidade: {
-        type: DataTypes.FLOAT,
-        allowNull: false,
-        },
-        unidade: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        },
+  "Ingredientes",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
     },
-    {
-        timestamps: false,
-    }
-    );
-
-    
+    nome: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    quantidade: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+    },
+    unidade: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    quantidadeMinima: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    toleranciaVariancia: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      defaultValue: 0.15, // 15% de tolerância por defeito
+    },
+  },
+  {
+    timestamps: false,
+  }
+);
 
 module.exports = Ingredientes;

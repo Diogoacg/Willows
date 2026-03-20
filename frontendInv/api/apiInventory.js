@@ -1,100 +1,65 @@
 import { REACT_APP_API_URL } from "@env";
 
-// Função para criar um novo item no inventário
-export const criarNovoItem = async (token, nome, preco, ingredientes) => {
-  console.log(REACT_APP_API_URL);
-  console.log(token);
-  console.log(nome);
-  console.log(preco);
-  try {
-    const response = await fetch(`${REACT_APP_API_URL}/inventory`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ nome, preco, ingredientes }),
-    });
+export const criarNovoItem = async (token, nome, preco, descricao, categoria, ingredientes) => {
+  const response = await fetch(`${REACT_APP_API_URL}/inventory`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ nome, preco, descricao, categoria, ingredientes }),
+  });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message);
-    }
-
-    return await response.json();
-  } catch (error) {
-    throw new Error(error.message);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message);
   }
+
+  return response.json();
 };
 
-// Função para obter todos os itens do inventário
 export const obterItensDoInventario = async () => {
-  console.log(REACT_APP_API_URL);
-  try {
-    const response = await fetch(`${REACT_APP_API_URL}/inventory`);
+  const response = await fetch(`${REACT_APP_API_URL}/inventory`);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message);
-    }
-
-    return await response.json();
-  } catch (error) {
-    throw new Error(error.message);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message);
   }
+
+  return response.json();
 };
 
-// Função para atualizar um item no inventário
-export const atualizarItemNoInventario = async (
-  token,
-  id,
-  nome,
-  preco,
-  imageUri = null
-) => {
-  try {
-    const bodyData = { nome, preco };
-    if (imageUri) {
-      bodyData.imageUri = imageUri;
-    }
+// ingredientes: [{ id, quantidade }]
+export const atualizarItemNoInventario = async (token, id, nome, preco, descricao, categoria, disponivel, ingredientes) => {
+  const response = await fetch(`${REACT_APP_API_URL}/inventory/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ nome, preco, descricao, categoria, disponivel, ingredientes }),
+  });
 
-    const response = await fetch(`${REACT_APP_API_URL}/inventory/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(bodyData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message);
-    }
-
-    return await response.json();
-  } catch (error) {
-    throw new Error(error.message);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message);
   }
+
+  return response.json();
 };
 
-// Função para deletar um item do inventário
 export const deletarItemDoInventario = async (token, id) => {
-  try {
-    const response = await fetch(`${REACT_APP_API_URL}/inventory/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  const response = await fetch(`${REACT_APP_API_URL}/inventory/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message);
-    }
-
-    return { message: "Item deletado com sucesso" };
-  } catch (error) {
-    throw new Error(error.message);
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message);
   }
+
+  return { message: "Item eliminado com sucesso" };
 };

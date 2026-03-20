@@ -1,10 +1,10 @@
-// routes/orderGroupRoutes.js
 const express = require("express");
 const router = express.Router();
 const OrderGroup = require("../models/OrderGroup");
 const OrderItem = require("../models/OrderItem");
 const Item = require("../models/Item");
 const Ingredientes = require("../models/Ingredientes");
+const User = require("../models/User");
 const authenticateToken = require("../middleWare/authMiddleware");
 
 module.exports = (io) => {
@@ -12,19 +12,6 @@ module.exports = (io) => {
    * @swagger
    * components:
    *   schemas:
-   *     Item:
-   *       type: object
-   *       properties:
-   *         id:
-   *           type: integer
-   *           description: ID do Item
-   *         nome:
-   *           type: string
-   *           description: Nome do Item
-   *         quantidade:
-   *           type: integer
-   *           description: Quantidade do Item
-   *
    *     OrderGroup:
    *       type: object
    *       required:
@@ -32,29 +19,31 @@ module.exports = (io) => {
    *       properties:
    *         id:
    *           type: integer
-   *           description: ID do Grupo de Pedidos
    *         status:
    *           type: string
    *           enum: [pendente, em_preparo, pronto]
-   *           description: Status do Grupo de Pedidos
+   *         mesa:
+   *           type: integer
    *         userId:
    *           type: integer
-   *           description: ID do usuário que criou o grupo de pedidos
    *         totalPrice:
    *           type: number
-   *           format: float
-   *           description: Preço total do grupo de pedidos
    *         items:
    *           type: array
    *           items:
-   *             $ref: '#/components/schemas/Item'
+   *             type: object
+   *             properties:
+   *               nome:
+   *                 type: string
+   *               quantidade:
+   *                 type: integer
    */
 
   /**
    * @swagger
    * /api/order-groups:
    *   post:
-   *     summary: Cria um novo grupo de pedidos
+   *     summary: Cria um novo pedido
    *     tags: [OrderGroups]
    *     security:
    *       - bearerAuth: []
@@ -63,80 +52,211 @@ module.exports = (io) => {
    *       content:
    *         application/json:
    *           schema:
-   *             $ref: '#/components/schemas/OrderGroup'
-   *           example:
-   *             items:
-   *               - nome: Item1
-   *                 quantidade: 2
-   *               - nome: Item2
-   *                 quantidade: 1
+   *             type: object
+   *             required: [items]
+   *             properties:
+   *               items:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *                   properties:
+   *                     nome:
+   *                       type: string
+   *                     quantidade:
+   *                       type: integer
+   *               mesa:
+   *                 type: integer
    *     responses:
    *       201:
-   *         description: Grupo de pedidos criado com sucesso
-   *         content:
-   *           application/json:
-   *             schema:
-   *               $ref: '#/components/schemas/OrderGroup'
+   *         description: Pedido criado com sucesso
    *       400:
-   *         description: Erro na criação do grupo de pedidos
+   *         description: Erro na criação do pedido
    */
-
-  // Rota para criar um novo grupo de pedidos
   router.post("/", authenticateToken, async (req, res) => {
-    const { items } = req.body;
-    const userId = req.user.id; // Obtém o ID do usuário autenticado
-    const status = "pendente"; // Definindo status como "pendente" por padrão
+    const { items, mesa } = req.body;
+    const userId = req.user.id;
+
+    if (!items || items.length === 0) {
+      return res.status(400).json({ message: "O pedido deve ter pelo menos um item." });
+    }
 
     try {
-      // Verifica se todos os itens existem no inventário
-      const itemNames = items.map((item) => item.nome);
-      const existingItems = await Item.findAll({ where: { nome: itemNames } });
-      const validNames = existingItems.map((item) => item.nome);
-      const invalidNames = itemNames.filter(
-        (name) => !validNames.includes(name)
-      );
+      const itemNames = items.map((i) => i.nome);
+      const existingItems = await Item.findAll({
+        where: { nome: itemNames, disponivel: true },
+      });
 
+      const validNames = existingItems.map((i) => i.nome);
+      const invalidNames = itemNames.filter((n) => !validNames.includes(n));
       if (invalidNames.length > 0) {
         return res.status(400).json({
-          message: `Os seguintes itens não estão no inventário: ${invalidNames.join(
-            ", "
-          )}`,
+          message: `Itens não disponíveis: ${invalidNames.join(", ")}`,
         });
       }
 
-      // Cálculo do preço total da ordem
       let totalPrice = 0;
       for (const item of items) {
-        const foundItem = existingItems.find((i) => i.nome === item.nome);
-        totalPrice += foundItem.preco * item.quantidade;
+        const found = existingItems.find((i) => i.nome === item.nome);
+        totalPrice += parseFloat(found.preco) * item.quantidade;
       }
 
-      // Cria o grupo de pedidos com o totalPrice calculado
       const orderGroup = await OrderGroup.create({
-        status,
+        status: "pendente",
         userId,
-        totalPrice,
+        totalPrice: totalPrice.toFixed(2),
+        mesa: mesa || null,
       });
 
-      // Cria os itens do pedido e associa ao grupo
       for (const item of items) {
-        console.log(item);
+        const found = existingItems.find((i) => i.nome === item.nome);
         await OrderItem.create({
           nome: item.nome,
           quantidade: item.quantidade,
+          observacoes: item.observacoes || null,
           orderGroupId: orderGroup.id,
-          itemId: existingItems.find((i) => i.nome === item.nome).id,
+          itemId: found.id,
         });
       }
 
-      // Atualiza o grupo de pedidos com os itens criados
       const orderGroupWithItems = await OrderGroup.findByPk(orderGroup.id, {
         include: [{ model: OrderItem, as: "items" }],
       });
-      // Emitir um evento com o Socket.IO
-      io.emit("orderGroupCreated", orderGroupWithItems);
 
+      io.emit("orderGroupCreated", orderGroupWithItems);
       res.status(201).json(orderGroupWithItems);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  /**
+   * @swagger
+   * /api/order-groups:
+   *   get:
+   *     summary: Lista todos os pedidos
+   *     tags: [OrderGroups]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: query
+   *         name: status
+   *         schema:
+   *           type: string
+   *           enum: [pendente, em_preparo, pronto]
+   *         description: Filtrar por status
+   *     responses:
+   *       200:
+   *         description: Lista de pedidos
+   */
+  router.get("/", authenticateToken, async (req, res) => {
+    try {
+      const where = {};
+      if (req.query.status) where.status = req.query.status;
+
+      const orderGroups = await OrderGroup.findAll({
+        where,
+        include: [
+          { model: OrderItem, as: "items" },
+          { model: User, as: "user", attributes: ["id", "username"] },
+        ],
+        order: [["createdAt", "DESC"]],
+      });
+
+      res.json(orderGroups);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  /**
+   * @swagger
+   * /api/order-groups/{id}:
+   *   patch:
+   *     summary: Atualiza o status de um pedido
+   *     tags: [OrderGroups]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: integer
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required: [status]
+   *             properties:
+   *               status:
+   *                 type: string
+   *                 enum: [pendente, em_preparo, pronto]
+   *     responses:
+   *       200:
+   *         description: Status atualizado com sucesso
+   *       404:
+   *         description: Pedido não encontrado
+   */
+  router.patch("/:id", authenticateToken, async (req, res) => {
+    const { status } = req.body;
+
+    const validStatuses = ["pendente", "em_preparo", "pronto"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Status inválido." });
+    }
+
+    try {
+      const orderGroup = await OrderGroup.findByPk(req.params.id, {
+        include: [
+          {
+            model: OrderItem,
+            as: "items",
+            include: [
+              {
+                model: Item,
+                include: [
+                  {
+                    model: Ingredientes,
+                    through: { attributes: ["quantidade"] },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      if (!orderGroup) {
+        return res.status(404).json({ message: "Pedido não encontrado" });
+      }
+
+      orderGroup.status = status;
+      await orderGroup.save();
+
+      // Descontar ingredientes apenas quando o pedido fica pronto
+      if (status === "pronto") {
+        for (const orderItem of orderGroup.items) {
+          if (!orderItem.Item || !orderItem.Item.Ingredientes) continue;
+          for (const ingrediente of orderItem.Item.Ingredientes) {
+            const quantidadeNecessaria =
+              ingrediente.ItemIngredient.quantidade * orderItem.quantidade;
+            const ing = await Ingredientes.findByPk(ingrediente.id);
+            if (ing) {
+              ing.quantidade = Math.max(0, ing.quantidade - quantidadeNecessaria);
+              await ing.save();
+            }
+          }
+        }
+      }
+
+      io.emit("orderGroupUpdated", {
+        id: orderGroup.id,
+        status: orderGroup.status,
+        mesa: orderGroup.mesa,
+      });
+      res.json({ message: "Status atualizado com sucesso", status: orderGroup.status });
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
@@ -146,7 +266,7 @@ module.exports = (io) => {
    * @swagger
    * /api/order-groups/{id}:
    *   delete:
-   *     summary: Apaga um grupo de pedidos
+   *     summary: Elimina um pedido
    *     tags: [OrderGroups]
    *     security:
    *       - bearerAuth: []
@@ -156,35 +276,24 @@ module.exports = (io) => {
    *         required: true
    *         schema:
    *           type: integer
-   *         description: ID do grupo de pedidos
    *     responses:
    *       200:
-   *         description: Grupo de pedidos apagado com sucesso
-   *       400:
-   *         description: Erro ao apagar o grupo de pedidos
+   *         description: Pedido eliminado com sucesso
    *       404:
-   *         description: Grupo de pedidos não encontrado
+   *         description: Pedido não encontrado
    */
   router.delete("/:id", authenticateToken, async (req, res) => {
-    const { id } = req.params;
-
     try {
-      const orderGroup = await OrderGroup.findByPk(id);
-
+      const orderGroup = await OrderGroup.findByPk(req.params.id);
       if (!orderGroup) {
-        return res
-          .status(404)
-          .json({ message: "Grupo de pedidos não encontrado" });
+        return res.status(404).json({ message: "Pedido não encontrado" });
       }
 
-      // Remover todos os itens associados ao grupo de pedidos
       await OrderItem.destroy({ where: { orderGroupId: orderGroup.id } });
-
-      // Remover o grupo de pedidos
       await orderGroup.destroy();
-      // Emitir um evento com o Socket.IO
-      io.emit("orderGroupDeleted", orderGroup);
-      res.sendStatus(200);
+
+      io.emit("orderGroupDeleted", { id: req.params.id });
+      res.json({ message: "Pedido eliminado com sucesso" });
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
@@ -192,132 +301,9 @@ module.exports = (io) => {
 
   /**
    * @swagger
-   * /api/order-groups:
+   * /api/order-groups/user/{id}:
    *   get:
-   *     summary: Retorna todos os grupos de pedidos
-   *     tags: [OrderGroups]
-   *     security:
-   *       - bearerAuth: []
-   *     responses:
-   *       200:
-   *         description: Lista de grupos de pedidos
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: array
-   *               items:
-   *                 $ref: '#/components/schemas/OrderGroup'
-   *       500:
-   *         description: Erro no servidor
-   */
-  router.get("/", authenticateToken, async (req, res) => {
-    try {
-      const orderGroups = await OrderGroup.findAll({
-        include: [{ model: OrderItem, as: "items" }],
-      });
-
-      // Emitir um evento com o Socket.IO
-      io.emit("orderGroups", orderGroups);
-
-      res.json(orderGroups);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-/**
- * @swagger
- * /api/order-groups/{id}:
- *   patch:
- *     summary: Atualiza o status de um grupo de pedidos e atualiza o inventário
- *     tags: [OrderGroups]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID do grupo de pedidos
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - status
- *             properties:
- *               status:
- *                 type: string
- *                 enum: [pendente, pronto]
- *                 description: Novo status do grupo de pedidos
- *     responses:
- *       200:
- *         description: Status do grupo de pedidos atualizado com sucesso
- *       400:
- *         description: Erro ao atualizar o status do grupo de pedidos
- *       404:
- *         description: Grupo de pedidos não encontrado
- */
-
-  router.patch("/:id", authenticateToken, async (req, res) => {
-    const { id } = req.params;
-    const { status } = req.body;
-  
-    try {
-      const orderGroup = await OrderGroup.findByPk(id, {
-        include: {
-          model: OrderItem,
-          include: {
-            model: Item,
-            include: {
-              model: Ingredientes,
-              through: { attributes: ["quantidade"] },
-            },
-          },
-        },
-      });
-  
-      if (!orderGroup) {
-        return res.status(404).json({ message: "Grupo de pedidos não encontrado" });
-      }
-  
-      // Atualizar o status do grupo de pedidos
-      orderGroup.status = status;
-      await orderGroup.save();
-  
-      // Se o status for "pronto", atualizar o inventário
-      if (status === "pronto") {
-        for (const orderItem of orderGroup.OrderItems) {
-          for (const ingrediente of orderItem.Item.Ingredientes) {
-            const quantidadeNecessaria = ingrediente.ItemIngredient.quantidade * orderItem.quantidade;
-            const ingredienteAtualizado = await Ingredientes.findByPk(ingrediente.id);
-  
-            if (ingredienteAtualizado) {
-              ingredienteAtualizado.quantidade -= quantidadeNecessaria;
-              await ingredienteAtualizado.save();
-            }
-          }
-        }
-      }
-  
-      // Emitir um evento com o Socket.IO
-      io.emit("orderGroupUpdated", orderGroup);
-      res.sendStatus(200);
-    } catch (error) {
-      res.status(400).json({ message: error.message });
-    }
-  });
-  
-
-  // ordersbyuser route recebe um id de usuário e retorna todos os pedidos feitos por esse usuário
-  /**
-   * @swagger
-   * /api/order-groups/ordersbyuser/{id}:
-   *   get:
-   *     summary: Retorna todos os pedidos feitos por um usuário
+   *     summary: Lista pedidos de um utilizador
    *     tags: [OrderGroups]
    *     security:
    *       - bearerAuth: []
@@ -327,34 +313,17 @@ module.exports = (io) => {
    *         required: true
    *         schema:
    *           type: integer
-   *         description: ID do usuário
    *     responses:
    *       200:
-   *         description: Lista de pedidos feitos pelo usuário
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: array
-   *               items:
-   *                 $ref: '#/components/schemas/OrderGroup'
-   *       404:
-   *         description: Usuário não encontrado
-   *       500:
-   *         description: Erro no servidor
+   *         description: Lista de pedidos do utilizador
    */
-  router.get("/ordersbyuser/:id", authenticateToken, async (req, res) => {
-    const { id } = req.params;
-
+  router.get("/user/:id", authenticateToken, async (req, res) => {
     try {
       const orderGroups = await OrderGroup.findAll({
-        where: { userId: id },
+        where: { userId: req.params.id },
         include: [{ model: OrderItem, as: "items" }],
+        order: [["createdAt", "DESC"]],
       });
-
-      if (orderGroups.length === 0) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
-      }
-
       res.json(orderGroups);
     } catch (error) {
       res.status(500).json({ message: error.message });

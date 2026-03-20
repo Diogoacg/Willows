@@ -17,14 +17,13 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
+import { REACT_APP_SOCKET_URL } from "@env";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import moment from "moment";
-import { obterInformacoesDoUtilizador } from "../api/apiAuth";
-
 const PedidosEntregues = () => {
   const [pedidosDia, setPedidosDia] = useState([]);
   const [pedidosSemana, setPedidosSemana] = useState([]);
@@ -32,9 +31,7 @@ const PedidosEntregues = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
-  const [usernames, setUsernames] = useState({});
   const [loading, setLoading] = useState(true);
-  const [loadingUsernames, setLoadingUsernames] = useState(true); // Novo estado para carregamento dos usernames
   const navigation = useNavigation();
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -47,8 +44,7 @@ const PedidosEntregues = () => {
 
   useEffect(() => {
     fetchPedidos();
-    // const socket = io("https://willows-production.up.railway.app");
-    const socket = io("http://localhost:5000");
+    const socket = io(REACT_APP_SOCKET_URL || "http://localhost:5000");
 
     socket.on("orderGroupCreated", () => {
       fetchPedidos();
@@ -91,26 +87,6 @@ const PedidosEntregues = () => {
         moment(pedido.createdAt).isAfter(startMonth)
       );
 
-      const userIds = pedidosEntregues.map((pedido) => pedido.userId);
-
-      // Carregar os usernames
-      setLoadingUsernames(true);
-      const usernamesData = await Promise.all(
-        userIds.map(async (userId) => {
-          try {
-            const user = await obterInformacoesDoUtilizador(token, userId);
-            return { userId, username: user.username };
-          } catch (error) {
-            return { userId, username: "Funcionário Indisponível" };
-          }
-        })
-      );
-      const usernamesMap = {};
-      usernamesData.forEach(({ userId, username }) => {
-        usernamesMap[userId] = username;
-      });
-
-      setUsernames(usernamesMap);
       setPedidosDia(pedidosDia);
       setPedidosSemana(pedidosSemana);
       setPedidosMes(pedidosMes);
@@ -118,10 +94,8 @@ const PedidosEntregues = () => {
       setModalTitle("Erro");
       setModalMessage("Erro ao obter pedidos: " + error.message);
       setModalVisible(true);
-      console.error("Erro ao buscar pedidos:", error.message);
     } finally {
       setLoading(false);
-      setLoadingUsernames(false); // Atualize o estado de carregamento dos usernames
     }
   };
 
@@ -136,10 +110,7 @@ const PedidosEntregues = () => {
         Pedido #{item.id}
       </Text>
       <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-        Funcionário:{" "}
-        {loadingUsernames
-          ? "Carregando..."
-          : usernames[item.userId] || "Funcionário Indisponível"}
+        Funcionário: {item.user?.username || "Funcionário Indisponível"}
       </Text>
       <Text style={[styles.cardDetail, { color: COLORS.text }]}>
         Total: {item.totalPrice}€

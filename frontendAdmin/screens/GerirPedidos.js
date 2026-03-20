@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   Animated,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import {
   obterGruposDePedidos,
   atualizarStatusDoGrupoDePedidos,
@@ -19,178 +18,176 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
+import { REACT_APP_SOCKET_URL } from "@env";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
-import { obterInformacoesDoUtilizador } from "../api/apiAuth";
+import ConfirmationModal from "../components/ConfirmationModal";
+
+const STATUS_LABELS = {
+  pendente: "Pendente",
+  em_preparo: "Em Preparo",
+  pronto: "Pronto",
+};
+
+const STATUS_NEXT = {
+  pendente: "em_preparo",
+  em_preparo: "pronto",
+};
+
+const STATUS_NEXT_LABEL = {
+  pendente: "Iniciar Preparo",
+  em_preparo: "Marcar Pronto",
+};
+
+const STATUS_COLORS = {
+  pendente: "#f39c12",
+  em_preparo: "#3498db",
+  pronto: "#2ecc71",
+};
 
 const GerirPedidos = () => {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [scaleValues, setScaleValues] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
-  const navigation = useNavigation();
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [confirmPedidoId, setConfirmPedidoId] = useState(null);
+
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
-  const [scaleValues, setScaleValues] = useState({});
-  const [usernames, setUsernames] = useState({});
 
   useEffect(() => {
     fetchPedidos();
-    //const socket = io("https://willows-production.up.railway.app");
-    const socket = io("http://localhost:5000");
-
-    socket.on("orderGroupCreated", () => {
-      fetchPedidos();
-    });
-
-    socket.on("orderGroupDeleted", () => {
-      fetchPedidos();
-    });
-
-    socket.on("orderGroupUpdated", () => {
-      fetchPedidos();
-    });
-
-    socket.on("userDeleted", () => {
-      fetchPedidos();
-    });
-
-    return () => {
-      socket.disconnect();
-    };
+    const socketUrl = REACT_APP_SOCKET_URL || "http://localhost:5000";
+    const socket = io(socketUrl);
+    socket.on("orderGroupCreated", fetchPedidos);
+    socket.on("orderGroupDeleted", fetchPedidos);
+    socket.on("orderGroupUpdated", fetchPedidos);
+    socket.on("userDeleted", fetchPedidos);
+    return () => socket.disconnect();
   }, []);
 
   const fetchPedidos = async () => {
     const token = await AsyncStorage.getItem("token");
     try {
-      const pedidosData = await obterGruposDePedidos(token);
-      const initialScaleValues = {};
-      const pedidosNaoProntos = pedidosData.filter(
-        (pedido) => pedido.status !== "pronto"
-      );
-      pedidosNaoProntos.forEach((pedido) => {
-        initialScaleValues[pedido.id] = new Animated.Value(1);
-      });
-
-      const userIds = pedidosNaoProntos.map((pedido) => pedido.userId);
-      const usernamesData = await Promise.all(
-        userIds.map(async (userId) => {
-          try {
-            const user = await obterInformacoesDoUtilizador(token, userId);
-            return { userId, username: user.username };
-          } catch (error) {
-            return { userId, username: "Funcionário Indisponível" };
-          }
-        })
-      );
-      const usernamesMap = {};
-      usernamesData.forEach(({ userId, username }) => {
-        usernamesMap[userId] = username;
-      });
-
-      setScaleValues(initialScaleValues);
-      setPedidos(pedidosNaoProntos);
-      setUsernames(usernamesMap);
+      const data = await obterGruposDePedidos(token);
+      const ativos = data.filter((p) => p.status !== "pronto");
+      const scales = {};
+      ativos.forEach((p) => { scales[p.id] = new Animated.Value(1); });
+      setScaleValues(scales);
+      setPedidos(ativos);
     } catch (error) {
       setModalTitle("Erro");
       setModalMessage("Erro ao obter pedidos: " + error.message);
       setModalVisible(true);
-      console.error("Erro ao buscar pedidos:", error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEstadoChange = async (pedidoId) => {
+  const handleAvancarStatus = async (pedidoId, statusAtual) => {
+    const novoStatus = STATUS_NEXT[statusAtual];
+    if (!novoStatus) return;
+
     const token = await AsyncStorage.getItem("token");
     try {
-      await atualizarStatusDoGrupoDePedidos(token, pedidoId, "pronto");
-      setPedidos((prevPedidos) =>
-        prevPedidos.filter((pedido) => pedido.id !== pedidoId)
-      );
-      setModalTitle("Sucesso");
-      setModalMessage("Pedido atualizado para 'pronto' com sucesso!");
-      setModalVisible(true);
+      await atualizarStatusDoGrupoDePedidos(token, pedidoId, novoStatus);
+      if (novoStatus === "pronto") {
+        setPedidos((prev) => prev.filter((p) => p.id !== pedidoId));
+      } else {
+        setPedidos((prev) =>
+          prev.map((p) => (p.id === pedidoId ? { ...p, status: novoStatus } : p))
+        );
+      }
     } catch (error) {
       setModalTitle("Erro");
-      setModalMessage("Erro ao mudar estado do pedido: " + error.message);
+      setModalMessage("Erro ao atualizar estado: " + error.message);
       setModalVisible(true);
-      console.error("Erro ao mudar estado do pedido:", error.message);
     }
   };
 
-  const animateScaleIn = (scaleValue) => {
-    Animated.timing(scaleValue, {
-      toValue: 0.9,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
+  const animateBtn = (id) => {
+    const scale = scaleValues[id];
+    if (!scale) return;
+    Animated.sequence([
+      Animated.timing(scale, { toValue: 0.9, duration: 100, useNativeDriver: true }),
+      Animated.timing(scale, { toValue: 1, duration: 100, useNativeDriver: true }),
+    ]).start();
   };
 
-  const animateScaleOut = (scaleValue) => {
-    Animated.timing(scaleValue, {
-      toValue: 1,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
-  };
+  const statusColor = (status) => STATUS_COLORS[status] || STATUS_COLORS.pronto;
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { backgroundColor: COLORS.primary }]}>
         <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
   }
 
-  const renderItem = ({ item }) => (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: COLORS.secondary, borderColor: COLORS.neutral },
-      ]}
-    >
-      <Text style={[styles.cardTitle, { color: COLORS.text }]}>
-        Pedido #{item.id}
-      </Text>
-      <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-        Funcionário: {usernames[item.userId] || "Carregando..."}
-      </Text>
-      <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-        Total: {item.totalPrice}€
-      </Text>
-      {item.items.map((itemPedido, index) => (
-        <View key={index} style={styles.itemContainer}>
-          <Text style={[styles.items, { color: COLORS.text }]}>
-            {itemPedido.quantidade} {itemPedido.nome}(s)
+  const renderItem = ({ item }) => {
+    const funcionario = item.user?.username || "—";
+    return (
+      <View style={[styles.card, { backgroundColor: COLORS.secondary, borderColor: COLORS.neutral }]}>
+        <View style={styles.cardTop}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.cardTitle, { color: COLORS.text }]}>
+              Pedido #{item.id}
+              {item.mesa ? `  •  Mesa ${item.mesa}` : ""}
+            </Text>
+            <Text style={[styles.cardSub, { color: COLORS.text }]}>
+              Funcionário: {funcionario}
+            </Text>
+            <View style={[styles.statusBadge, { backgroundColor: statusColor(item.status) + "22", borderColor: statusColor(item.status) }]}>
+              <Text style={[styles.statusText, { color: statusColor(item.status) }]}>
+                {STATUS_LABELS[item.status] || item.status}
+              </Text>
+            </View>
+          </View>
+          <Text style={[styles.totalText, { color: COLORS.accent }]}>
+            {parseFloat(item.totalPrice).toFixed(2)}€
           </Text>
         </View>
-      ))}
-      <Animated.View
-        style={[
-          styles.buttonAnimated,
-          {
-            transform: [
-              { scale: scaleValues[item.id] || new Animated.Value(1) },
-            ],
-          },
-        ]}
-      >
-        <Pressable
-          style={[styles.button, { backgroundColor: COLORS.accent }]}
-          onPress={() => handleEstadoChange(item.id)}
-          onPressIn={() => animateScaleIn(scaleValues[item.id])}
-          onPressOut={() => animateScaleOut(scaleValues[item.id])}
-        >
-          <Text style={[styles.buttonText, { color: COLORS.secondary }]}>
-            Entregue
-          </Text>
-        </Pressable>
-      </Animated.View>
-    </View>
-  );
+
+        <View style={styles.itemsList}>
+          {item.items && item.items.map((it) => (
+            <View key={it.id.toString()}>
+              <Text style={[styles.itemLine, { color: COLORS.text }]}>
+                • {it.quantidade}× {it.nome}
+              </Text>
+              {it.observacoes ? (
+                <Text style={[styles.itemObs, { color: COLORS.text }]}>↳ {it.observacoes}</Text>
+              ) : null}
+            </View>
+          ))}
+        </View>
+
+        {STATUS_NEXT[item.status] && (
+          <Animated.View style={{ transform: [{ scale: scaleValues[item.id] || new Animated.Value(1) }] }}>
+            <Pressable
+              style={[styles.actionBtn, { backgroundColor: COLORS.accent }]}
+              onPress={() => {
+                animateBtn(item.id);
+                if (item.status === "em_preparo") {
+                  setConfirmPedidoId(item.id);
+                  setConfirmVisible(true);
+                } else {
+                  handleAvancarStatus(item.id, item.status);
+                }
+              }}
+            >
+              <Text style={[styles.actionBtnText, { color: COLORS.primary }]}>
+                {STATUS_NEXT_LABEL[item.status]}
+              </Text>
+            </Pressable>
+          </Animated.View>
+        )}
+      </View>
+    );
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
@@ -199,6 +196,13 @@ const GerirPedidos = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: COLORS.text }]}>
+              Nenhum pedido ativo
+            </Text>
+          </View>
+        }
       />
       <CustomAlertModal
         visible={modalVisible}
@@ -206,75 +210,77 @@ const GerirPedidos = () => {
         title={modalTitle}
         message={modalMessage}
       />
+      <ConfirmationModal
+        visible={confirmVisible}
+        onClose={() => { setConfirmVisible(false); setConfirmPedidoId(null); }}
+        onConfirm={() => {
+          setConfirmVisible(false);
+          if (confirmPedidoId) handleAvancarStatus(confirmPedidoId, "em_preparo");
+          setConfirmPedidoId(null);
+        }}
+      />
     </View>
   );
 };
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: hp("2%"),
-    paddingHorizontal: wp("4%"),
-  },
-  listContainer: {
-    paddingBottom: hp("2.5%"),
-  },
+  container: { flex: 1 },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  listContainer: { padding: wp("4%"), gap: hp("1.5%") },
   card: {
-    borderRadius: wp("2%"),
-    borderWidth: wp("0.2%"),
-    padding: wp("2.5%"),
-    marginTop: hp("1%"),
-    marginBottom: hp("1.5%"),
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 3,
+    borderRadius: wp("3%"),
+    borderWidth: 1,
+    padding: wp("4%"),
+    elevation: 2,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    gap: hp("1%"),
+  },
+  cardTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   cardTitle: {
-    fontSize: wp("4.4%"),
+    fontSize: wp("4.2%"),
     fontWeight: "bold",
-    marginTop: wp("-9%"),
-    marginBottom: wp("3%"),
-    bottom: wp("-10%"),
+    marginBottom: hp("0.3%"),
   },
-  cardDetail: {
-    fontSize: wp("4%"),
-    marginBottom: hp("1.5%"),
-    bottom: wp("-8%"),
+  cardSub: {
+    fontSize: wp("3.5%"),
+    opacity: 0.7,
+    marginBottom: hp("0.5%"),
   },
-  itemContainer: {
-    bottom: wp("6%"),
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-  },
-  items: {
-    fontSize: wp("3.7%"),
-    marginBottom: hp("0.65%"),
-  },
-  button: {
-    padding: wp("3%"),
+  statusBadge: {
+    borderWidth: 1,
     borderRadius: wp("2%"),
-    alignItems: "center",
-    borderColor: "#000",
-    borderWidth: wp("0.2%"),
-    top: wp("0.75%"),
+    paddingHorizontal: wp("2%"),
+    paddingVertical: hp("0.3%"),
+    alignSelf: "flex-start",
   },
-  buttonText: {
+  statusText: {
+    fontSize: wp("3%"),
+    fontWeight: "600",
+  },
+  totalText: {
+    fontSize: wp("5%"),
     fontWeight: "bold",
-    color: "#000",
+  },
+  itemsList: { gap: hp("0.3%") },
+  itemLine: { fontSize: wp("3.8%") },
+  itemObs: { fontSize: wp("3.2%"), fontStyle: "italic", opacity: 0.65, marginLeft: wp("3%") },
+  actionBtn: {
+    borderRadius: wp("2%"),
+    padding: wp("3%"),
+    alignItems: "center",
+    marginTop: hp("0.5%"),
+  },
+  actionBtnText: {
+    fontWeight: "bold",
     fontSize: wp("4%"),
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonAnimated: {
-    width: "100%",
-  },
+  emptyContainer: { paddingTop: hp("20%"), alignItems: "center" },
+  emptyText: { fontSize: wp("4.5%"), opacity: 0.5 },
 });
 
 export default GerirPedidos;

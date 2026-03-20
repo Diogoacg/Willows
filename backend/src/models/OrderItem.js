@@ -16,6 +16,10 @@ const OrderItem = sequelize.define("OrderItem", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  observacoes: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   orderGroupId: {
     type: DataTypes.INTEGER,
     references: {

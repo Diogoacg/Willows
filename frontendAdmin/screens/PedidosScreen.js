@@ -9,10 +9,9 @@ import {
   Animated,
   useWindowDimensions,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-import { addToCart, decrementQuantity } from "../slices/cartSlice";
+import { addToCartWithDetails } from "../slices/cartSlice";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import { obterItensDoInventario } from "../api/apiInventory";
@@ -22,47 +21,25 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
+import { REACT_APP_SOCKET_URL } from "@env";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
+import QuantityModal from "../components/QuantityModal";
 
 const numColumns = 3;
 
-const Item = ({
-  item,
-  itemWidth,
-  handleAddToCart,
-  handleDecrementQuantity,
-  badgeCount,
-  onLayout,
-  itemHeight,
-}) => {
+const Item = ({ item, itemWidth, onPress, badgeCount, onLayout, itemHeight }) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
 
   const handlePressIn = () => {
-    Animated.timing(scaleValue, {
-      toValue: 0.9,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
+    Animated.timing(scaleValue, { toValue: 0.9, duration: 200, useNativeDriver: true }).start();
   };
 
   const handlePressOut = () => {
-    Animated.timing(scaleValue, {
-      toValue: 1,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const handlePress = () => {
-    handleAddToCart(item);
-  };
-
-  const handleLongPress = () => {
-    handleDecrementQuantity(item);
+    Animated.timing(scaleValue, { toValue: 1, duration: 100, useNativeDriver: true }).start();
   };
 
   return (
@@ -73,39 +50,21 @@ const Item = ({
       <Pressable
         style={[
           styles.itemContainer,
-          {
-            width: itemWidth,
-            borderColor: COLORS.neutral,
-            backgroundColor: COLORS.secondary,
-          },
+          { width: itemWidth, borderColor: COLORS.neutral, backgroundColor: COLORS.secondary },
         ]}
-        onPress={handlePress}
+        onPress={() => onPress(item)}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        onLongPress={handleLongPress}
       >
         {badgeCount > 0 && (
-          <View
-            style={[
-              styles.itemBadgeContainer,
-              { backgroundColor: COLORS.accent },
-            ]}
-          >
-            <Text style={[styles.itemBadgeText, { color: COLORS.text }]}>
-              {badgeCount}
-            </Text>
+          <View style={[styles.itemBadgeContainer, { backgroundColor: COLORS.accent }]}>
+            <Text style={[styles.itemBadgeText, { color: COLORS.text }]}>{badgeCount}</Text>
           </View>
         )}
-        <Text
-          style={[styles.itemName, { color: COLORS.text }]}
-          numberOfLines={2}
-          adjustsFontSizeToFit
-        >
+        <Text style={[styles.itemName, { color: COLORS.text }]} numberOfLines={2} adjustsFontSizeToFit>
           {item.nome}
         </Text>
-        <Text style={[styles.itemPreco, { color: COLORS.text }]}>
-          {item.preco}€
-        </Text>
+        <Text style={[styles.itemPreco, { color: COLORS.text }]}>{item.preco}€</Text>
       </Pressable>
     </Animated.View>
   );
@@ -116,42 +75,28 @@ const PedidosScreen = () => {
   const [inventoryItems, setInventoryItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [itemHeights, setItemHeights] = useState({});
+  const [selectedItem, setSelectedItem] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalTitle, setModalTitle] = useState("");
-  const [modalMessage, setModalMessage] = useState("");
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const cartItems = useSelector((state) => state.cart);
-  const [loading, setLoading] = useState(true);
-
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
-
   const { width: screenWidth } = useWindowDimensions();
 
   useEffect(() => {
     fetchInventoryItems();
-
-    // Set up Socket.IO client
-    //const socket = io("https://willows-production.up.railway.app");
-    const socket = io("http://localhost:5000");
-
-    // Listen for relevant events
-    socket.on("itemCreated", () => {
-      fetchInventoryItems();
-    });
-
-    socket.on("itemDeleted", () => {
-      fetchInventoryItems();
-    });
-
-    socket.on("itemUpdated", () => {
-      fetchInventoryItems();
-    });
-
-    return () => {
-      socket.disconnect();
-    };
+    const socketUrl = REACT_APP_SOCKET_URL || "http://localhost:5000";
+    const socket = io(socketUrl);
+    socket.on("itemCreated", fetchInventoryItems);
+    socket.on("itemDeleted", fetchInventoryItems);
+    socket.on("itemUpdated", fetchInventoryItems);
+    return () => socket.disconnect();
   }, []);
 
   useEffect(() => {
@@ -163,10 +108,9 @@ const PedidosScreen = () => {
       const items = await obterItensDoInventario();
       setInventoryItems(items);
     } catch (error) {
-      setModalTitle("Erro");
-      setModalMessage("Erro ao obter itens do inventário: " + error.message);
-      setModalVisible(true);
-      console.error("Erro ao buscar itens do inventário:", error.message);
+      setAlertTitle("Erro");
+      setAlertMessage("Erro ao obter itens do inventário: " + error.message);
+      setAlertVisible(true);
     } finally {
       setLoading(false);
     }
@@ -174,30 +118,31 @@ const PedidosScreen = () => {
 
   const handleSearch = (text) => {
     setSearchText(text);
+    const normalized = (str) =>
+      str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
     if (text) {
-      const normalizedSearchText = text
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-      const filtered = inventoryItems.filter((item) =>
-        item.nome
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase()
-          .includes(normalizedSearchText)
-      );
-      setFilteredItems(filtered);
+      setFilteredItems(inventoryItems.filter((i) => normalized(i.nome).includes(normalized(text))));
     } else {
       setFilteredItems(inventoryItems);
     }
   };
 
-  const handleAddToCart = (item) => {
-    dispatch(addToCart(item));
+  const handleItemPress = (item) => {
+    setSelectedItem(item);
+    setModalVisible(true);
   };
 
-  const handleDecrementQuantity = (item) => {
-    dispatch(decrementQuantity(item));
+  const handleModalAdd = (quantity, observacoes) => {
+    dispatch(
+      addToCartWithDetails({
+        ...selectedItem,
+        quantity,
+        observacoes: observacoes || undefined,
+        cartKey: `${selectedItem.id}_${Date.now()}`,
+      })
+    );
+    setModalVisible(false);
+    setSelectedItem(null);
   };
 
   if (loading) {
@@ -211,28 +156,25 @@ const PedidosScreen = () => {
   const itemWidth = screenWidth / numColumns - wp("4%");
 
   const renderItem = ({ item, index }) => {
-    const badgeCount =
-      cartItems.find((cartItem) => cartItem.id === item.id)?.quantity || 0;
-
+    const badgeCount = cartItems
+      .filter((c) => c.id === item.id)
+      .reduce((acc, c) => acc + c.quantity, 0);
     const itemHeight = itemHeights[Math.floor(index / numColumns)] || null;
 
     return (
       <Item
         item={item}
         itemWidth={itemWidth}
-        handleAddToCart={handleAddToCart}
-        handleDecrementQuantity={handleDecrementQuantity}
+        onPress={handleItemPress}
         badgeCount={badgeCount}
         itemHeight={itemHeight}
         onLayout={(event) => {
           const { height } = event.nativeEvent.layout;
           const row = Math.floor(index / numColumns);
-          setItemHeights((prevHeights) => {
-            const newHeights = { ...prevHeights };
-            if (!newHeights[row] || height > newHeights[row]) {
-              newHeights[row] = height;
-            }
-            return newHeights;
+          setItemHeights((prev) => {
+            const next = { ...prev };
+            if (!next[row] || height > next[row]) next[row] = height;
+            return next;
           });
         }}
       />
@@ -242,20 +184,8 @@ const PedidosScreen = () => {
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
       <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
-        <View
-          style={[
-            styles.searchContainer,
-            {
-              borderColor: COLORS.neutral,
-              backgroundColor: COLORS.secondary,
-            },
-          ]}
-        >
-          <Ionicons
-            name="search-outline"
-            size={24}
-            style={[styles.searchIcon, { color: COLORS.text }]}
-          />
+        <View style={[styles.searchContainer, { borderColor: COLORS.neutral, backgroundColor: COLORS.secondary }]}>
+          <Ionicons name="search-outline" size={24} style={[styles.searchIcon, { color: COLORS.text }]} />
           <TextInput
             style={[styles.input, { color: COLORS.text }]}
             placeholder="Digite aqui para pesquisar"
@@ -264,10 +194,7 @@ const PedidosScreen = () => {
             value={searchText}
           />
         </View>
-        <Pressable
-          style={styles.cartButton}
-          onPress={() => navigation.navigate("Cart")}
-        >
+        <Pressable style={styles.cartButton} onPress={() => navigation.navigate("Cart")}>
           <Ionicons name="cart-outline" size={24} color={COLORS.accent} />
           {cartItems.length > 0 && (
             <View style={[styles.badge, { backgroundColor: COLORS.accent }]}>
@@ -276,6 +203,7 @@ const PedidosScreen = () => {
           )}
         </Pressable>
       </View>
+
       <FlatList
         contentContainerStyle={styles.listContentContainer}
         data={filteredItems}
@@ -283,19 +211,26 @@ const PedidosScreen = () => {
         keyExtractor={(item) => item.id.toString()}
         numColumns={numColumns}
       />
-      <CustomAlertModal
+
+      <QuantityModal
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        title={modalTitle}
-        message={modalMessage}
+        onClose={() => { setModalVisible(false); setSelectedItem(null); }}
+        onAdd={handleModalAdd}
+        item={selectedItem}
+      />
+
+      <CustomAlertModal
+        visible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        title={alertTitle}
+        message={alertMessage}
       />
     </View>
   );
 };
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -311,14 +246,8 @@ const styles = StyleSheet.create({
     borderWidth: wp("0.2%"),
     paddingHorizontal: wp("2%"),
   },
-  input: {
-    flex: 1,
-    height: hp("5%"),
-    marginLeft: wp("1%"),
-  },
-  searchIcon: {
-    marginRight: wp("1%"),
-  },
+  input: { flex: 1, height: hp("5%"), marginLeft: wp("1%") },
+  searchIcon: { marginRight: wp("1%") },
   cartButton: {
     marginLeft: "auto",
     flexDirection: "row",
@@ -333,10 +262,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 5,
   },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: "bold",
-  },
+  badgeText: { fontSize: 12, fontWeight: "bold" },
   itemContainer: {
     marginTop: hp("2%"),
     marginHorizontal: wp("2%"),
@@ -361,10 +287,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  itemBadgeText: {
-    fontSize: wp("3%"),
-    fontWeight: "bold",
-  },
+  itemBadgeText: { fontSize: wp("3%"), fontWeight: "bold" },
   itemName: {
     fontSize: wp("3.6%"),
     fontWeight: "bold",
@@ -372,19 +295,9 @@ const styles = StyleSheet.create({
     marginTop: hp("1%"),
     width: "100%",
   },
-  itemPreco: {
-    fontSize: wp("3%"),
-    textAlign: "center",
-    marginBottom: hp("1%"),
-  },
-  listContentContainer: {
-    flexGrow: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  itemPreco: { fontSize: wp("3%"), textAlign: "center", marginBottom: hp("1%") },
+  listContentContainer: { flexGrow: 1 },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
 });
 
 export default PedidosScreen;

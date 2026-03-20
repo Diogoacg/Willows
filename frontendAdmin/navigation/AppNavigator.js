@@ -19,6 +19,8 @@ import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import * as NavigationBar from "expo-navigation-bar";
 import PedidosEntregues from "../screens/PedidosEntregues";
+import RegistarMovimentoAdminScreen from "../screens/RegistarMovimentoAdminScreen";
+import VarianciaAdminScreen from "../screens/VarianciaAdminScreen";
 
 const Stack = createStackNavigator();
 
@@ -38,7 +40,6 @@ const AppNavigator = () => {
           "Erro",
           "Erro ao verificar o estado de login: " + error.message
         );
-        console.error("Error checking login status:", error);
         setIsLoggedIn(false);
       }
     };
@@ -93,18 +94,15 @@ const AppNavigator = () => {
     } catch (error) {
       // Alert user that login failed
       Alert.alert("Erro", "Erro ao salvar o token de login: " + error.message);
-      console.error("Error saving login token:", error);
     }
   };
 
   const handleLogout = async () => {
     try {
-      console.log("Logging out...");
       await AsyncStorage.removeItem("token");
       setIsLoggedIn(false);
     } catch (error) {
       Alert.alert("Erro", "Erro ao fazer logout: " + error.message);
-      console.error("Error logging out:", error);
     }
   };
 
@@ -141,6 +139,8 @@ const AppNavigator = () => {
               name="Pedidos Entregues"
               component={PedidosEntregues}
             />
+            <Stack.Screen name="RegistarMovimentoAdmin" component={RegistarMovimentoAdminScreen} />
+            <Stack.Screen name="VarianciaAdmin" component={VarianciaAdminScreen} />
           </>
         )}
       </Stack.Navigator>
