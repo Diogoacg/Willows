@@ -4,6 +4,7 @@ const OrderGroup = require("../models/OrderGroup");
 const OrderItem = require("../models/OrderItem");
 const Item = require("../models/Item");
 const Ingredientes = require("../models/Ingredientes");
+const User = require("../models/User");
 const authenticateToken = require("../middleWare/authMiddleware");
 
 module.exports = (io) => {
@@ -155,7 +156,7 @@ module.exports = (io) => {
         where,
         include: [
           { model: OrderItem, as: "items" },
-          { model: require("../models/User"), as: "user", attributes: ["id", "username"] },
+          { model: User, as: "user", attributes: ["id", "username"] },
         ],
         order: [["createdAt", "DESC"]],
       });

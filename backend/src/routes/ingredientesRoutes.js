@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Op } = require("sequelize");
+const sequelize = require("../config/database");
 const Ingredientes = require("../models/Ingredientes");
 const authenticateToken = require("../middleWare/authMiddleware");
 const { requireAdmin } = require("../middleWare/authMiddleware");
@@ -42,10 +43,7 @@ module.exports = (io) => {
   router.get("/stock-baixo", authenticateToken, async (req, res) => {
     try {
       const ingredientes = await Ingredientes.findAll({
-        where: {
-          quantidade: { [Op.lte]: sequelize.col("quantidadeMinima") },
-          quantidadeMinima: { [Op.gt]: 0 },
-        },
+        where: sequelize.literal("`quantidade` <= `quantidadeMinima` AND `quantidadeMinima` > 0"),
       });
       res.json(ingredientes);
     } catch (error) {

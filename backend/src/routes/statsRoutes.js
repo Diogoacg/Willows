@@ -192,10 +192,7 @@ router.get("/resumo", authenticateToken, async (req, res) => {
         where: { status: "pronto", updatedAt: { [Op.gte]: startOf("day") } },
       }),
       Ingredientes.count({
-        where: sequelize.where(
-          sequelize.col("quantidade"),
-          { [Op.lte]: sequelize.col("quantidadeMinima") }
-        ),
+        where: sequelize.literal("`quantidade` <= `quantidadeMinima` AND `quantidadeMinima` > 0"),
       }),
     ]);
 
