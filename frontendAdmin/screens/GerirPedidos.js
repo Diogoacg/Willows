@@ -22,6 +22,7 @@ import { REACT_APP_SOCKET_URL } from "@env";
 import { useTheme } from "../ThemeContext";
 import { colors } from "../config/theme";
 import CustomAlertModal from "../components/CustomAlertModal";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const STATUS_LABELS = {
   pendente: "Pendente",
@@ -39,6 +40,12 @@ const STATUS_NEXT_LABEL = {
   em_preparo: "Marcar Pronto",
 };
 
+const STATUS_COLORS = {
+  pendente: "#f39c12",
+  em_preparo: "#3498db",
+  pronto: "#2ecc71",
+};
+
 const GerirPedidos = () => {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +53,8 @@ const GerirPedidos = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [confirmPedidoId, setConfirmPedidoId] = useState(null);
 
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -109,11 +118,7 @@ const GerirPedidos = () => {
     ]).start();
   };
 
-  const statusColor = (status) => {
-    if (status === "pendente") return "#f39c12";
-    if (status === "em_preparo") return "#3498db";
-    return "#2ecc71";
-  };
+  const statusColor = (status) => STATUS_COLORS[status] || STATUS_COLORS.pronto;
 
   if (loading) {
     return (
@@ -148,8 +153,8 @@ const GerirPedidos = () => {
         </View>
 
         <View style={styles.itemsList}>
-          {item.items && item.items.map((it, idx) => (
-            <View key={idx}>
+          {item.items && item.items.map((it) => (
+            <View key={it.id.toString()}>
               <Text style={[styles.itemLine, { color: COLORS.text }]}>
                 • {it.quantidade}× {it.nome}
               </Text>
@@ -166,7 +171,12 @@ const GerirPedidos = () => {
               style={[styles.actionBtn, { backgroundColor: COLORS.accent }]}
               onPress={() => {
                 animateBtn(item.id);
-                handleAvancarStatus(item.id, item.status);
+                if (item.status === "em_preparo") {
+                  setConfirmPedidoId(item.id);
+                  setConfirmVisible(true);
+                } else {
+                  handleAvancarStatus(item.id, item.status);
+                }
               }}
             >
               <Text style={[styles.actionBtnText, { color: COLORS.primary }]}>
@@ -199,6 +209,15 @@ const GerirPedidos = () => {
         onClose={() => setModalVisible(false)}
         title={modalTitle}
         message={modalMessage}
+      />
+      <ConfirmationModal
+        visible={confirmVisible}
+        onClose={() => { setConfirmVisible(false); setConfirmPedidoId(null); }}
+        onConfirm={() => {
+          setConfirmVisible(false);
+          if (confirmPedidoId) handleAvancarStatus(confirmPedidoId, "em_preparo");
+          setConfirmPedidoId(null);
+        }}
       />
     </View>
   );

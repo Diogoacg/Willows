@@ -5,6 +5,8 @@ import {
   FlatList,
   Pressable,
   StyleSheet,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
@@ -35,6 +37,8 @@ const CartScreen = () => {
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const [modalAction, setModalAction] = useState(null);
+  const [mesa, setMesa] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleIncrement = (cartKey) => {
     dispatch(incrementQuantity({ cartKey }));
@@ -59,18 +63,28 @@ const CartScreen = () => {
       return;
     }
 
+    if (!mesa.trim()) {
+      setModalTitle("Erro");
+      setModalMessage("Indique o número da mesa antes de confirmar.");
+      setModalAction(null);
+      setModalVisible(true);
+      return;
+    }
+
     const orderData = cartItems.map((item) => ({
       nome: item.nome,
       quantidade: item.quantity,
       observacoes: item.observacoes || undefined,
     }));
 
+    setSubmitting(true);
     try {
-      await criarNovoGrupoDePedidos(token, { items: orderData });
+      await criarNovoGrupoDePedidos(token, { items: orderData, mesa: mesa.trim() });
       setModalTitle("Sucesso");
       setModalMessage("Compra confirmada com sucesso!");
       setModalAction(() => () => {
         handleClearCart();
+        setMesa("");
         navigation.goBack();
       });
       setModalVisible(true);
@@ -79,6 +93,8 @@ const CartScreen = () => {
       setModalMessage("Erro ao confirmar a compra: " + error.message);
       setModalAction(null);
       setModalVisible(true);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -143,12 +159,28 @@ const CartScreen = () => {
         </Text>
       </View>
 
+      <View style={[styles.mesaContainer, { borderColor: COLORS.neutral, backgroundColor: COLORS.secondary }]}>
+        <TextInput
+          style={[styles.mesaInput, { color: COLORS.text }]}
+          placeholder="Nº da mesa"
+          placeholderTextColor={COLORS.text}
+          value={mesa}
+          onChangeText={setMesa}
+          keyboardType="numeric"
+        />
+      </View>
+
       <View style={[styles.footer, { borderTopColor: COLORS.neutral }]}>
         <Pressable
-          style={[styles.footerButton, { backgroundColor: COLORS.accent, borderColor: COLORS.neutral }]}
+          style={[styles.footerButton, { backgroundColor: COLORS.accent, borderColor: COLORS.neutral, opacity: submitting ? 0.6 : 1 }]}
           onPress={handleConfirm}
+          disabled={submitting}
         >
-          <Text style={[styles.footerButtonText, { color: COLORS.primary }]}>Confirmar</Text>
+          {submitting ? (
+            <ActivityIndicator size="small" color={COLORS.primary} />
+          ) : (
+            <Text style={[styles.footerButtonText, { color: COLORS.primary }]}>Confirmar</Text>
+          )}
         </Pressable>
         <Pressable
           style={[styles.footerButton, { backgroundColor: COLORS.neutral, borderColor: COLORS.accent }]}
@@ -228,6 +260,14 @@ const styles = StyleSheet.create({
     padding: wp("2.5%"),
   },
   footerButtonText: { fontWeight: "bold", fontSize: wp("4%") },
+  mesaContainer: {
+    marginHorizontal: wp("4%"),
+    marginBottom: hp("1%"),
+    borderWidth: 1,
+    borderRadius: wp("2%"),
+    paddingHorizontal: wp("3%"),
+  },
+  mesaInput: { height: hp("5.5%"), fontSize: wp("4%") },
 });
 
 export default CartScreen;

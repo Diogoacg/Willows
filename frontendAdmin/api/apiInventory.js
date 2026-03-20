@@ -2,10 +2,6 @@ import { REACT_APP_API_URL } from "@env";
 
 // Função para criar um novo item no inventário
 export const criarNovoItem = async (token, nome, preco, ingredientes) => {
-  console.log(REACT_APP_API_URL);
-  console.log(token);
-  console.log(nome);
-  console.log(preco);
   try {
     const response = await fetch(`${REACT_APP_API_URL}/inventory`, {
       method: "POST",
@@ -29,7 +25,6 @@ export const criarNovoItem = async (token, nome, preco, ingredientes) => {
 
 // Função para obter todos os itens do inventário
 export const obterItensDoInventario = async () => {
-  console.log(REACT_APP_API_URL);
   try {
     const response = await fetch(`${REACT_APP_API_URL}/inventory`);
 

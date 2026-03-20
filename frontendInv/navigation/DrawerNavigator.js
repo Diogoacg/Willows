@@ -8,6 +8,8 @@ import { colors } from "../config/theme";
 
 import InventarioScreen from "../screens/InventarioScreen";
 import IngredientesScreen from "../screens/IngredientesScreen";
+import VarianciaScreen from "../screens/VarianciaScreen";
+import MovimentosHistoryScreen from "../screens/MovimentosHistoryScreen";
 
 import CustomDrawerContent from "../components/CustomDrawerContent";
 
@@ -38,7 +40,8 @@ const DrawerNavigator = ({ onLogout }) => {
     >
       <Drawer.Screen name="Inventario" component={InventarioScreen} />
       <Drawer.Screen name="Ingredientes" component={IngredientesScreen} />
-
+      <Drawer.Screen name="Variancia" component={VarianciaScreen} options={{ title: "Variância" }} />
+      <Drawer.Screen name="MovimentosHistory" component={MovimentosHistoryScreen} options={{ title: "Histórico" }} />
     </Drawer.Navigator>
   );
 };

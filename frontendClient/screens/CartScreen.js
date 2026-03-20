@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Animated,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
@@ -39,6 +40,7 @@ const CartScreen = () => {
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const [modalAction, setModalAction] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const total = cartItems
     .reduce((acc, item) => acc + parseFloat(item.preco) * item.quantity, 0)
@@ -70,6 +72,7 @@ const CartScreen = () => {
       mesa: mesa ? parseInt(mesa) : null,
     };
 
+    setSubmitting(true);
     try {
       await criarNovoGrupoDePedidos(token, orderData);
       setModalTitle("Pedido enviado!");
@@ -87,6 +90,8 @@ const CartScreen = () => {
       setModalMessage("Erro ao enviar o pedido: " + error.message);
       setModalAction(null);
       setModalVisible(true);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -131,7 +136,15 @@ const CartScreen = () => {
         </Pressable>
         <Text style={[styles.headerTitle, { color: COLORS.text }]}>Carrinho</Text>
         {cartItems.length > 0 && (
-          <Pressable onPress={() => dispatch(clearCart())} style={styles.clearBtn}>
+          <Pressable
+            onPress={() => {
+              setModalTitle("Limpar carrinho");
+              setModalMessage("Tem a certeza que quer remover todos os itens?");
+              setModalAction(() => () => dispatch(clearCart()));
+              setModalVisible(true);
+            }}
+            style={styles.clearBtn}
+          >
             <Ionicons name="trash-outline" size={22} color={COLORS.accent} />
           </Pressable>
         )}
@@ -170,13 +183,20 @@ const CartScreen = () => {
 
         <Animated.View style={{ transform: [{ scale: scaleValue }], width: "100%" }}>
           <Pressable
-            style={[styles.confirmBtn, { backgroundColor: COLORS.accent }]}
+            style={[styles.confirmBtn, { backgroundColor: COLORS.accent, opacity: submitting ? 0.6 : 1 }]}
             onPress={handleConfirm}
+            disabled={submitting}
           >
-            <Ionicons name="checkmark-circle-outline" size={22} color={COLORS.primary} />
-            <Text style={[styles.confirmBtnText, { color: COLORS.primary }]}>
-              Confirmar Pedido
-            </Text>
+            {submitting ? (
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle-outline" size={22} color={COLORS.primary} />
+                <Text style={[styles.confirmBtnText, { color: COLORS.primary }]}>
+                  Confirmar Pedido
+                </Text>
+              </>
+            )}
           </Pressable>
         </Animated.View>
       </View>

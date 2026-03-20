@@ -69,6 +69,7 @@ const RegistarMovimentoScreen = () => {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
@@ -109,6 +110,7 @@ const RegistarMovimentoScreen = () => {
     }
 
     const token = await AsyncStorage.getItem("token");
+    setSubmitting(true);
     try {
       await registarMovimento(token, {
         ingredienteId: selectedIng.id,
@@ -129,6 +131,8 @@ const RegistarMovimentoScreen = () => {
       setAlertTitle("Erro");
       setAlertMessage(error.message);
       setAlertVisible(true);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -232,10 +236,15 @@ const RegistarMovimentoScreen = () => {
         />
 
         <Pressable
-          style={[styles.submitBtn, { backgroundColor: tipoSelecionado?.color || COLORS.accent }]}
+          style={[styles.submitBtn, { backgroundColor: tipoSelecionado?.color || COLORS.accent, opacity: submitting ? 0.6 : 1 }]}
           onPress={handleSubmit}
+          disabled={submitting}
         >
-          <Text style={[styles.submitBtnText, { color: "#fff" }]}>Registar</Text>
+          {submitting ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={[styles.submitBtnText, { color: "#fff" }]}>Registar</Text>
+          )}
         </Pressable>
       </ScrollView>
 

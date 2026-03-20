@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useMemo } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet, Animated } from "react-native";
+import { View, Text, TextInput, Pressable, StyleSheet, Animated, ActivityIndicator } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
@@ -19,6 +19,7 @@ const CriarItemScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const navigation = useNavigation();
   const { isDarkMode } = useTheme();
   const scaleValue = useRef(new Animated.Value(1)).current;
@@ -45,6 +46,7 @@ const CriarItemScreen = () => {
 
   const handleCreateItem = async () => {
     animateScaleIn();
+    setSubmitting(true);
     const token = await AsyncStorage.getItem("token");
     try {
       await criarNovoItem(token, nome, preco, ingredientes);
@@ -57,6 +59,7 @@ const CriarItemScreen = () => {
       setModalVisible(true);
     } finally {
       animateScaleOut();
+      setSubmitting(false);
     }
   };
 
@@ -97,7 +100,7 @@ const CriarItemScreen = () => {
             value={nome}
             placeholder="Nome do Item"
             placeholderTextColor={COLORS.text}
-            inputMode="name-phone-pad"
+            autoCapitalize="words"
           />
           <Ionicons
             name="add-outline"
@@ -120,7 +123,7 @@ const CriarItemScreen = () => {
             value={preco}
             placeholder="Preço"
             placeholderTextColor={COLORS.text}
-            inputMode="name-phone-pad"
+            keyboardType="decimal-pad"
           />
           <Ionicons
             name="pricetag-outline"
@@ -145,7 +148,7 @@ const CriarItemScreen = () => {
               value={ingrediente.nome}
               placeholder="Nome do Ingrediente"
               placeholderTextColor={COLORS.text}
-              inputMode="name-phone-pad"
+              autoCapitalize="words"
             />
             <TextInput
               style={[
@@ -175,8 +178,12 @@ const CriarItemScreen = () => {
             { transform: [{ scale: scaleValue }] },
           ]}
         >
-          <Pressable style={styles.button} onPress={handleCreateItem}>
-            <Text style={styles.buttonText}>Adicionar Item</Text>
+          <Pressable style={[styles.button, { opacity: submitting ? 0.6 : 1 }]} onPress={handleCreateItem} disabled={submitting}>
+            {submitting ? (
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : (
+              <Text style={styles.buttonText}>Adicionar Item</Text>
+            )}
           </Pressable>
         </Animated.View>
       </View>
@@ -241,7 +248,7 @@ const createStyles = (COLORS) =>
       alignItems: "center",
     },
     buttonText: {
-      color: "#000",
+      color: COLORS.primary,
       fontSize: wp("4.3%"),
       fontWeight: "bold",
     },

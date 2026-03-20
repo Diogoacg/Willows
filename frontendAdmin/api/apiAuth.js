@@ -25,8 +25,6 @@ const REACT_APP_AUTH_URL = process.env.REACT_APP_AUTH_URL;
 
 // Função para login utizador com role de admin
 export const realizarLoginAdmin = async (loginData) => {
-  console.log("Auth URL:", REACT_APP_AUTH_URL); // Debug
-  console.log(loginData);
   try {
     const response = await fetch(`${REACT_APP_AUTH_URL}/login-admin`, {
       method: "POST",
@@ -40,7 +38,6 @@ export const realizarLoginAdmin = async (loginData) => {
       const errorData = await response.json();
       throw new Error(errorData.message);
     }
-    console.log(response);
     return await response.json();
   } catch (error) {
     throw new Error(error.message);
@@ -81,7 +78,6 @@ export const atualizarInformacoesDoUsuario = async (
   userId,
   userData
 ) => {
-  console.log(userData);
   try {
     const response = await fetch(
       `${REACT_APP_AUTH_URL}/update-role/${userId}`,

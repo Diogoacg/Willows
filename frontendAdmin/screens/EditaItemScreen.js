@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Dimensions,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -28,6 +29,8 @@ const EditaItemScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+  const [modalAction, setModalAction] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const navigation = useNavigation();
   const route = useRoute();
   const { item } = route.params;
@@ -61,23 +64,22 @@ const EditaItemScreen = () => {
 
   const handleSave = async () => {
     animateScaleIn();
+    setSubmitting(true);
     const token = await AsyncStorage.getItem("token");
     try {
       await atualizarItemNoInventario(token, item.id, nome, preco);
       setModalTitle("Sucesso");
       setModalMessage("Item atualizado com sucesso!");
+      setModalAction(() => () => navigation.goBack());
       setModalVisible(true);
-      // Wait for the modal to be closed before navigating back
-      setTimeout(() => {
-        navigation.goBack();
-      }, 2000);
     } catch (error) {
-      console.error("Erro ao atualizar item:", error.message);
       setModalTitle("Erro");
       setModalMessage("Falha ao atualizar item: " + error.message);
+      setModalAction(null);
       setModalVisible(true);
     } finally {
       animateScaleOut();
+      setSubmitting(false);
     }
   };
 
@@ -118,12 +120,17 @@ const EditaItemScreen = () => {
         />
         <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
           <Pressable
-            style={[styles.saveButton, { backgroundColor: COLORS.accent }]}
+            style={[styles.saveButton, { backgroundColor: COLORS.accent, opacity: submitting ? 0.6 : 1 }]}
             onPress={handleSave}
+            disabled={submitting}
           >
-            <Text style={[styles.saveButtonText, { color: COLORS.text }]}>
-              Salvar
-            </Text>
+            {submitting ? (
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : (
+              <Text style={[styles.saveButtonText, { color: COLORS.text }]}>
+                Salvar
+              </Text>
+            )}
           </Pressable>
         </Animated.View>
       </View>
@@ -131,7 +138,10 @@ const EditaItemScreen = () => {
       {/* Custom Alert Modal */}
       <CustomAlertModal
         visible={modalVisible}
-        onClose={() => setModalVisible(false)}
+        onClose={() => {
+          setModalVisible(false);
+          if (modalAction) modalAction();
+        }}
         title={modalTitle}
         message={modalMessage}
       />
