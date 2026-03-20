@@ -1,6 +1,4 @@
-// models/Item.js
-// itens individuais que nao contam para o inventario
-const { Sequelize, DataTypes } = require("sequelize");
+const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
 const Item = sequelize.define(
@@ -14,24 +12,36 @@ const Item = sequelize.define(
     nome: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: "nome",
+      unique: true,
     },
     preco: {
-      type: DataTypes.FLOAT,
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
-    ingredientes: {
+    descricao: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-
-
-    
+    categoria: {
+      type: DataTypes.ENUM(
+        "bebidas_quentes",
+        "bebidas_frias",
+        "petiscos",
+        "bolos",
+        "outros"
+      ),
+      allowNull: false,
+      defaultValue: "outros",
+    },
+    disponivel: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
   },
   {
     timestamps: false,
   }
 );
-
 
 module.exports = Item;

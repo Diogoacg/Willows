@@ -1,5 +1,4 @@
-// screens/CartScreen.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -7,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   Animated,
+  TextInput,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigation } from "@react-navigation/native";
@@ -32,215 +32,157 @@ const CartScreen = () => {
   const navigation = useNavigation();
   const { isDarkMode } = useTheme();
   const COLORS = isDarkMode ? colors.dark : colors.light;
+  const scaleValue = useRef(new Animated.Value(1)).current;
 
-  const [scaleValues, setScaleValues] = useState({});
+  const [mesa, setMesa] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
   const [modalAction, setModalAction] = useState(null);
 
-  useEffect(() => {
-    const initialScaleValues = {};
-    cartItems.forEach((item) => {
-      initialScaleValues[item.id] = new Animated.Value(1);
-    });
-    setScaleValues(initialScaleValues);
-  }, [cartItems]);
+  const total = cartItems
+    .reduce((acc, item) => acc + parseFloat(item.preco) * item.quantity, 0)
+    .toFixed(2);
 
-  const handleIncrement = (id) => {
-    dispatch(incrementQuantity({ id }));
-  };
+  const handleIncrement = (id) => dispatch(incrementQuantity({ id }));
+  const handleDecrement = (id) => dispatch(decrementQuantity({ id }));
 
-  const handleDecrement = (id) => {
-    dispatch(decrementQuantity({ id }));
-  };
-
-  const handleClearCart = () => {
-    dispatch(clearCart());
+  const animatePress = () => {
+    Animated.sequence([
+      Animated.timing(scaleValue, { toValue: 0.95, duration: 100, useNativeDriver: true }),
+      Animated.timing(scaleValue, { toValue: 1, duration: 100, useNativeDriver: true }),
+    ]).start();
   };
 
   const handleConfirm = async () => {
-    const token = await AsyncStorage.getItem("token");
-
-    if (!Array.isArray(cartItems) || cartItems.length === 0) {
-      setModalTitle("Erro");
-      setModalMessage(
-        "O carrinho está vazio. Adicione itens antes de confirmar a compra."
-      );
+    animatePress();
+    if (!cartItems || cartItems.length === 0) {
+      setModalTitle("Carrinho vazio");
+      setModalMessage("Adicione itens antes de confirmar o pedido.");
       setModalAction(null);
       setModalVisible(true);
       return;
     }
 
-    const orderData = cartItems.map((item) => ({
-      nome: item.nome,
-      quantidade: item.quantity,
-    }));
+    const token = await AsyncStorage.getItem("token");
+    const orderData = {
+      items: cartItems.map((item) => ({ nome: item.nome, quantidade: item.quantity })),
+      mesa: mesa ? parseInt(mesa) : null,
+    };
 
     try {
-      await criarNovoGrupoDePedidos(token, { items: orderData });
-      setModalTitle("Sucesso");
-      setModalMessage("Compra confirmada com sucesso!");
+      await criarNovoGrupoDePedidos(token, orderData);
+      setModalTitle("Pedido enviado!");
+      setModalMessage(
+        `Pedido confirmado${mesa ? ` para a mesa ${mesa}` : ""}. Total: ${total}€`
+      );
       setModalAction(() => () => {
-        handleClearCart();
+        dispatch(clearCart());
+        setMesa("");
         navigation.goBack();
       });
       setModalVisible(true);
     } catch (error) {
-      console.error("Erro ao criar grupo de pedidos:", error.message);
       setModalTitle("Erro");
-      setModalMessage("Erro ao confirmar a compra: " + error.message);
+      setModalMessage("Erro ao enviar o pedido: " + error.message);
       setModalAction(null);
       setModalVisible(true);
     }
   };
 
-  const handleCancel = () => {
-    setModalTitle("Cancelado");
-    setModalMessage("Compra cancelada!");
-    setModalAction(() => () => {
-      handleClearCart();
-      navigation.goBack();
-    });
-    setModalVisible(true);
-  };
-
-  const animateScaleIn = (scaleValue) => {
-    Animated.timing(scaleValue, {
-      toValue: 0.9,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const animateScaleOut = (scaleValue) => {
-    Animated.timing(scaleValue, {
-      toValue: 1,
-      duration: 100,
-      useNativeDriver: true,
-    }).start();
-  };
-
   const renderItem = ({ item }) => (
-    <Animated.View
+    <View
       style={[
-        styles.buttonAnimated,
-        {
-          transform: [{ scale: scaleValues[item.id] || new Animated.Value(1) }],
-        },
+        styles.itemContainer,
+        { backgroundColor: COLORS.secondary, borderColor: COLORS.neutral },
       ]}
     >
-      <View
-        style={[
-          styles.itemContainer,
-          { backgroundColor: COLORS.secondary, borderColor: COLORS.neutral },
-        ]}
-      >
-        <Pressable
-          style={styles.button}
-          onPressIn={() => animateScaleIn(scaleValues[item.id])}
-          onPressOut={() => animateScaleOut(scaleValues[item.id])}
-        >
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={[styles.cardTitle, { color: COLORS.text }]}>
-                {item.nome}
-              </Text>
-              <View style={styles.cardActions}>
-                <Pressable
-                  style={styles.incrementButton}
-                  onPress={() => handleIncrement(item.id)}
-                >
-                  <Ionicons
-                    name="add-circle-outline"
-                    size={30}
-                    color={COLORS.accent}
-                  />
-                </Pressable>
-                <Text style={[styles.itemQuantity, { color: COLORS.text }]}>
-                  {item.quantity}
-                </Text>
-
-                <Pressable
-                  style={styles.decrementButton}
-                  onPress={() => handleDecrement(item.id)}
-                >
-                  <Ionicons
-                    name="remove-circle-outline"
-                    size={30}
-                    color={COLORS.accent}
-                  />
-                </Pressable>
-              </View>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={[styles.cardTitle, { color: COLORS.text }]} numberOfLines={1}>
+            {item.nome}
+          </Text>
+          <View style={styles.cardActions}>
+            <Pressable onPress={() => handleDecrement(item.id)} style={styles.actionBtn}>
+              <Ionicons name="remove-circle-outline" size={28} color={COLORS.accent} />
+            </Pressable>
+            <Text style={[styles.itemQuantity, { color: COLORS.text }]}>{item.quantity}</Text>
+            <Pressable onPress={() => handleIncrement(item.id)} style={styles.actionBtn}>
+              <Ionicons name="add-circle-outline" size={28} color={COLORS.accent} />
+            </Pressable>
           </View>
-            <Text style={[styles.cardDetail, { color: COLORS.text }]}>
-              Preço: {item.preco}€
-            </Text>
-          </View>
-        </Pressable>
+        </View>
+        <Text style={[styles.cardDetail, { color: COLORS.text }]}>
+          {(parseFloat(item.preco) * item.quantity).toFixed(2)}€
+          <Text style={styles.unitPrice}> ({parseFloat(item.preco).toFixed(2)}€ cada)</Text>
+        </Text>
       </View>
-    </Animated.View>
+    </View>
   );
 
   return (
     <View style={[styles.container, { backgroundColor: COLORS.primary }]}>
       <View style={[styles.header, { borderBottomColor: COLORS.neutral }]}>
-        <Pressable
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="return-down-back" size={24} color={COLORS.accent} />
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={COLORS.accent} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: COLORS.text }]}>
-          Carrinho
-        </Text>
+        <Text style={[styles.headerTitle, { color: COLORS.text }]}>Carrinho</Text>
+        {cartItems.length > 0 && (
+          <Pressable onPress={() => dispatch(clearCart())} style={styles.clearBtn}>
+            <Ionicons name="trash-outline" size={22} color={COLORS.accent} />
+          </Pressable>
+        )}
       </View>
 
       <FlatList
         data={cartItems}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Ionicons name="cart-outline" size={64} color={COLORS.neutral} />
+            <Text style={[styles.emptyText, { color: COLORS.text }]}>Carrinho vazio</Text>
+          </View>
+        }
       />
-      <View style={[styles.footer, { borderTopColor: COLORS.neutral }]}>
-        <Text style={[styles.footerButtonText, { color: COLORS.text }]}>
-          Total:{" "}
-          {cartItems.reduce((acc, item) => acc + item.preco * item.quantity, 0)}
-          €
-        </Text>
-      </View>
 
       <View style={[styles.footer, { borderTopColor: COLORS.neutral }]}>
-        <Pressable
-          style={[
-            styles.footerButton,
-            { backgroundColor: COLORS.accent, borderColor: COLORS.neutral },
-          ]}
-          onPress={handleConfirm}
-        >
-          <Text style={[styles.footerButtonText, { color: COLORS.primary }]}>
-            Confirmar
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[
-            styles.footerButton,
-            { backgroundColor: COLORS.neutral, borderColor: COLORS.accent },
-          ]}
-          onPress={handleCancel}
-        >
-          <Text style={[styles.footerButtonText, { color: COLORS.text }]}>
-            Cancelar
-          </Text>
-        </Pressable>
+        <View style={[styles.mesaRow, { borderColor: COLORS.neutral, backgroundColor: COLORS.secondary }]}>
+          <Ionicons name="restaurant-outline" size={20} color={COLORS.text} />
+          <TextInput
+            style={[styles.mesaInput, { color: COLORS.text }]}
+            placeholder="Nº mesa (opcional)"
+            placeholderTextColor={COLORS.neutral}
+            keyboardType="numeric"
+            value={mesa}
+            onChangeText={setMesa}
+            maxLength={3}
+          />
+        </View>
+
+        <View style={styles.totalRow}>
+          <Text style={[styles.totalLabel, { color: COLORS.text }]}>Total</Text>
+          <Text style={[styles.totalValue, { color: COLORS.accent }]}>{total}€</Text>
+        </View>
+
+        <Animated.View style={{ transform: [{ scale: scaleValue }], width: "100%" }}>
+          <Pressable
+            style={[styles.confirmBtn, { backgroundColor: COLORS.accent }]}
+            onPress={handleConfirm}
+          >
+            <Ionicons name="checkmark-circle-outline" size={22} color={COLORS.primary} />
+            <Text style={[styles.confirmBtnText, { color: COLORS.primary }]}>
+              Confirmar Pedido
+            </Text>
+          </Pressable>
+        </Animated.View>
       </View>
 
       <CustomAlertModal
         visible={modalVisible}
         onClose={() => {
           setModalVisible(false);
-          if (modalAction) {
-            modalAction();
-          }
+          if (modalAction) modalAction();
         }}
         title={modalTitle}
         message={modalMessage}
@@ -252,101 +194,127 @@ const CartScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: wp("1%"),
-    paddingTop: hp("10%"),
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: wp("4%"),
     paddingVertical: hp("2%"),
+    paddingTop: hp("6%"),
     borderBottomWidth: 1,
-    marginTop: hp("-6%"),
   },
   backButton: {
-    marginRight: wp("2%"),
+    marginRight: wp("3%"),
+  },
+  clearBtn: {
+    marginLeft: "auto",
   },
   headerTitle: {
     fontSize: wp("5%"),
     fontWeight: "bold",
-    marginLeft: wp("2%"),
+    flex: 1,
   },
   itemContainer: {
     borderRadius: wp("2%"),
     borderWidth: 1,
-    padding: wp("2.5%"),
-    marginTop: wp("2.5%"),
-    marginBottom: wp("2.5%"),
+    marginHorizontal: wp("4%"),
+    marginTop: hp("1.5%"),
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: hp("0.25%"),
-    },
-    shadowOpacity: 0.23,
-    shadowRadius: wp("1%"),
-    elevation: 3,
-    marginLeft: wp("4%"),
-    marginRight: wp("4%"),
-  },
-  button: {
-    width: "100%",
-    borderRadius: wp("6%"),
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   card: {
-    width: "100%",
-    borderRadius: wp("2%"),
-    padding: wp("3.75%"),
+    padding: wp("4%"),
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: wp("2.5%"),
+    marginBottom: hp("0.5%"),
   },
   cardTitle: {
-    fontSize: wp("3.85%"),
-    fontWeight: "bold",
-    flex: 1,
-  },
-  cardDetail: {
-    fontSize: wp("3.38%"),
-    marginBottom: wp("1.25%"),
-  },
-  incrementButton: {
-    padding: wp("2%"),
-    borderRadius: wp("2%"),
-    marginLeft: wp("2.5%"),
-  },
-  decrementButton: {
-    padding: wp("2%"),
-    borderRadius: wp("2%"),
-  },
-  itemQuantity: {
-    alignSelf: "center",
     fontSize: wp("4%"),
     fontWeight: "bold",
-    marginHorizontal: wp("2.5%"),
+    flex: 1,
+    marginRight: wp("2%"),
+  },
+  cardDetail: {
+    fontSize: wp("3.5%"),
+    marginTop: hp("0.5%"),
+  },
+  unitPrice: {
+    fontSize: wp("3%"),
+    opacity: 0.6,
   },
   cardActions: {
     flexDirection: "row",
+    alignItems: "center",
+  },
+  actionBtn: {
+    padding: wp("1%"),
+  },
+  itemQuantity: {
+    fontSize: wp("4.5%"),
+    fontWeight: "bold",
+    marginHorizontal: wp("2%"),
+    minWidth: wp("6%"),
+    textAlign: "center",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: hp("15%"),
+    gap: hp("2%"),
+  },
+  emptyText: {
+    fontSize: wp("4.5%"),
+    opacity: 0.5,
   },
   footer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
     padding: wp("4%"),
     borderTopWidth: 1,
+    gap: hp("1.5%"),
   },
-  footerButton: {
-    borderRadius: wp("2%"),
+  mesaRow: {
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    padding: wp("2.5%"),
+    borderRadius: wp("2%"),
+    paddingHorizontal: wp("3%"),
+    paddingVertical: hp("1%"),
+    gap: wp("2%"),
   },
-  footerButtonText: {
-    fontWeight: "bold",
+  mesaInput: {
+    flex: 1,
     fontSize: wp("4%"),
   },
-  buttonAnimated: {
-    width: "100%",
+  totalRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  totalLabel: {
+    fontSize: wp("4.5%"),
+    fontWeight: "600",
+  },
+  totalValue: {
+    fontSize: wp("6%"),
+    fontWeight: "bold",
+  },
+  confirmBtn: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: wp("3%"),
+    paddingVertical: hp("2%"),
+    gap: wp("2%"),
+  },
+  confirmBtnText: {
+    fontSize: wp("4.5%"),
+    fontWeight: "bold",
   },
 });
 

@@ -1,40 +1,63 @@
 const express = require("express");
 const router = express.Router();
+const { Op } = require("sequelize");
 const Ingredientes = require("../models/Ingredientes");
 const authenticateToken = require("../middleWare/authMiddleware");
+const { requireAdmin } = require("../middleWare/authMiddleware");
 
 module.exports = (io) => {
   /**
    * @swagger
-   * components:
-   *   schemas:
-   *     Ingrediente:
-   *       type: object
-   *       required:
-   *         - nome
-   *         - quantidade
-   *         - unidade
-   *       properties:
-   *         id:
-   *           type: integer
-   *           description: ID do Ingrediente
-   *         nome:
-   *           type: string
-   *           description: Nome do Ingrediente
-   *         quantidade:
-   *           type: number
-   *           format: float
-   *           description: Quantidade do Ingrediente
-   *         unidade:
-   *           type: string
-   *           description: Unidade de medida do Ingrediente
+   * /api/ingredientes:
+   *   get:
+   *     summary: Lista todos os ingredientes
+   *     tags: [Ingredientes]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Lista de ingredientes
    */
+  router.get("/", authenticateToken, async (req, res) => {
+    try {
+      const ingredientes = await Ingredientes.findAll({ order: [["nome", "ASC"]] });
+      res.json(ingredientes);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  /**
+   * @swagger
+   * /api/ingredientes/stock-baixo:
+   *   get:
+   *     summary: Lista ingredientes com stock abaixo do mínimo
+   *     tags: [Ingredientes]
+   *     security:
+   *       - bearerAuth: []
+   *     responses:
+   *       200:
+   *         description: Ingredientes com stock baixo
+   */
+  router.get("/stock-baixo", authenticateToken, async (req, res) => {
+    try {
+      const ingredientes = await Ingredientes.findAll({
+        where: {
+          quantidade: { [Op.lte]: sequelize.col("quantidadeMinima") },
+          quantidadeMinima: { [Op.gt]: 0 },
+        },
+      });
+      res.json(ingredientes);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
 
   /**
    * @swagger
    * /api/ingredientes:
    *   post:
-   *     summary: Adiciona um novo ingrediente ao inventário
+   *     summary: Cria um novo ingrediente (requer admin)
    *     tags: [Ingredientes]
    *     security:
    *       - bearerAuth: []
@@ -44,10 +67,7 @@ module.exports = (io) => {
    *         application/json:
    *           schema:
    *             type: object
-   *             required:
-   *               - nome
-   *               - quantidade
-   *               - unidade
+   *             required: [nome, quantidade, unidade]
    *             properties:
    *               nome:
    *                 type: string
@@ -55,17 +75,21 @@ module.exports = (io) => {
    *                 type: number
    *               unidade:
    *                 type: string
+   *               quantidadeMinima:
+   *                 type: number
    *     responses:
    *       201:
    *         description: Ingrediente criado com sucesso
-   *       400:
-   *         description: Erro na criação do ingrediente
    */
-  router.post("/", authenticateToken, async (req, res) => {
-    const { nome, quantidade, unidade } = req.body;
-
+  router.post("/", authenticateToken, requireAdmin, async (req, res) => {
+    const { nome, quantidade, unidade, quantidadeMinima } = req.body;
     try {
-      const novoIngrediente = await Ingredientes.create({ nome, quantidade, unidade });
+      const novoIngrediente = await Ingredientes.create({
+        nome,
+        quantidade,
+        unidade,
+        quantidadeMinima: quantidadeMinima || 0,
+      });
       io.emit("ingredienteCreated", novoIngrediente);
       res.status(201).json(novoIngrediente);
     } catch (error) {
@@ -75,37 +99,9 @@ module.exports = (io) => {
 
   /**
    * @swagger
-   * /api/ingredientes:
-   *   get:
-   *     summary: Retorna todos os ingredientes do inventário
-   *     tags: [Ingredientes]
-   *     responses:
-   *       200:
-   *         description: Lista de ingredientes
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: array
-   *               items:
-   *                 $ref: '#/components/schemas/Ingrediente'
-   *       500:
-   *         description: Erro no servidor
-   */
-  router.get("/", async (req, res) => {
-    try {
-      const ingredientes = await Ingredientes.findAll();
-      io.emit("getIngredientes", ingredientes);
-      res.json(ingredientes);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  /**
-   * @swagger
    * /api/ingredientes/{id}:
    *   put:
-   *     summary: Atualiza um ingrediente do inventário
+   *     summary: Atualiza um ingrediente (requer admin)
    *     tags: [Ingredientes]
    *     security:
    *       - bearerAuth: []
@@ -113,7 +109,6 @@ module.exports = (io) => {
    *       - in: path
    *         name: id
    *         required: true
-   *         description: ID do ingrediente
    *         schema:
    *           type: integer
    *     requestBody:
@@ -129,24 +124,23 @@ module.exports = (io) => {
    *                 type: number
    *               unidade:
    *                 type: string
+   *               quantidadeMinima:
+   *                 type: number
    *     responses:
    *       200:
    *         description: Ingrediente atualizado com sucesso
    *       404:
    *         description: Ingrediente não encontrado
    */
-  router.put("/:id", authenticateToken, async (req, res) => {
-    const { nome, quantidade, unidade } = req.body;
-
+  router.put("/:id", authenticateToken, requireAdmin, async (req, res) => {
+    const { nome, quantidade, unidade, quantidadeMinima } = req.body;
     try {
       const ingrediente = await Ingredientes.findByPk(req.params.id);
-      if (ingrediente) {
-        await ingrediente.update({ nome, quantidade, unidade });
-        io.emit("ingredienteUpdated", ingrediente);
-        res.json(ingrediente);
-      } else {
-        res.status(404).json({ message: "Ingrediente não encontrado" });
-      }
+      if (!ingrediente) return res.status(404).json({ message: "Ingrediente não encontrado" });
+
+      await ingrediente.update({ nome, quantidade, unidade, quantidadeMinima });
+      io.emit("ingredienteUpdated", ingrediente);
+      res.json(ingrediente);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -156,7 +150,7 @@ module.exports = (io) => {
    * @swagger
    * /api/ingredientes/{id}:
    *   delete:
-   *     summary: Deleta um ingrediente do inventário
+   *     summary: Elimina um ingrediente (requer admin)
    *     tags: [Ingredientes]
    *     security:
    *       - bearerAuth: []
@@ -164,25 +158,22 @@ module.exports = (io) => {
    *       - in: path
    *         name: id
    *         required: true
-   *         description: ID do ingrediente
    *         schema:
    *           type: integer
    *     responses:
    *       200:
-   *         description: Ingrediente deletado com sucesso
+   *         description: Ingrediente eliminado com sucesso
    *       404:
    *         description: Ingrediente não encontrado
    */
-  router.delete("/:id", authenticateToken, async (req, res) => {
+  router.delete("/:id", authenticateToken, requireAdmin, async (req, res) => {
     try {
       const ingrediente = await Ingredientes.findByPk(req.params.id);
-      if (ingrediente) {
-        await ingrediente.destroy();
-        io.emit("ingredienteDeleted", ingrediente);
-        res.json({ message: "Ingrediente deletado com sucesso" });
-      } else {
-        res.status(404).json({ message: "Ingrediente não encontrado" });
-      }
+      if (!ingrediente) return res.status(404).json({ message: "Ingrediente não encontrado" });
+
+      await ingrediente.destroy();
+      io.emit("ingredienteDeleted", { id: req.params.id });
+      res.json({ message: "Ingrediente eliminado com sucesso" });
     } catch (error) {
       res.status(500).json({ message: error.message });
     }

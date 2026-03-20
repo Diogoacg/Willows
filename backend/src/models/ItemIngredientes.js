@@ -1,22 +1,23 @@
-// models/ItemIngredient.js
-const { Sequelize, DataTypes } = require("sequelize");
+const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const ItemIngredientes = sequelize.define(
+const ItemIngredient = sequelize.define(
   "ItemIngredient",
   {
-    itemNome: {
-      type: DataTypes.STRING,
+    itemId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
         model: "Items",
-        key: "nome",
+        key: "id",
       },
     },
-    ingredienteNome: {
-      type: DataTypes.STRING,
+    ingredienteId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
         model: "Ingredientes",
-        key: "nome",
+        key: "id",
       },
     },
     quantidade: {
@@ -29,4 +30,4 @@ const ItemIngredientes = sequelize.define(
   }
 );
 
-module.exports = ItemIngredientes
+module.exports = ItemIngredient;

@@ -22,6 +22,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import io from "socket.io-client";
+import { REACT_APP_SOCKET_URL } from "@env";
 import CustomAlertModal from "../components/CustomAlertModal";
 
 const StatsScreen = ({ navigation }) => {
@@ -77,8 +78,7 @@ const StatsScreen = ({ navigation }) => {
   useEffect(() => {
     fetchData();
 
-    // const socket = io("https://willows-production.up.railway.app");
-    const socket = io("http://localhost:5000");
+    const socket = io(REACT_APP_SOCKET_URL || "http://localhost:5000");
 
     socket.on("orderGroupCreated", fetchData);
     socket.on("orderGroupDeleted", fetchData);
@@ -98,16 +98,12 @@ const StatsScreen = ({ navigation }) => {
     );
   }
 
-  const doughnutData = (data.ordersPerItem || []).slice(0, 5).concat(
-    (data.ordersPerItem || []).slice(5).reduce(
-      (acc, item) => ({
-        itemId: "0",
-        itemName: "Outros",
-        totalOrders: (acc.totalOrders || 0) + item.totalOrders,
-      }),
-      {}
-    )
-  );
+  const top5 = (data.ordersPerItem || []).slice(0, 5);
+  const outros = (data.ordersPerItem || []).slice(5);
+  const outrosTotal = outros.reduce((acc, item) => acc + (item.totalVendido || 0), 0);
+  const doughnutData = outrosTotal > 0
+    ? [...top5, { itemId: "0", itemName: "Outros", totalVendido: outrosTotal }]
+    : top5;
 
   const top3Users = data.rankingUsers.slice(0, 3);
 
@@ -152,15 +148,15 @@ const StatsScreen = ({ navigation }) => {
         <View style={styles.cardsContainer}>
           <Card
             title="Lucro Diário"
-            value={data.profitPerUser?.dailyProfit?.toFixed(2) + "€"}
+            value={(parseFloat(data.profitPerUser?.dailyProfit || 0)).toFixed(2) + "€"}
           />
           <Card
             title="Lucro Semanal"
-            value={data.profitPerUser?.weeklyProfit?.toFixed(2) + "€"}
+            value={(parseFloat(data.profitPerUser?.weeklyProfit || 0)).toFixed(2) + "€"}
           />
           <Card
             title="Lucro Mensal"
-            value={data.profitPerUser?.monthlyProfit?.toFixed(2) + "€"}
+            value={(parseFloat(data.profitPerUser?.monthlyProfit || 0)).toFixed(2) + "€"}
           />
         </View>
         <View
